@@ -1,0 +1,21 @@
+# Build outputs
+**/bin/
+**/obj/
+bin_alt/
+bin_temp/
+bin_temp_verify/
+obj_temp/
+Artifacts/
+
+# Local tooling outputs
+.tools/
+
+# Visual Studio user/local files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Runtime logs
+*.log

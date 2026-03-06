@@ -1,0 +1,2 @@
+make sure when you create a design always make it in the designer.
+make sure to put the controllers in the controllers folder.

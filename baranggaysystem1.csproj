@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.105.0" />
+    <PackageReference Include="FontAwesome.Sharp" Version="6.6.0" />
+    <PackageReference Include="MySql.Data" Version="9.6.0" />
+    <PackageReference Include="QRCoder" Version="1.7.0" />
+    <PackageReference Include="QuestPDF" Version="2026.2.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
+    <PackageReference Include="System.Windows.Forms.DataVisualization" Version="1.0.0-prerelease.20110.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Database\\migrations\\*.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="recovered\**\*.cs" />
+    <Compile Remove="recovered_backup\**\*.cs" />
+    <Compile Remove="recovered*\**\*.cs" />
+    <Compile Remove="obj_temp\**\*.cs" />
+    <Compile Remove="bin_temp\**\*.cs" />
+    <Compile Remove="bin_alt\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="Forms\ResidentModuleControl.Logic.resx" />
+    <EmbeddedResource Remove="Controllers\EllieAssistant.Controller.resx" />
+    <None Include="Forms\ResidentModuleControl.Logic.resx" />
+    <None Include="Controllers\EllieAssistant.Controller.resx" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,26 @@
+Schema snapshot (2026-02-11)
+Database: barangay_system
+Source of truth: Database/migrations/20260211_new_schema.sql
+
+Tables:
+- barangay
+- purok_sitio
+- household
+- resident (includes photo LONGBLOB for app compatibility)
+- role
+- user_account (includes first/middle/last name, position/department/last_project, photo_url)
+- user_role
+- official_term
+- barangay_official
+- document_type
+- document_request (includes document_no, fee, or_number, business_name, business_nature, print_count, last_printed_at)
+- document_payment
+- document_release_log
+- case_type
+- case_record (includes complainant/respondent fields, incident details, AI analysis columns)
+- case_party
+- case_hearing
+- case_resolution
+- case_attachment
+- certificate_audit (legacy)
+- activity_log (legacy)

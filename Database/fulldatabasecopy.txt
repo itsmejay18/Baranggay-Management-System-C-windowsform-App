@@ -1,0 +1,400 @@
+Table: activity_log
+Columns:
+log_id int AI PK 
+resident_id int 
+module varchar(40) 
+action varchar(50) 
+details varchar(255) 
+action_by int
+Table: activity_log
+Columns:
+log_id int AI PK 
+resident_id int 
+module varchar(40) 
+action varchar(50) 
+details varchar(255) 
+action_by int
+Table: activity_log
+Columns:
+log_id int AI PK 
+resident_id int 
+module varchar(40) 
+action varchar(50) 
+details varchar(255) 
+action_by int
+Table: backup_run
+Columns:
+backup_run_id int AI PK 
+started_at datetime 
+ended_at datetime 
+status enum('RUNNING','SUCCESS','FAILED') 
+file_path varchar(500) 
+file_size_bytes bigint 
+error_message text 
+created_by_user_id int
+Table: barangay
+Columns:
+barangay_id int AI PK 
+name varchar(150) 
+city_municipality varchar(150) 
+province varchar(150) 
+region varchar(150) 
+address_line varchar(255) 
+contact_no varchar(50) 
+email varchar(150) 
+logo_url varchar(255) 
+created_at timestamp 
+updated_at timestamp
+    Table: barangay_official
+Columns:
+official_id int AI PK 
+term_id int 
+resident_id int 
+position varchar(150) 
+committee varchar(150) 
+status enum('ACTIVE','INACTIVE')
+Table: case_attachment
+Columns:
+attachment_id int AI PK 
+case_id int 
+file_url varchar(255) 
+file_name varchar(150) 
+uploaded_by_user_id int 
+uploaded_at datetime
+Table: case_hearing
+Columns:
+hearing_id int AI PK 
+case_id int 
+schedule_at datetime 
+venue varchar(150) 
+status enum('SCHEDULED','DONE','RESET','CANCELLED') 
+minutes text 
+result text 
+created_by_user_id int
+Table: case_party
+Columns:
+case_party_id int AI PK 
+case_id int 
+resident_id int 
+full_name varchar(150) 
+address varchar(255) 
+contact_no varchar(50) 
+party_role enum('COMPLAINANT','RESPONDENT','WITNESS')
+Table: case_record
+Columns:
+case_id int AI PK 
+barangay_id int 
+case_type_id int 
+case_no varchar(50) 
+date_filed date 
+incident_date date 
+incident_location varchar(255) 
+summary text 
+status enum('OPEN','ONGOING','SETTLED','REFERRED','CLOSED') 
+handled_by_user_id int 
+created_at timestamp 
+updated_at timestamp 
+complainant_id int 
+respondent_resident_id int 
+respondent_name varchar(255) 
+incident_type varchar(100) 
+incident_time time 
+witness_names text 
+action_taken text 
+resolution_details text 
+incident_details text 
+recorded_by int 
+ai_summary text 
+ai_key_points text 
+ai_category varchar(150) 
+ai_category_confidence decimal(5,4) 
+ai_risk_level varchar(20) 
+ai_risk_score int 
+ai_risk_reasons text 
+ai_entities text 
+ai_recommended_next_action text 
+ai_model varchar(100) 
+ai_processed_at datetime 
+referral_destination varchar(255) 
+closure_notes text 
+closed_at datetime 
+closed_by_user_id int
+Table: case_resolution
+Columns:
+resolution_id int AI PK 
+case_id int 
+resolution_date date 
+outcome varchar(150) 
+details text 
+signed_by_official_id int
+Table: case_timeline
+Columns:
+timeline_id int AI PK 
+case_id int 
+event_type varchar(50) 
+event_title varchar(150) 
+event_details text 
+from_status varchar(30) 
+to_status varchar(30) 
+created_at datetime 
+created_by_user_id int
+Table: case_type
+Columns:
+case_type_id int AI PK 
+name varchar(150)
+Table: certificate_audit
+Columns:
+audit_id int AI PK 
+certificate_id int 
+action varchar(50) 
+action_by int 
+action_at datetime 
+notes varchar(255)
+Table: document_number_sequence
+Columns:
+doc_type_id int PK 
+year int PK 
+last_no int 
+updated_at datetime
+Table: document_payment
+Columns:
+payment_id int AI PK 
+doc_request_id int 
+amount decimal(10,2) 
+or_no varchar(100) 
+payment_method enum('Cash','GCash','Bank') 
+paid_at datetime 
+received_by_user_id int
+Table: document_release_log
+Columns:
+release_log_id int AI PK 
+doc_request_id int 
+action enum('PRINTED','RELEASED','REPRINTED') 
+user_id int 
+timestamp datetime 
+notes varchar(255)
+Table: document_request
+Columns:
+doc_request_id int AI PK 
+barangay_id int 
+doc_type_id int 
+resident_id int 
+purpose varchar(255) 
+status enum('DRAFT','SUBMITTED','APPROVED','RELEASED','REJECTED','CANCELLED') 
+requested_at datetime 
+approved_at datetime 
+released_at datetime 
+requested_by_user_id int 
+approved_by_user_id int 
+released_by_user_id int 
+remarks text 
+document_no varchar(50) 
+fee decimal(10,2) 
+or_number varchar(100) 
+business_name varchar(255) 
+business_nature varchar(255) 
+print_count int 
+last_printed_at datetime 
+verification_token varchar(32) 
+verification_token_created_at datetime 
+expires_at datetime 
+renewed_from_request_id int 
+renewal_notified_at datetime 
+release_notified_at datetime
+Table: document_type
+Columns:
+doc_type_id int AI PK 
+name varchar(150) 
+code varchar(50) 
+template_path varchar(255) 
+template_html text 
+fee_default decimal(10,2) 
+validity_days int 
+requires_approval tinyint(1) 
+renewal_reminder_days int
+Table: household
+Columns:
+household_id int AI PK 
+barangay_id int 
+purok_id int 
+house_no varchar(50) 
+street varchar(150) 
+subdivision varchar(150) 
+address_note varchar(255) 
+latitude decimal(10,8) 
+longitude decimal(11,8) 
+created_at timestamp 
+updated_at timestamp
+Table: official_term
+Columns:
+term_id int AI PK 
+barangay_id int 
+term_start date 
+term_end date 
+notes varchar(255)
+Table: outbound_notification
+Columns:
+notification_id bigint AI PK 
+dedupe_key varchar(160) 
+channel enum('SMS','EMAIL') 
+recipient varchar(200) 
+subject varchar(180) 
+message text 
+status enum('PENDING','SENT','FAILED','SKIPPED') 
+source_module varchar(40) 
+source_record_id int 
+template_key varchar(80) 
+scheduled_at datetime 
+sent_at datetime 
+attempts int 
+last_error varchar(500) 
+created_by_user_id int 
+created_at datetime 
+updated_at datetime
+Table: outbound_notification_attempt
+Columns:
+attempt_id bigint AI PK 
+notification_id bigint 
+attempt_no int 
+attempted_at datetime 
+success tinyint(1) 
+response_code varchar(64) 
+response_message varchar(500)
+Table: projects
+Columns:
+project_id int AI PK 
+name varchar(150) 
+status enum('Planned','Ongoing','On hold','Completed') 
+budget decimal(12,2) 
+start_date date 
+end_date date 
+lead varchar(100) 
+remarks text 
+created_at datetime
+Table: purok_sitio
+Columns:
+purok_id int AI PK 
+barangay_id int 
+name varchar(150) 
+type enum('PUROK','SITIO') 
+created_at timestamp 
+updated_at timestamp 
+latitude decimal(10,8) 
+longitude decimal(11,8)
+Table: record_attachment
+Columns:
+attachment_id bigint AI PK 
+entity_type enum('RESIDENT','CASE','CERTIFICATE') 
+entity_id int 
+file_name varchar(255) 
+file_ext varchar(20) 
+mime_type varchar(120) 
+file_size_bytes bigint 
+file_hash char(64) 
+file_blob longblob 
+notes varchar(255) 
+uploaded_by_user_id int 
+uploaded_at datetime
+Table: resident
+Columns:
+resident_id int AI PK 
+barangay_id int 
+household_id int 
+purok_id int 
+last_name varchar(100) 
+first_name varchar(100) 
+middle_name varchar(100) 
+suffix varchar(20) 
+sex enum('M','F') 
+birth_date date 
+birth_place varchar(150) 
+civil_status enum('Single','Married','Widowed','Separated') 
+citizenship varchar(100) 
+religion varchar(100) 
+contact_no varchar(50) 
+email varchar(150) 
+occupation varchar(150) 
+employer varchar(150) 
+education_level varchar(100) 
+is_pwd tinyint(1) 
+pwd_id_no varchar(100) 
+is_senior tinyint(1) 
+is_4ps_beneficiary tinyint(1) 
+is_registered_voter tinyint(1) 
+voter_precinct_no varchar(50) 
+status enum('ACTIVE','DECEASED','MOVED_OUT') 
+date_registered date 
+photo_url varchar(255) 
+created_at timestamp 
+updated_at timestamp 
+photo longblob 
+is_deleted tinyint(1) 
+deleted_at datetime 
+deleted_by_user_id int 
+delete_reason varchar(255)
+Table: resident_alias
+Columns:
+alias_id int AI PK 
+resident_id int 
+alias_name varchar(150)
+Table: resident_relationship
+Columns:
+relationship_id int AI PK 
+resident_id int 
+related_resident_id int 
+relation_type enum('Parent','Child','Spouse','Guardian','Sibling','Other') 
+notes varchar(255)
+Table: resident_transfer_history
+Columns:
+transfer_id bigint AI PK 
+resident_id int 
+old_purok_id int 
+old_household_id int 
+old_address varchar(255) 
+new_purok_id int 
+new_household_id int 
+new_address varchar(255) 
+transfer_reason varchar(255) 
+transferred_by_user_id int 
+transferred_at datetime
+Table: role
+Columns:
+role_id int AI PK 
+name varchar(100) 
+description varchar(255)
+Table: role_permission
+Columns:
+role_id int PK 
+permission_key varchar(100) PK 
+is_allowed tinyint(1) 
+updated_at timestamp
+Table: schema_migrations
+Columns:
+migration_name varchar(255) PK 
+applied_at datetime
+Table: user_account
+Columns:
+user_id int AI PK 
+barangay_id int 
+username varchar(100) 
+password_hash varchar(255) 
+resident_id int 
+full_name varchar(150) 
+contact_no varchar(50) 
+email varchar(150) 
+is_active tinyint(1) 
+last_login_at datetime 
+created_at timestamp 
+updated_at timestamp 
+photo_url varchar(255) 
+first_name varchar(100) 
+middle_name varchar(100) 
+last_name varchar(100) 
+position varchar(100) 
+department varchar(100) 
+last_project varchar(255)
+Table: user_role
+Columns:
+user_role_id int AI PK 
+user_id int 
+role_id int
