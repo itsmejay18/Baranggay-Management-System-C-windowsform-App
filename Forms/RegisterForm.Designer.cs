@@ -299,7 +299,7 @@ namespace baranggaysystem1
             // 
             cmbRole.Dock = System.Windows.Forms.DockStyle.Fill;
             cmbRole.FormattingEnabled = true;
-            cmbRole.Items.AddRange(new object[] { "Admin", "Staff" });
+            cmbRole.Items.AddRange(new object[] { "Super Admin", "Admin", "Staff" });
             cmbRole.Location = new System.Drawing.Point(0, 179);
             cmbRole.Margin = new System.Windows.Forms.Padding(0, 0, 0, 16);
             cmbRole.Name = "cmbRole";

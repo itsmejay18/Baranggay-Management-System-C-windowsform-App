@@ -703,7 +703,7 @@ namespace baranggaysystem1
                         "FROM user_account ua " +
                         "LEFT JOIN user_role ur ON ur.user_id = ua.user_id " +
                         "LEFT JOIN role r ON r.role_id = ur.role_id " +
-                        "ORDER BY (r.name = 'Admin') DESC, ua.created_at DESC " +
+                        "ORDER BY (r.name = 'Super Admin') DESC, (r.name = 'Admin') DESC, ua.created_at DESC " +
                         "LIMIT 4");
 
                     var officials = new AdminDashboard.OfficialInfo[table.Rows.Count];
@@ -728,7 +728,7 @@ namespace baranggaysystem1
                         "FROM user_account ua " +
                         "LEFT JOIN user_role ur ON ur.user_id = ua.user_id " +
                         "LEFT JOIN role r ON r.role_id = ur.role_id " +
-                        "ORDER BY (r.name = 'Admin') DESC, ua.created_at DESC " +
+                        "ORDER BY (r.name = 'Super Admin') DESC, (r.name = 'Admin') DESC, ua.created_at DESC " +
                         "LIMIT 4");
 
                     var officials = new AdminDashboard.OfficialInfo[table.Rows.Count];

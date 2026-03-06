@@ -41,6 +41,16 @@ namespace baranggaysystem1
             };
             if (!isUiTest)
             {
+                if (Database.PackageInstallerService.NeedsInstaller())
+                {
+                    using var installer = new PackageInstallerForm();
+                    DialogResult setupResult = installer.ShowDialog();
+                    if (setupResult != DialogResult.OK)
+                    {
+                        return;
+                    }
+                }
+
                 try
                 {
                     Database.SchemaGuard.EnsureDatabaseReady();
@@ -81,7 +91,7 @@ namespace baranggaysystem1
                     MessageBox.Show(
                         "Database setup failed.\n\n" +
                         details +
-                        "\n\nTip: verify your MySQL credentials or set BARANGAY_DB_CONNECTION (use SslMode=Disabled).",
+                        "\n\nTip: verify your DB connection in Package Installer or set BARANGAY_DB_CONNECTION (use SslMode=Disabled).",
                         "Database Error",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error);

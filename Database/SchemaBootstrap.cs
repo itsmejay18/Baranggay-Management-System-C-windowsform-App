@@ -23,6 +23,7 @@ internal static class SchemaBootstrap
 
         using var roleCmd = new MySqlCommand(
             "INSERT INTO role (name, description) VALUES " +
+            "('Super Admin', 'Primary system owner')," +
             "('Admin', 'System administrator')," +
             "('Staff', 'Staff account') " +
             "ON DUPLICATE KEY UPDATE description = VALUES(description);",
@@ -70,6 +71,7 @@ internal static class SchemaBootstrap
             return;
         }
 
+        int superAdminRoleId = GetRoleId(conn, "Super Admin");
         int adminRoleId = GetRoleId(conn, "Admin");
         int staffRoleId = GetRoleId(conn, "Staff");
 
@@ -90,6 +92,7 @@ internal static class SchemaBootstrap
 
         foreach (string key in PermissionKeys.All)
         {
+            UpsertRolePermission(conn, superAdminRoleId, key, true);
             UpsertRolePermission(conn, adminRoleId, key, true);
             UpsertRolePermission(conn, staffRoleId, key, staffAllowed.Contains(key));
         }

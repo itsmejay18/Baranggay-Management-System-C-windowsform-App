@@ -153,7 +153,10 @@ internal static class UiVisualTestRunner
                   LEFT JOIN user_role ur ON ur.user_id = ua.user_id
                   LEFT JOIN role r ON r.role_id = ur.role_id
                   WHERE ua.is_active = 1
-                  ORDER BY (COALESCE(r.name, 'Staff') = 'Admin') DESC, ua.user_id ASC
+                  ORDER BY
+                    (COALESCE(r.name, 'Staff') = 'Super Admin') DESC,
+                    (COALESCE(r.name, 'Staff') = 'Admin') DESC,
+                    ua.user_id ASC
                   LIMIT 1",
                 conn);
 

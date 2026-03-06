@@ -17,7 +17,7 @@ namespace baranggaysystem1
 
         private void ApplyTheme()
         {
-            Text = "Staff/Admin List";
+            Text = "User List";
             StartPosition = FormStartPosition.CenterParent;
             MinimumSize = new Size(900, 600);
             BackColor = UiTheme.Slate50;

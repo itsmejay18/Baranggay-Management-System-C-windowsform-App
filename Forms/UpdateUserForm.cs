@@ -149,6 +149,10 @@ namespace baranggaysystem1
             txtPosition.Text = position;
             txtDepartment.Text = department;
             txtLastProject.Text = lastProject;
+            if (!string.IsNullOrWhiteSpace(role) && cmbRole.FindStringExact(role) < 0)
+            {
+                cmbRole.Items.Add(role);
+            }
             cmbRole.SelectedItem = role;
             chkActive.Checked = isActive;
             SetPhotoPath(photoPath);

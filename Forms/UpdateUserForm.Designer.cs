@@ -277,7 +277,7 @@ namespace baranggaysystem1
             cmbRole.Dock = DockStyle.Top;
             cmbRole.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbRole.FormattingEnabled = true;
-            cmbRole.Items.AddRange(new object[] { "Admin", "Staff" });
+            cmbRole.Items.AddRange(new object[] { "Super Admin", "Admin", "Staff" });
             cmbRole.Location = new Point(0, 24);
             cmbRole.Margin = new Padding(0);
             cmbRole.Name = "cmbRole";

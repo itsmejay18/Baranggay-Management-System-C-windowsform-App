@@ -32,7 +32,9 @@ namespace baranggaysystem1
                      WHERE ua.username=@username
                      AND ua.password_hash=@password
                      AND ua.is_active=1
-                     ORDER BY (r.name = 'Admin') DESC
+                     ORDER BY
+                        (r.name = 'Super Admin') DESC,
+                        (r.name = 'Admin') DESC
                      LIMIT 1";
 
                 using (MySqlConnection conn = DBConnection.GetConnection())
@@ -54,7 +56,8 @@ namespace baranggaysystem1
                         UserSession.Username = username;
                         Permissions.Refresh();
 
-                        if (UserSession.Role.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+                        if (UserSession.Role.Equals("Admin", StringComparison.OrdinalIgnoreCase)
+                            || UserSession.Role.Equals("Super Admin", StringComparison.OrdinalIgnoreCase))
                         {
                             AdminDashboard admin = new AdminDashboard();
                             admin.Show();

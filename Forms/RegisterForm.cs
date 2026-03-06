@@ -120,8 +120,8 @@ public partial class RegisterForm : Form
 		if (cmbRole.Items.Count > 0 && cmbRole.SelectedIndex < 0)
 
 		{
-
-			cmbRole.SelectedIndex = 0;
+			int staffIndex = cmbRole.FindStringExact("Staff");
+			cmbRole.SelectedIndex = staffIndex >= 0 ? staffIndex : 0;
 
 		}
 

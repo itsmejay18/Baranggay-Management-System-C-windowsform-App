@@ -78,7 +78,7 @@ namespace baranggaysystem1
             labelTitle.Name = "labelTitle";
             labelTitle.Size = new System.Drawing.Size(123, 15);
             labelTitle.TabIndex = 0;
-            labelTitle.Text = "Staff/Admin Directory";
+            labelTitle.Text = "User Directory";
             // 
             // filterRow
             // 
@@ -131,7 +131,7 @@ namespace baranggaysystem1
             // 
             cmbRole.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             cmbRole.FormattingEnabled = true;
-            cmbRole.Items.AddRange(new object[] { "All", "Admin", "Staff" });
+            cmbRole.Items.AddRange(new object[] { "All", "Super Admin", "Admin", "Staff" });
             cmbRole.Location = new System.Drawing.Point(342, 3);
             cmbRole.Margin = new System.Windows.Forms.Padding(0, 0, 18, 0);
             cmbRole.Name = "cmbRole";

@@ -12,7 +12,8 @@ namespace baranggaysystem1.helper
         private static Dictionary<string, bool> _grants = new(StringComparer.OrdinalIgnoreCase);
 
         public static bool IsAdmin =>
-            string.Equals(UserSession.Role, "Admin", StringComparison.OrdinalIgnoreCase);
+            string.Equals(UserSession.Role, "Admin", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(UserSession.Role, "Super Admin", StringComparison.OrdinalIgnoreCase);
 
         public static bool CanCreateResidents => Has(PermissionKeys.CreateResidents);
         public static bool CanUpdateResidents => Has(PermissionKeys.UpdateResidents);
