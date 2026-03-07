@@ -19,3 +19,8 @@ Artifacts/
 
 # Runtime logs
 *.log
+
+# Installer artifacts
+publish/
+downloads/
+installer.iss
