@@ -1,5 +1,5 @@
-CREATE DATABASE IF NOT EXISTS barangay_system;
-USE barangay_system;
+-- Use the currently connected database from DBConnection.
+-- Do not hardcode CREATE DATABASE / USE here so installer-configured DB names work.
 
 SET FOREIGN_KEY_CHECKS = 0;
 

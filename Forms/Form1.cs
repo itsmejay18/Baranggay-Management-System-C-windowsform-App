@@ -23,6 +23,9 @@ public partial class Form1 : Form
 	private System.Windows.Forms.Timer? _fadeTimer;
 	private readonly Form1Controller _controller;
 
+	internal event Action<Form>? LoginSucceeded;
+	internal event Action? RegisterRequested;
+
 
 	public Form1()
 	{
@@ -163,6 +166,16 @@ public partial class Form1 : Form
 
 		_fadeTimer.Start();
 
+	}
+
+	internal void CompleteLogin(Form destinationForm)
+	{
+		LoginSucceeded?.Invoke(destinationForm);
+	}
+
+	internal void OpenRegister()
+	{
+		RegisterRequested?.Invoke();
 	}
 
 

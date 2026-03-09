@@ -83,12 +83,12 @@ namespace baranggaysystem1
                 }
 
                 ControllerDialogs.Info("User registered successfully!");
+                _form.CompleteRegistration();
             }
 
             public void HandleBackToLogin()
             {
-                Form1 loginForm = new Form1();
-                loginForm.ShowDialog();
+                _form.ReturnToLogin();
             }
 
             public void HandleLoad()

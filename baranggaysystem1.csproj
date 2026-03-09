@@ -28,6 +28,7 @@
     <Compile Remove="recovered\**\*.cs" />
     <Compile Remove="recovered_backup\**\*.cs" />
     <Compile Remove="recovered*\**\*.cs" />
+    <Compile Remove="scripts\**\*.cs" />
     <Compile Remove="obj_temp\**\*.cs" />
     <Compile Remove="bin_temp\**\*.cs" />
     <Compile Remove="bin_alt\**\*.cs" />

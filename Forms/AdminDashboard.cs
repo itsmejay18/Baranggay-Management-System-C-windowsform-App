@@ -89,6 +89,7 @@ public partial class AdminDashboard : Form
     private readonly Label _schemaVersionLabel = new Label();
     private readonly Panel _backupStatusDot = new Panel();
     private readonly Label _backupStatusLabel = new Label();
+    private readonly ComboBox _backupModeCombo = new ComboBox();
     private readonly IconButton _backupNowButton = new IconButton();
     private readonly IconButton _backupOpenFolderButton = new IconButton();
     private readonly ToolTip _backupToolTip = new ToolTip();
@@ -972,14 +973,49 @@ public partial class AdminDashboard : Form
         _backupStatusLabel.Text = "Backup: --";
         _backupStatusLabel.Margin = new Padding(0, 3, 0, 0);
 
+        _backupModeCombo.DropDownStyle = ComboBoxStyle.DropDownList;
+        _backupModeCombo.FlatStyle = FlatStyle.Flat;
+        _backupModeCombo.Font = UiTheme.SmallFont;
+        _backupModeCombo.Width = 118;
+        _backupModeCombo.Margin = new Padding(8, 2, 0, 0);
+        _backupModeCombo.BackColor = Color.White;
+        _backupModeCombo.ForeColor = UiTheme.Slate700;
+        if (_backupModeCombo.Items.Count == 0)
+        {
+            _backupModeCombo.Items.AddRange(new object[]
+            {
+                "Full",
+                "Incremental",
+                "Differential"
+            });
+        }
+        if (_backupModeCombo.SelectedIndex < 0)
+        {
+            _backupModeCombo.SelectedIndex = 0;
+        }
+
         ConfigureTopIconButton(_backupNowButton, IconChar.Database, 18);
         ConfigureTopIconButton(_backupOpenFolderButton, IconChar.FolderOpen, 18);
+
+        _backupNowButton.Text = "Backup now";
+        _backupNowButton.AutoSize = true;
+        _backupNowButton.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+        _backupNowButton.Padding = new Padding(8, 0, 10, 0);
+        _backupNowButton.TextImageRelation = TextImageRelation.ImageBeforeText;
+        _backupNowButton.ImageAlign = ContentAlignment.MiddleLeft;
+        _backupNowButton.TextAlign = ContentAlignment.MiddleCenter;
+        _backupNowButton.BackColor = Color.White;
+        _backupNowButton.ForeColor = UiTheme.Slate700;
+        _backupNowButton.FlatAppearance.BorderSize = 1;
+        _backupNowButton.FlatAppearance.BorderColor = Color.FromArgb(215, 223, 233);
+        _backupNowButton.TabStop = true;
 
         _backupNowButton.Margin = new Padding(8, 0, 0, 0);
         _backupOpenFolderButton.Margin = new Padding(2, 0, 0, 0);
 
         _backupToolTip.SetToolTip(_backupStatusLabel, "Shows the latest backup status.");
         _backupToolTip.SetToolTip(_schemaVersionLabel, "Version information");
+        _backupToolTip.SetToolTip(_backupModeCombo, "Choose backup mode: Full, Incremental, or Differential.");
         _backupToolTip.SetToolTip(_backupNowButton, "Backup now");
         _backupToolTip.SetToolTip(_backupOpenFolderButton, "Open backups folder");
 
@@ -993,6 +1029,7 @@ public partial class AdminDashboard : Form
             _backupStatusPanel.Controls.Add(_schemaVersionLabel);
             _backupStatusPanel.Controls.Add(_backupStatusDot);
             _backupStatusPanel.Controls.Add(_backupStatusLabel);
+            _backupStatusPanel.Controls.Add(_backupModeCombo);
             _backupStatusPanel.Controls.Add(_backupNowButton);
             _backupStatusPanel.Controls.Add(_backupOpenFolderButton);
         }
@@ -1049,8 +1086,18 @@ public partial class AdminDashboard : Form
  
      private void BackupNowButton_Click(object? sender, EventArgs e)
      {
-         _controller.RunBackupNow();
+         _controller.RunBackupNow(GetSelectedBackupMode());
      }
+
+    internal BackupMode GetSelectedBackupMode()
+    {
+        return _backupModeCombo.SelectedItem?.ToString() switch
+        {
+            "Incremental" => BackupMode.Incremental,
+            "Differential" => BackupMode.Differential,
+            _ => BackupMode.Full
+        };
+    }
  
      private void BackupOpenFolderButton_Click(object? sender, EventArgs e)
      {
@@ -3207,32 +3254,42 @@ public partial class AdminDashboard : Form
             _backupStatusLabel.Text = "Backup: --";
             _backupToolTip.SetToolTip(_backupStatusLabel, "No backups recorded yet.");
             _backupNowButton.Enabled = true;
+            _backupModeCombo.Enabled = true;
             return;
         }
 
         DateTime when = info.EndedAt ?? info.StartedAt;
         string whenText = when == DateTime.MinValue ? string.Empty : when.ToString("MMM d h:mm tt");
+        string modeText = info.Mode switch
+        {
+            BackupMode.Incremental => "Incremental",
+            BackupMode.Differential => "Differential",
+            _ => "Full"
+        };
 
         switch (info.State)
         {
             case BackupRunState.Running:
                 _backupStatusDot.BackColor = UiTheme.AccentAmber;
-                _backupStatusLabel.Text = "Backup: running...";
+                _backupStatusLabel.Text = $"Backup: {modeText} running...";
                 _backupNowButton.Enabled = false;
+                _backupModeCombo.Enabled = false;
                 break;
             case BackupRunState.Success:
                 _backupStatusDot.BackColor = UiTheme.AccentGreen;
                 _backupStatusLabel.Text = string.IsNullOrWhiteSpace(whenText)
-                    ? "Backup: OK"
-                    : $"Backup: OK ({whenText})";
+                    ? $"Backup: {modeText} OK"
+                    : $"Backup: {modeText} OK ({whenText})";
                 _backupNowButton.Enabled = true;
+                _backupModeCombo.Enabled = true;
                 break;
             case BackupRunState.Failed:
                 _backupStatusDot.BackColor = UiTheme.AccentRed;
                 _backupStatusLabel.Text = string.IsNullOrWhiteSpace(whenText)
-                    ? "Backup: FAILED"
-                    : $"Backup: FAILED ({whenText})";
+                    ? $"Backup: {modeText} FAILED"
+                    : $"Backup: {modeText} FAILED ({whenText})";
                 _backupNowButton.Enabled = true;
+                _backupModeCombo.Enabled = true;
                 break;
             default:
                 _backupStatusDot.BackColor = UiTheme.Slate300;
@@ -3240,6 +3297,7 @@ public partial class AdminDashboard : Form
                     ? "Backup: --"
                     : $"Backup: -- ({whenText})";
                 _backupNowButton.Enabled = true;
+                _backupModeCombo.Enabled = true;
                 break;
         }
 

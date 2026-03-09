@@ -2,7 +2,6 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using baranggaysystem1.Database;
-using baranggaysystem1.helper;
 
 namespace baranggaysystem1;
 
@@ -17,15 +16,26 @@ public sealed class PackageInstallerForm : Form
     private TextBox txtDbPassword = null!;
     private CheckBox chkUseSsl = null!;
     private Button btnTestConnection = null!;
-
-    private TextBox txtSuperAdminUsername = null!;
-    private TextBox txtSuperAdminPassword = null!;
-    private TextBox txtUserUsername = null!;
-    private TextBox txtUserPassword = null!;
-
-    private Label lblStatus = null!;
-    private Button btnInstall = null!;
     private Button btnCancel = null!;
+    private Panel headerPanel = null!;
+    private Panel modePanel = null!;
+    private Panel connectionPanel = null!;
+    private Panel statusPanel = null!;
+    private Label lblHeaderTitle = null!;
+    private Label lblHeaderSubtitle = null!;
+    private Label lblHeaderTip = null!;
+    private Label lblModeTitle = null!;
+    private Label lblConnectionTitle = null!;
+    private Label lblStatusTitle = null!;
+    private Label lblStatus = null!;
+
+    private enum StatusTone
+    {
+        Neutral,
+        Success,
+        Warning,
+        Error
+    }
 
     public PackageInstallerForm()
     {
@@ -36,84 +46,73 @@ public sealed class PackageInstallerForm : Form
 
     private void InitializeLayout()
     {
-        Text = "Package Installer";
+        Text = "Connect to Database";
         StartPosition = FormStartPosition.CenterScreen;
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
-        ShowInTaskbar = false;
-        MinimumSize = new Size(760, 640);
+        ShowInTaskbar = true;
+        ClientSize = new Size(980, 560);
+        MinimumSize = new Size(980, 560);
+        Shown += (_, _) => BringDialogToFront();
 
         var root = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
             ColumnCount = 1,
-            RowCount = 5,
-            Padding = new Padding(20)
+            RowCount = 4,
+            Padding = new Padding(24),
+            BackColor = Color.Transparent
         };
-        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         root.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
         root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         Controls.Add(root);
 
-        var headerTitle = new Label
-        {
-            Text = "Package Installer",
-            AutoSize = true,
-            Margin = new Padding(0, 0, 0, 4)
-        };
-        var headerSubtitle = new Label
-        {
-            Text = "Configure local/network database and create Super Admin + User starter accounts.",
-            AutoSize = true,
-            Margin = new Padding(0, 0, 0, 16)
-        };
-
-        var headerPanel = new Panel
-        {
-            Dock = DockStyle.Fill,
-            Height = 62
-        };
-        headerPanel.Controls.Add(headerTitle);
-        headerPanel.Controls.Add(headerSubtitle);
-        headerSubtitle.Top = 32;
+        headerPanel = BuildHeaderPanel();
+        headerPanel.Margin = new Padding(0, 0, 0, 18);
         root.Controls.Add(headerPanel, 0, 0);
 
-        var connectionGroup = BuildConnectionGroup();
-        connectionGroup.Margin = new Padding(0, 0, 0, 12);
-        root.Controls.Add(connectionGroup, 0, 1);
-
-        var accountGroup = BuildAccountGroup();
-        accountGroup.Margin = new Padding(0, 0, 0, 12);
-        root.Controls.Add(accountGroup, 0, 2);
-
-        lblStatus = new Label
+        var body = new TableLayoutPanel
         {
-            AutoSize = false,
             Dock = DockStyle.Fill,
-            Text = "Ready.",
-            TextAlign = ContentAlignment.TopLeft,
-            Padding = new Padding(8),
-            BorderStyle = BorderStyle.FixedSingle
+            ColumnCount = 2,
+            Margin = new Padding(0)
         };
-        root.Controls.Add(lblStatus, 0, 3);
+        body.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 28F));
+        body.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 72F));
+        body.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+
+        modePanel = BuildModePanel();
+        modePanel.Margin = new Padding(0, 0, 12, 0);
+        body.Controls.Add(modePanel, 0, 0);
+
+        connectionPanel = BuildConnectionPanel();
+        connectionPanel.Margin = new Padding(12, 0, 0, 0);
+        body.Controls.Add(connectionPanel, 1, 0);
+
+        root.Controls.Add(body, 0, 1);
+
+        statusPanel = BuildStatusPanel();
+        statusPanel.Margin = new Padding(0, 18, 0, 14);
+        root.Controls.Add(statusPanel, 0, 2);
 
         var actions = new FlowLayoutPanel
         {
             AutoSize = true,
             FlowDirection = FlowDirection.RightToLeft,
             Dock = DockStyle.Fill,
-            WrapContents = false
+            WrapContents = false,
+            Margin = new Padding(0)
         };
 
-        btnInstall = new Button
+        btnTestConnection = new Button
         {
-            Text = "Install",
+            Text = "Test && Continue",
             AutoSize = true
         };
-        btnInstall.Click += (_, _) => InstallPackage();
+        btnTestConnection.Click += (_, _) => TestConnection();
 
         btnCancel = new Button
         {
@@ -122,140 +121,285 @@ public sealed class PackageInstallerForm : Form
             DialogResult = DialogResult.Cancel
         };
 
-        actions.Controls.Add(btnInstall);
+        actions.Controls.Add(btnTestConnection);
         actions.Controls.Add(btnCancel);
-        root.Controls.Add(actions, 0, 4);
+        root.Controls.Add(actions, 0, 3);
 
-        AcceptButton = btnInstall;
+        AcceptButton = btnTestConnection;
         CancelButton = btnCancel;
     }
 
-    private Control BuildConnectionGroup()
+    private void BringDialogToFront()
     {
-        var group = new GroupBox
+        Activate();
+        BringToFront();
+        TopMost = true;
+
+        BeginInvoke(new Action(() =>
         {
-            Text = "Database Connection",
+            TopMost = false;
+            Activate();
+        }));
+    }
+
+    private Panel BuildHeaderPanel()
+    {
+        var panel = new Panel
+        {
             Dock = DockStyle.Fill,
-            AutoSize = true
+            Height = 118,
+            Padding = new Padding(24, 18, 24, 18)
         };
 
-        var layout = new TableLayoutPanel
+        var shell = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
+            ColumnCount = 1,
+            RowCount = 3,
+            BackColor = Color.Transparent
+        };
+        shell.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        shell.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        shell.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+
+        lblHeaderTitle = new Label
+        {
             AutoSize = true,
-            ColumnCount = 4,
-            Padding = new Padding(12)
+            Text = "Connect to your database",
+            Margin = new Padding(0, 0, 0, 6),
+            ForeColor = Color.White,
+            BackColor = Color.Transparent
         };
-        layout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-        layout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-        group.Controls.Add(layout);
 
-        radioLocal = new RadioButton { Text = "Local", AutoSize = true, Checked = true, Margin = new Padding(0, 6, 8, 6) };
-        radioNetwork = new RadioButton { Text = "Network", AutoSize = true, Margin = new Padding(0, 6, 8, 6) };
+        lblHeaderSubtitle = new Label
+        {
+            AutoSize = true,
+            Text = "Use your online Hostinger connection, test it, and continue directly to the login screen.",
+            Margin = new Padding(0, 0, 0, 10),
+            ForeColor = UiTheme.Slate300,
+            BackColor = Color.Transparent
+        };
+
+        lblHeaderTip = new Label
+        {
+            AutoSize = true,
+            Text = "Tip: for the current Hostinger setup, leave SSL unchecked unless you know the host requires it.",
+            ForeColor = Color.FromArgb(223, 229, 235),
+            BackColor = Color.Transparent
+        };
+
+        shell.Controls.Add(lblHeaderTitle, 0, 0);
+        shell.Controls.Add(lblHeaderSubtitle, 0, 1);
+        shell.Controls.Add(lblHeaderTip, 0, 2);
+        panel.Controls.Add(shell);
+        return panel;
+    }
+
+    private Panel BuildModePanel()
+    {
+        var panel = new Panel
+        {
+            Dock = DockStyle.Fill,
+            Padding = new Padding(18)
+        };
+
+        var shell = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 1,
+            RowCount = 5
+        };
+        shell.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        shell.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        shell.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        shell.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        shell.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+
+        lblModeTitle = new Label
+        {
+            Text = "Connection Type",
+            AutoSize = true,
+            Margin = new Padding(0, 0, 0, 8)
+        };
+
+        var lblSummary = new Label
+        {
+            AutoSize = true,
+            MaximumSize = new Size(220, 0),
+            Text = "Choose Network for Hostinger or Local if the database is running on this computer.",
+            Margin = new Padding(0, 0, 0, 14)
+        };
+
+        radioNetwork = new RadioButton
+        {
+            Text = "Network database",
+            AutoSize = true,
+            Margin = new Padding(0, 0, 0, 8)
+        };
+        radioLocal = new RadioButton
+        {
+            Text = "Local database",
+            AutoSize = true,
+            Margin = new Padding(0, 0, 0, 14)
+        };
         radioLocal.CheckedChanged += (_, _) => ApplyModeDefaults();
         radioNetwork.CheckedChanged += (_, _) => ApplyModeDefaults();
 
-        var modePanel = new FlowLayoutPanel
+        var lblModeHint = new Label
         {
             AutoSize = true,
-            FlowDirection = FlowDirection.LeftToRight,
-            WrapContents = false,
+            MaximumSize = new Size(220, 0),
+            Text = "The saved connection profile is reused the next time the app opens.",
             Margin = new Padding(0)
         };
-        modePanel.Controls.Add(radioLocal);
-        modePanel.Controls.Add(radioNetwork);
 
-        layout.Controls.Add(new Label { Text = "Mode", AutoSize = true, Margin = new Padding(0, 8, 8, 0) }, 0, 0);
-        layout.Controls.Add(modePanel, 1, 0);
-        layout.SetColumnSpan(modePanel, 3);
-
-        txtServer = new TextBox { Dock = DockStyle.Fill };
-        txtPort = new TextBox { Dock = DockStyle.Fill };
-        txtDatabase = new TextBox { Dock = DockStyle.Fill };
-        txtDbUser = new TextBox { Dock = DockStyle.Fill };
-        txtDbPassword = new TextBox { Dock = DockStyle.Fill, UseSystemPasswordChar = true };
-        chkUseSsl = new CheckBox { Text = "Use SSL", AutoSize = true };
-        btnTestConnection = new Button { Text = "Test Connection", AutoSize = true };
-        btnTestConnection.Click += (_, _) => TestConnection();
-
-        AddLabeledControl(layout, 0, "Server", txtServer, "Port", txtPort);
-        AddLabeledControl(layout, 1, "Database", txtDatabase, "DB Username", txtDbUser);
-        AddLabeledControl(layout, 2, "DB Password", txtDbPassword, string.Empty, chkUseSsl);
-
-        var actionRow = new FlowLayoutPanel
-        {
-            AutoSize = true,
-            FlowDirection = FlowDirection.LeftToRight,
-            WrapContents = false,
-            Margin = new Padding(0, 10, 0, 0)
-        };
-        actionRow.Controls.Add(btnTestConnection);
-        int actionRowIndex = layout.RowStyles.Count;
-        layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        layout.Controls.Add(actionRow, 0, actionRowIndex);
-        layout.SetColumnSpan(actionRow, 4);
-
-        return group;
+        shell.Controls.Add(lblModeTitle, 0, 0);
+        shell.Controls.Add(lblSummary, 0, 1);
+        shell.Controls.Add(radioNetwork, 0, 2);
+        shell.Controls.Add(radioLocal, 0, 3);
+        shell.Controls.Add(lblModeHint, 0, 4);
+        panel.Controls.Add(shell);
+        return panel;
     }
 
-    private Control BuildAccountGroup()
+    private Panel BuildConnectionPanel()
     {
-        var group = new GroupBox
+        var panel = new Panel
         {
-            Text = "Starter Accounts",
             Dock = DockStyle.Fill,
+            Padding = new Padding(18)
+        };
+
+        var shell = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 1,
+            RowCount = 2,
+            BackColor = Color.Transparent
+        };
+        shell.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        shell.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+
+        lblConnectionTitle = new Label
+        {
+            Text = "Connection Details",
+            AutoSize = true,
+            Margin = new Padding(0, 0, 0, 10)
+        };
+
+        var formGrid = new TableLayoutPanel
+        {
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            ColumnCount = 4,
+            Margin = new Padding(0)
+        };
+        formGrid.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        formGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        formGrid.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        formGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 150F));
+
+        txtServer = new TextBox { Dock = DockStyle.Fill, PlaceholderText = "srv1237.hstgr.io or localhost" };
+        txtPort = new TextBox { Dock = DockStyle.Fill, PlaceholderText = "3306" };
+        txtDatabase = new TextBox { Dock = DockStyle.Fill, PlaceholderText = "Database name" };
+        txtDbUser = new TextBox { Dock = DockStyle.Fill, PlaceholderText = "Database username" };
+        txtDbPassword = new TextBox
+        {
+            Dock = DockStyle.Fill,
+            UseSystemPasswordChar = true,
+            PlaceholderText = "Database password"
+        };
+        chkUseSsl = new CheckBox
+        {
+            Text = "Use SSL",
             AutoSize = true
         };
 
-        var layout = new TableLayoutPanel
-        {
-            Dock = DockStyle.Fill,
-            AutoSize = true,
-            ColumnCount = 4,
-            Padding = new Padding(12)
-        };
-        layout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-        layout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-        group.Controls.Add(layout);
+        formGrid.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        formGrid.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        formGrid.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        formGrid.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        formGrid.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        formGrid.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        formGrid.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        formGrid.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
-        txtSuperAdminUsername = new TextBox { Dock = DockStyle.Fill };
-        txtSuperAdminPassword = new TextBox { Dock = DockStyle.Fill, UseSystemPasswordChar = true };
-        txtUserUsername = new TextBox { Dock = DockStyle.Fill };
-        txtUserPassword = new TextBox { Dock = DockStyle.Fill, UseSystemPasswordChar = true };
+        var lblServer = new Label { Text = "Server", AutoSize = true, Margin = new Padding(0, 8, 8, 4) };
+        var lblPort = new Label { Text = "Port", AutoSize = true, Margin = new Padding(16, 8, 8, 4) };
+        var lblDatabase = new Label { Text = "Database", AutoSize = true, Margin = new Padding(0, 8, 8, 4) };
+        var lblUsername = new Label { Text = "DB Username", AutoSize = true, Margin = new Padding(0, 8, 8, 4) };
+        var lblPassword = new Label { Text = "DB Password", AutoSize = true, Margin = new Padding(0, 8, 8, 4) };
 
-        AddLabeledControl(layout, 0, "Super Admin Username", txtSuperAdminUsername, "Super Admin Password", txtSuperAdminPassword);
-        AddLabeledControl(layout, 1, "User Username", txtUserUsername, "User Password", txtUserPassword);
+        txtServer.Margin = new Padding(0, 0, 0, 8);
+        txtPort.Margin = new Padding(16, 0, 0, 8);
+        txtDatabase.Margin = new Padding(0, 0, 0, 8);
+        txtDbUser.Margin = new Padding(0, 0, 0, 8);
+        txtDbPassword.Margin = new Padding(0, 0, 0, 8);
+        chkUseSsl.Margin = new Padding(16, 6, 0, 8);
 
-        return group;
+        formGrid.Controls.Add(lblServer, 0, 0);
+        formGrid.Controls.Add(lblPort, 2, 0);
+        formGrid.Controls.Add(txtServer, 1, 1);
+        formGrid.Controls.Add(txtPort, 3, 1);
+
+        formGrid.Controls.Add(lblDatabase, 0, 2);
+        formGrid.SetColumnSpan(lblDatabase, 4);
+        formGrid.Controls.Add(txtDatabase, 0, 3);
+        formGrid.SetColumnSpan(txtDatabase, 4);
+
+        formGrid.Controls.Add(lblUsername, 0, 4);
+        formGrid.SetColumnSpan(lblUsername, 4);
+        formGrid.Controls.Add(txtDbUser, 0, 5);
+        formGrid.SetColumnSpan(txtDbUser, 4);
+
+        formGrid.Controls.Add(lblPassword, 0, 6);
+        formGrid.Controls.Add(chkUseSsl, 3, 6);
+        formGrid.Controls.Add(txtDbPassword, 0, 7);
+        formGrid.SetColumnSpan(txtDbPassword, 4);
+
+        shell.Controls.Add(lblConnectionTitle, 0, 0);
+        shell.Controls.Add(formGrid, 0, 1);
+        panel.Controls.Add(shell);
+        return panel;
     }
 
-    private static void AddLabeledControl(
-        TableLayoutPanel layout,
-        int rowIndex,
-        string leftLabel,
-        Control leftControl,
-        string rightLabel,
-        Control rightControl)
+    private Panel BuildStatusPanel()
     {
-        int baseRow = rowIndex * 2;
-
-        layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-
-        layout.Controls.Add(new Label { Text = leftLabel, AutoSize = true, Margin = new Padding(0, 8, 8, 4) }, 0, baseRow);
-        layout.Controls.Add(leftControl, 1, baseRow + 1);
-
-        if (!string.IsNullOrWhiteSpace(rightLabel))
+        var panel = new Panel
         {
-            layout.Controls.Add(new Label { Text = rightLabel, AutoSize = true, Margin = new Padding(10, 8, 8, 4) }, 2, baseRow);
-        }
+            Dock = DockStyle.Fill,
+            Height = 92,
+            Padding = new Padding(18, 14, 18, 14)
+        };
 
-        rightControl.Margin = new Padding(10, 0, 0, 8);
-        layout.Controls.Add(rightControl, 3, baseRow + 1);
+        var shell = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 1,
+            RowCount = 2
+        };
+        shell.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        shell.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+
+        lblStatusTitle = new Label
+        {
+            Text = "Status",
+            AutoSize = true,
+            Margin = new Padding(0, 0, 0, 6)
+        };
+
+        lblStatus = new Label
+        {
+            Dock = DockStyle.Fill,
+            AutoSize = false,
+            Text = "Enter your connection details, then test and continue.",
+            TextAlign = ContentAlignment.TopLeft
+        };
+
+        shell.Controls.Add(lblStatusTitle, 0, 0);
+        shell.Controls.Add(lblStatus, 0, 1);
+        panel.Controls.Add(shell);
+        return panel;
     }
 
     private void ApplyTheme()
@@ -263,18 +407,45 @@ public sealed class PackageInstallerForm : Form
         BackColor = UiTheme.Slate50;
         Font = UiTheme.BodyFont;
 
+        UiTheme.AttachGradient(headerPanel, UiTheme.Ink900, UiTheme.Ink700, 0f);
+
+        UiTheme.StyleSectionCard(modePanel, Color.White, enforceBorder: true, padding: new Padding(18));
+        UiTheme.StyleSectionCard(connectionPanel, Color.White, enforceBorder: true, padding: new Padding(18));
+        UiTheme.StyleSectionCard(statusPanel, UiTheme.Blend(Color.White, UiTheme.AccentBlue, 6), enforceBorder: true, padding: new Padding(18, 14, 18, 14));
+
         foreach (Control control in Controls)
         {
             ApplyThemeRecursive(control);
         }
 
-        UiTheme.StylePrimaryButton(btnInstall);
-        UiTheme.StyleGhostButton(btnCancel);
-        UiTheme.StyleSecondaryButton(btnTestConnection);
-        lblStatus.BackColor = Color.White;
-        lblStatus.ForeColor = UiTheme.Slate700;
+        lblHeaderTitle.Font = UiTheme.TitleFont;
+        lblHeaderTitle.ForeColor = Color.White;
+        lblHeaderSubtitle.Font = UiTheme.BodyFont;
+        lblHeaderSubtitle.ForeColor = UiTheme.Slate300;
+        lblHeaderTip.Font = UiTheme.SmallFont;
+        lblHeaderTip.ForeColor = Color.FromArgb(223, 229, 235);
 
+        UiTheme.StyleSectionHeader(lblModeTitle);
+        UiTheme.StyleSectionHeader(lblConnectionTitle);
+        UiTheme.StyleSectionHeader(lblStatusTitle);
+
+        UiTheme.StylePrimaryButton(btnTestConnection);
+        UiTheme.StyleGhostButton(btnCancel);
         UiTheme.StandardizeButtonLayout(this);
+        UiTheme.EnhanceAccessibility(this);
+        UiTheme.SetTabOrder(
+            radioNetwork,
+            radioLocal,
+            txtServer,
+            txtPort,
+            txtDatabase,
+            txtDbUser,
+            txtDbPassword,
+            chkUseSsl,
+            btnTestConnection,
+            btnCancel);
+
+        SetStatus("Enter your connection details, then test and continue.", StatusTone.Neutral);
     }
 
     private static void ApplyThemeRecursive(Control control)
@@ -282,11 +453,6 @@ public sealed class PackageInstallerForm : Form
         if (control is TextBox textBox)
         {
             UiTheme.StyleTextBox(textBox);
-        }
-        else if (control is GroupBox group)
-        {
-            group.Font = UiTheme.LabelFont;
-            group.ForeColor = UiTheme.Slate900;
         }
         else if (control is Label label)
         {
@@ -297,6 +463,11 @@ public sealed class PackageInstallerForm : Form
         {
             checkBox.Font = UiTheme.LabelFont;
             checkBox.ForeColor = UiTheme.Slate700;
+        }
+        else if (control is RadioButton radioButton)
+        {
+            radioButton.Font = UiTheme.LabelFont;
+            radioButton.ForeColor = UiTheme.Slate900;
         }
 
         foreach (Control child in control.Controls)
@@ -316,16 +487,27 @@ public sealed class PackageInstallerForm : Form
         txtDbUser.Text = profile.Username;
         txtDbPassword.Text = profile.Password;
         chkUseSsl.Checked = profile.UseSsl;
-
-        txtSuperAdminUsername.Text = "superadmin";
-        txtUserUsername.Text = "user";
     }
 
     private void ApplyModeDefaults()
     {
-        if (radioLocal.Checked)
+        if (radioNetwork.Checked)
         {
-            if (string.IsNullOrWhiteSpace(txtServer.Text) || string.Equals(txtServer.Text.Trim(), "localhost", StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrWhiteSpace(txtServer.Text) ||
+                IsLocalServer(txtServer.Text))
+            {
+                txtServer.Text = "srv1237.hstgr.io";
+            }
+
+            if (string.IsNullOrWhiteSpace(txtPort.Text))
+            {
+                txtPort.Text = "3306";
+            }
+        }
+        else if (radioLocal.Checked)
+        {
+            if (string.IsNullOrWhiteSpace(txtServer.Text) ||
+                string.Equals(txtServer.Text.Trim(), "srv1237.hstgr.io", StringComparison.OrdinalIgnoreCase))
             {
                 txtServer.Text = "localhost";
             }
@@ -335,6 +517,13 @@ public sealed class PackageInstallerForm : Form
                 txtPort.Text = "3306";
             }
         }
+    }
+
+    private static bool IsLocalServer(string value)
+    {
+        string server = value.Trim();
+        return string.Equals(server, "localhost", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(server, "127.0.0.1", StringComparison.OrdinalIgnoreCase);
     }
 
     private DatabaseConnectionProfile BuildProfileFromInputs()
@@ -376,59 +565,64 @@ public sealed class PackageInstallerForm : Form
         };
     }
 
-    private void TestConnection()
+    private async void TestConnection()
     {
         try
         {
             var profile = BuildProfileFromInputs();
-            var result = PackageInstallerService.TestConnection(profile);
-            SetStatus(result.Message, isError: !result.Success);
-        }
-        catch (Exception ex)
-        {
-            SetStatus(ex.Message, isError: true);
-        }
-    }
-
-    private void InstallPackage()
-    {
-        try
-        {
-            var profile = BuildProfileFromInputs();
-
-            var request = new PackageInstallRequest
-            {
-                ConnectionProfile = profile,
-                SuperAdminUsername = txtSuperAdminUsername.Text.Trim(),
-                SuperAdminPassword = txtSuperAdminPassword.Text,
-                UserUsername = txtUserUsername.Text.Trim(),
-                UserPassword = txtUserPassword.Text
-            };
 
             SetBusyState(true);
-            SetStatus("Running installer: preparing database, applying migrations, and creating starter accounts...");
+            SetStatus("Testing database connection...", StatusTone.Neutral);
 
-            PackageInstallerService.Install(request);
+            var result = await System.Threading.Tasks.Task.Run(() => PackageInstallerService.TestConnection(profile));
+            if (!result.Success)
+            {
+                SetStatus(result.Message, StatusTone.Error);
+                MessageBox.Show(
+                    this,
+                    result.Message,
+                    "Connection Test Failed",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
 
-            SetStatus("Installation completed successfully. You can now log in using the created accounts.");
-            MessageBox.Show(
-                this,
-                "Installation completed successfully.",
-                "Package Installer",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information);
+            if (result.DatabaseMissing)
+            {
+                const string message = "Connection reached the server, but the selected database does not exist yet. Use your initialized Hostinger database before continuing to login.";
+                SetStatus(message, StatusTone.Warning);
+                MessageBox.Show(
+                    this,
+                    message,
+                    "Database Not Ready",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
 
+            if (!TryActivateConnectionProfile(profile, out string activationError))
+            {
+                SetStatus(activationError, StatusTone.Error);
+                MessageBox.Show(
+                    this,
+                    activationError,
+                    "Connection Test Failed",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                return;
+            }
+
+            SetStatus("Connection successful. Opening login...", StatusTone.Success);
             DialogResult = DialogResult.OK;
             Close();
         }
         catch (Exception ex)
         {
-            AppLogger.LogError("Package installer failed.", ex);
-            SetStatus(ex.Message, isError: true);
+            SetStatus(ex.Message, StatusTone.Error);
             MessageBox.Show(
                 this,
-                "Installation failed.\n\n" + ex.Message,
-                "Package Installer",
+                ex.Message,
+                "Connection Test Failed",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Error);
         }
@@ -441,15 +635,46 @@ public sealed class PackageInstallerForm : Form
     private void SetBusyState(bool busy)
     {
         UseWaitCursor = busy;
-        btnInstall.Enabled = !busy;
         btnCancel.Enabled = !busy;
         btnTestConnection.Enabled = !busy;
         Cursor = busy ? Cursors.WaitCursor : Cursors.Default;
     }
 
-    private void SetStatus(string message, bool isError = false)
+    private void SetStatus(string message, StatusTone tone)
     {
         lblStatus.Text = message;
-        lblStatus.ForeColor = isError ? Color.Firebrick : UiTheme.Slate700;
+
+        switch (tone)
+        {
+            case StatusTone.Success:
+                statusPanel.BackColor = UiTheme.Blend(Color.White, UiTheme.AccentGreen, 10);
+                lblStatus.ForeColor = UiTheme.Slate900;
+                break;
+            case StatusTone.Warning:
+                statusPanel.BackColor = UiTheme.Blend(Color.White, UiTheme.AccentAmber, 14);
+                lblStatus.ForeColor = UiTheme.Slate900;
+                break;
+            case StatusTone.Error:
+                statusPanel.BackColor = UiTheme.Blend(Color.White, UiTheme.AccentRed, 10);
+                lblStatus.ForeColor = UiTheme.Slate900;
+                break;
+            default:
+                statusPanel.BackColor = UiTheme.Blend(Color.White, UiTheme.AccentBlue, 6);
+                lblStatus.ForeColor = UiTheme.Slate700;
+                break;
+        }
+    }
+
+    private static bool TryActivateConnectionProfile(DatabaseConnectionProfile profile, out string errorMessage)
+    {
+        string connectionString = DbConnectionSettingsStore.BuildConnectionString(profile, includeDatabase: true);
+        if (!DBConnection.TryGetWorkingConnectionString(connectionString, out string workingConnectionString, out errorMessage))
+        {
+            return false;
+        }
+
+        DbConnectionSettingsStore.Save(profile);
+        DBConnection.SetRuntimeConnectionString(workingConnectionString);
+        return true;
     }
 }

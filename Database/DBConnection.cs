@@ -1,6 +1,7 @@
 using MySql.Data.MySqlClient;
 using System;
 using System.Linq;
+using System.Security.Authentication;
 
 namespace baranggaysystem1.Database
 {
@@ -9,6 +10,7 @@ namespace baranggaysystem1.Database
         private const string DefaultDatabase = "barangay_system";
         private const string DefaultUser = "root";
         private const string DefaultPassword = "123456";
+        private const string BootstrapConnectionString = "server=srv1237.hstgr.io;port=3306;database=u621755393_CBaranggayMana;user id=u621755393_cbaranggay;password=Dssc@2026;SslMode=Disabled;AllowPublicKeyRetrieval=true;AllowUserVariables=true;ConnectionTimeout=5";
         private const uint DefaultPort = 3306;
         private const uint AlternatePort = 3307;
         private const uint ConnectionTimeoutSeconds = 5;
@@ -36,9 +38,9 @@ namespace baranggaysystem1.Database
             if (!string.IsNullOrWhiteSpace(runtime))
             {
                 runtime = NormalizeConnectionString(runtime);
-                if (CanOpen(runtime))
+                if (TryResolveWorkingConnectionString(runtime, out string workingRuntime, out _))
                 {
-                    return Cache(runtime);
+                    return Cache(workingRuntime);
                 }
             }
 
@@ -46,19 +48,25 @@ namespace baranggaysystem1.Database
             if (!string.IsNullOrWhiteSpace(envConnection))
             {
                 envConnection = NormalizeConnectionString(envConnection);
-                if (CanOpen(envConnection))
+                if (TryResolveWorkingConnectionString(envConnection, out string workingEnvironment, out _))
                 {
-                    return Cache(envConnection);
+                    return Cache(workingEnvironment);
                 }
             }
 
             string? savedConnection = null;
+            string bootstrapConnection = NormalizeConnectionString(BootstrapConnectionString);
+            if (TryResolveWorkingConnectionString(bootstrapConnection, out string workingBootstrap, out _))
+            {
+                return Cache(workingBootstrap);
+            }
+
             if (DbConnectionSettingsStore.TryLoad(out var profile))
             {
                 savedConnection = NormalizeConnectionString(DbConnectionSettingsStore.BuildConnectionString(profile));
-                if (CanOpen(savedConnection))
+                if (TryResolveWorkingConnectionString(savedConnection, out string workingSaved, out _))
                 {
-                    return Cache(savedConnection);
+                    return Cache(workingSaved);
                 }
             }
 
@@ -74,9 +82,9 @@ namespace baranggaysystem1.Database
 
             foreach (string candidate in candidates.Distinct(StringComparer.OrdinalIgnoreCase))
             {
-                if (CanOpen(candidate))
+                if (TryResolveWorkingConnectionString(candidate, out string workingCandidate, out _))
                 {
-                    return Cache(candidate);
+                    return Cache(workingCandidate);
                 }
             }
 
@@ -95,7 +103,7 @@ namespace baranggaysystem1.Database
                 return Cache(savedConnection);
             }
 
-            return Cache(BuildCandidate("localhost", DefaultPort, DefaultUser, DefaultPassword));
+            return Cache(bootstrapConnection);
         }
 
         private static string NormalizeConnectionString(string value)
@@ -152,18 +160,104 @@ namespace baranggaysystem1.Database
             return builder.ConnectionString;
         }
 
-        private static bool CanOpen(string candidate)
+        private static bool TryResolveWorkingConnectionString(
+            string candidate,
+            out string workingConnectionString,
+            out string errorMessage)
         {
+            string normalized = NormalizeConnectionString(candidate);
+            if (TryOpenDirect(normalized, out errorMessage, out Exception? openException))
+            {
+                workingConnectionString = normalized;
+                return true;
+            }
+
+            if (TryBuildSslDisabledFallback(normalized, openException, out string sslDisabledFallback))
+            {
+                if (TryOpenDirect(sslDisabledFallback, out string fallbackErrorMessage, out _))
+                {
+                    workingConnectionString = sslDisabledFallback;
+                    errorMessage = string.Empty;
+                    return true;
+                }
+
+                errorMessage = string.IsNullOrWhiteSpace(errorMessage)
+                    ? fallbackErrorMessage
+                    : $"{errorMessage} Retry with SSL disabled failed: {fallbackErrorMessage}";
+            }
+
+            workingConnectionString = normalized;
+            return false;
+        }
+
+        private static bool TryOpenDirect(string connectionString, out string errorMessage, out Exception? openException)
+        {
+            errorMessage = string.Empty;
+            openException = null;
+
             try
             {
-                using var conn = new MySqlConnection(candidate);
+                using var conn = new MySqlConnection(connectionString);
                 conn.Open();
                 return true;
+            }
+            catch (Exception ex)
+            {
+                openException = ex;
+                errorMessage = ex.Message;
+                return false;
+            }
+        }
+
+        private static bool TryBuildSslDisabledFallback(
+            string connectionString,
+            Exception? openException,
+            out string fallbackConnectionString)
+        {
+            fallbackConnectionString = connectionString;
+            if (!IsSslHandshakeFailure(openException))
+            {
+                return false;
+            }
+
+            try
+            {
+                var builder = new MySqlConnectionStringBuilder(connectionString);
+                if (builder.SslMode != MySqlSslMode.Preferred)
+                {
+                    return false;
+                }
+
+                builder.SslMode = MySqlSslMode.Disabled;
+                fallbackConnectionString = NormalizeConnectionString(builder.ConnectionString);
+                return !string.Equals(fallbackConnectionString, connectionString, StringComparison.OrdinalIgnoreCase);
             }
             catch
             {
                 return false;
             }
+        }
+
+        private static bool IsSslHandshakeFailure(Exception? exception)
+        {
+            for (Exception? current = exception; current != null; current = current.InnerException)
+            {
+                if (current is AuthenticationException)
+                {
+                    return true;
+                }
+
+                string message = current.Message ?? string.Empty;
+                if (message.IndexOf("SSL", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    message.IndexOf("TLS", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    message.IndexOf("security package", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    message.IndexOf("certificate", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public static string GetCurrentConnectionString()
@@ -183,20 +277,15 @@ namespace baranggaysystem1.Database
 
         public static bool TryOpen(string connectionString, out string errorMessage)
         {
-            errorMessage = string.Empty;
+            return TryResolveWorkingConnectionString(connectionString, out _, out errorMessage);
+        }
 
-            try
-            {
-                string normalized = NormalizeConnectionString(connectionString);
-                using var conn = new MySqlConnection(normalized);
-                conn.Open();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                errorMessage = ex.Message;
-                return false;
-            }
+        public static bool TryGetWorkingConnectionString(
+            string connectionString,
+            out string workingConnectionString,
+            out string errorMessage)
+        {
+            return TryResolveWorkingConnectionString(connectionString, out workingConnectionString, out errorMessage);
         }
 
         public static bool TryOpenCurrent(out string errorMessage)

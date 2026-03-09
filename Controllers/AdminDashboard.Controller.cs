@@ -77,14 +77,14 @@ namespace baranggaysystem1
                 });
             }
 
-            public void RunBackupNow()
+            public void RunBackupNow(BackupMode mode)
             {
-                StartBackup(showDialogs: true, onlyIfDue: false);
+                StartBackup(showDialogs: true, onlyIfDue: false, mode);
             }
 
             public void TryRunScheduledBackup()
             {
-                StartBackup(showDialogs: false, onlyIfDue: true);
+                StartBackup(showDialogs: false, onlyIfDue: true, BackupMode.Incremental);
             }
 
             private void InitializeFeatures()
@@ -106,6 +106,13 @@ namespace baranggaysystem1
             private void LoadBackupStatus()
             {
                 var info = BackupService.TryGetLatestRun();
+                if (info?.State == BackupRunState.Running && !_backupInProgress)
+                {
+                    info = BackupService.MarkInterruptedRunAsFailed(
+                        info,
+                        "Backup was left in a running state after the app closed.");
+                }
+
                 _form.SetBackupStatus(info);
             }
  
@@ -115,7 +122,7 @@ namespace baranggaysystem1
                 _form.SetSchemaVersion(version);
             }
 
-            private void StartBackup(bool showDialogs, bool onlyIfDue)
+            private void StartBackup(bool showDialogs, bool onlyIfDue, BackupMode mode)
             {
                 if (_backupInProgress)
                 {
@@ -133,7 +140,7 @@ namespace baranggaysystem1
                 }
 
                 _backupInProgress = true;
-                _form.SetBackupStatus(new BackupRunInfo(null, now, null, BackupRunState.Running, null, null, null));
+                _form.SetBackupStatus(new BackupRunInfo(null, now, null, BackupRunState.Running, null, null, null, mode));
 
                 int? triggeredByUserId = null;
                 try
@@ -150,11 +157,11 @@ namespace baranggaysystem1
                     BackupRunInfo result;
                     try
                     {
-                        result = BackupService.RunBackupNow(triggeredByUserId, compressToZip: true);
+                        result = BackupService.RunBackupNow(triggeredByUserId, compressToZip: true, mode: mode);
                     }
                     catch (Exception ex)
                     {
-                        result = new BackupRunInfo(null, now, DateTime.Now, BackupRunState.Failed, null, null, ex.Message);
+                        result = new BackupRunInfo(null, now, DateTime.Now, BackupRunState.Failed, null, null, ex.Message, mode);
                     }
 
                     try
@@ -170,8 +177,14 @@ namespace baranggaysystem1
 
                             if (result.State == BackupRunState.Success && !string.IsNullOrWhiteSpace(result.FilePath))
                             {
+                                string modeText = result.Mode switch
+                                {
+                                    BackupMode.Incremental => "Incremental",
+                                    BackupMode.Differential => "Differential",
+                                    _ => "Full"
+                                };
                                 var open = ControllerDialogs.Confirm(
-                                    "Backup created successfully.\n\nOpen backups folder?",
+                                    $"{modeText} backup created successfully.\n\nOpen backups folder?",
                                     "Backup");
                                 if (open == DialogResult.Yes)
                                 {

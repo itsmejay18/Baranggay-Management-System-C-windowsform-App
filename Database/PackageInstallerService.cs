@@ -67,33 +67,26 @@ internal static class PackageInstallerService
 
     public static ConnectionTestResult TestConnection(DatabaseConnectionProfile profile)
     {
-        try
+        string dbConnection = DbConnectionSettingsStore.BuildConnectionString(profile, includeDatabase: true);
+        if (DBConnection.TryOpen(dbConnection, out string dbError))
         {
-            string dbConnection = DbConnectionSettingsStore.BuildConnectionString(profile, includeDatabase: true);
-            using var conn = new MySqlConnection(dbConnection);
-            conn.Open();
             return ConnectionTestResult.Pass("Connection successful. Database is reachable.");
         }
-        catch (MySqlException ex) when (ex.Number == 1049)
+
+        if (IsUnknownDatabaseError(dbError))
         {
-            try
+            string serverConnection = DbConnectionSettingsStore.BuildConnectionString(profile, includeDatabase: false);
+            if (DBConnection.TryOpen(serverConnection, out string serverError))
             {
-                string serverConnection = DbConnectionSettingsStore.BuildConnectionString(profile, includeDatabase: false);
-                using var serverConn = new MySqlConnection(serverConnection);
-                serverConn.Open();
                 return ConnectionTestResult.Pass(
                     "Server connection successful. Database does not exist yet and will be created during install.",
                     databaseMissing: true);
             }
-            catch (Exception nested)
-            {
-                return ConnectionTestResult.Fail($"Server connection failed: {nested.Message}");
-            }
+
+            return ConnectionTestResult.Fail($"Server connection failed: {serverError}");
         }
-        catch (Exception ex)
-        {
-            return ConnectionTestResult.Fail($"Connection failed: {ex.Message}");
-        }
+
+        return ConnectionTestResult.Fail($"Connection failed: {dbError}");
     }
 
     public static void Install(PackageInstallRequest request)
@@ -135,12 +128,22 @@ internal static class PackageInstallerService
 
         DatabaseConnectionProfile profile = request.ConnectionProfile ?? DatabaseConnectionProfile.CreateDefault();
         string serverConnection = DbConnectionSettingsStore.BuildConnectionString(profile, includeDatabase: false);
+        if (!DBConnection.TryGetWorkingConnectionString(serverConnection, out serverConnection, out string serverError))
+        {
+            throw new InvalidOperationException($"Server connection failed: {serverError}");
+        }
+
         string databaseConnection = DbConnectionSettingsStore.BuildConnectionString(profile, includeDatabase: true);
 
         using (var serverConn = new MySqlConnection(serverConnection))
         {
             serverConn.Open();
             EnsureDatabaseExists(serverConn, profile.Database);
+        }
+
+        if (DBConnection.TryGetWorkingConnectionString(databaseConnection, out string workingDatabaseConnection, out _))
+        {
+            databaseConnection = workingDatabaseConnection;
         }
 
         DbConnectionSettingsStore.Save(profile);
@@ -286,5 +289,17 @@ internal static class PackageInstallerService
             conn);
         cmd.Parameters.AddWithValue("@table", table);
         return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+    }
+
+    private static bool IsUnknownDatabaseError(string message)
+    {
+        if (string.IsNullOrWhiteSpace(message))
+        {
+            return false;
+        }
+
+        return message.IndexOf("Unknown database", StringComparison.OrdinalIgnoreCase) >= 0 ||
+               message.IndexOf("doesn't exist", StringComparison.OrdinalIgnoreCase) >= 0 ||
+               message.IndexOf("1049", StringComparison.OrdinalIgnoreCase) >= 0;
     }
 }

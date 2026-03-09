@@ -20,6 +20,9 @@ public partial class RegisterForm : Form
 	private readonly RegisterFormController _controller;
 	private string? _photoPath;
 
+	internal event Action? BackToLoginRequested;
+	internal event Action? RegistrationCompleted;
+
 
 	public RegisterForm()
 	{
@@ -225,6 +228,16 @@ public partial class RegisterForm : Form
 
 		_fadeTimer.Start();
 
+	}
+
+	internal void ReturnToLogin()
+	{
+		BackToLoginRequested?.Invoke();
+	}
+
+	internal void CompleteRegistration()
+	{
+		RegistrationCompleted?.Invoke();
 	}
 
 

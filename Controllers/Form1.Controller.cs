@@ -59,16 +59,12 @@ namespace baranggaysystem1
                         if (UserSession.Role.Equals("Admin", StringComparison.OrdinalIgnoreCase)
                             || UserSession.Role.Equals("Super Admin", StringComparison.OrdinalIgnoreCase))
                         {
-                            AdminDashboard admin = new AdminDashboard();
-                            admin.Show();
+                            _form.CompleteLogin(new AdminDashboard());
                         }
                         else
                         {
-                            StaffDashboard staff = new StaffDashboard();
-                            staff.Show();
+                            _form.CompleteLogin(new StaffDashboard());
                         }
-
-                        _form.Hide();
                     }
                     else
                     {
@@ -79,9 +75,7 @@ namespace baranggaysystem1
 
             public void HandleRegister()
             {
-                RegisterForm registerForm = new RegisterForm();
-                registerForm.Show();
-                _form.Hide();
+                _form.OpenRegister();
             }
 
             public void HandleLoad()

@@ -9,19 +9,25 @@ internal static class DbConnectionSettingsStore
 {
     private const uint DefaultPort = 3306;
     private const uint ConnectionTimeoutSeconds = 5;
-    private static readonly string FilePath = Path.Combine(AppContext.BaseDirectory, "db.connection.json");
+    private const string SettingsFileName = "db.connection.json";
+    private static readonly string SettingsDirectory = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "BarangayManagementSystem");
+    private static readonly string FilePath = Path.Combine(SettingsDirectory, SettingsFileName);
+    private static readonly string LegacyFilePath = Path.Combine(AppContext.BaseDirectory, SettingsFileName);
 
     public static bool TryLoad(out DatabaseConnectionProfile profile)
     {
         profile = DatabaseConnectionProfile.CreateDefault();
         try
         {
-            if (!File.Exists(FilePath))
+            string? path = ResolveLoadPath();
+            if (path == null)
             {
                 return false;
             }
 
-            string json = File.ReadAllText(FilePath);
+            string json = File.ReadAllText(path);
             var loaded = JsonSerializer.Deserialize<DatabaseConnectionProfile>(json);
             if (loaded == null)
             {
@@ -53,7 +59,23 @@ internal static class DbConnectionSettingsStore
         };
 
         string json = JsonSerializer.Serialize(normalized, options);
+        Directory.CreateDirectory(SettingsDirectory);
         File.WriteAllText(FilePath, json);
+    }
+
+    private static string? ResolveLoadPath()
+    {
+        if (File.Exists(FilePath))
+        {
+            return FilePath;
+        }
+
+        if (File.Exists(LegacyFilePath))
+        {
+            return LegacyFilePath;
+        }
+
+        return null;
     }
 
     public static string BuildConnectionString(DatabaseConnectionProfile profile, bool includeDatabase = true)

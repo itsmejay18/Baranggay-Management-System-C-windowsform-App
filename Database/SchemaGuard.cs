@@ -114,6 +114,9 @@ internal static class SchemaGuard
                     ("user_account", "photo_url"),
                     ("backup_run", "status"),
                     ("backup_run", "started_at"),
+                    ("backup_run", "backup_type"),
+                    ("backup_run", "base_started_at"),
+                    ("backup_run", "base_backup_run_id"),
                 };
 
                 var missingColumns = new List<string>();
@@ -259,7 +262,11 @@ internal static class SchemaGuard
             ("case_record", "ai_entities", "ALTER TABLE case_record ADD COLUMN ai_entities TEXT NULL"),
             ("case_record", "ai_recommended_next_action", "ALTER TABLE case_record ADD COLUMN ai_recommended_next_action TEXT NULL"),
             ("case_record", "ai_model", "ALTER TABLE case_record ADD COLUMN ai_model VARCHAR(100) NULL"),
-            ("case_record", "ai_processed_at", "ALTER TABLE case_record ADD COLUMN ai_processed_at DATETIME NULL")
+            ("case_record", "ai_processed_at", "ALTER TABLE case_record ADD COLUMN ai_processed_at DATETIME NULL"),
+
+            ("backup_run", "backup_type", "ALTER TABLE backup_run ADD COLUMN backup_type ENUM('FULL','INCREMENTAL','DIFFERENTIAL') NOT NULL DEFAULT 'FULL'"),
+            ("backup_run", "base_started_at", "ALTER TABLE backup_run ADD COLUMN base_started_at DATETIME NULL"),
+            ("backup_run", "base_backup_run_id", "ALTER TABLE backup_run ADD COLUMN base_backup_run_id INT NULL")
         };
 
         var tables = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -514,12 +521,16 @@ internal static class SchemaGuard
                     started_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     ended_at DATETIME NULL,
                     status ENUM('RUNNING','SUCCESS','FAILED') NOT NULL DEFAULT 'RUNNING',
+                    backup_type ENUM('FULL','INCREMENTAL','DIFFERENTIAL') NOT NULL DEFAULT 'FULL',
+                    base_started_at DATETIME NULL,
+                    base_backup_run_id INT NULL,
                     file_path VARCHAR(500) NULL,
                     file_size_bytes BIGINT NULL,
                     error_message TEXT NULL,
                     created_by_user_id INT NULL,
                     INDEX idx_backup_run_started_at (started_at),
                     INDEX idx_backup_run_status (status),
+                    INDEX idx_backup_run_type_started_at (backup_type, started_at),
                     FOREIGN KEY (created_by_user_id) REFERENCES user_account(user_id) ON DELETE SET NULL
                 )", conn);
             cmd.ExecuteNonQuery();
@@ -539,6 +550,8 @@ internal static class SchemaGuard
             "CREATE INDEX idx_case_record_date_status ON case_record(date_filed, status, complainant_id)");
         TryExecuteIgnore(conn,
             "CREATE INDEX idx_purok_coordinates ON purok_sitio(latitude, longitude)");
+        TryExecuteIgnore(conn,
+            "CREATE INDEX idx_backup_run_type_started_at ON backup_run(backup_type, started_at)");
     }
 
     private static void TryExecuteIgnore(MySqlConnection conn, string sql)
