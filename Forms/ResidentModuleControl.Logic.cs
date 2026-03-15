@@ -82,6 +82,8 @@ public partial class ResidentModuleControl : UserControl
 	private readonly CheckBox _residentShowDeletedToggle = new CheckBox();
 	private bool _showDeletedResidents;
 	private byte[]? _residentPhotoBytes;
+	private int _residentPhotoLoadVersion;
+	private readonly Dictionary<int, byte[]?> _residentPhotoCache = new Dictionary<int, byte[]?>();
 
 
 
@@ -6509,10 +6511,14 @@ public void ShowHistory()
 				return;
 			}
 
-			_residentTable = dataTable;
-			ApplyResidentSearch(resetPage: true);
-			UpdateResidentSoftDeleteButtons();
-			UpdateRightPanelSelectionState();
+				_residentTable = dataTable;
+				lock (_residentPhotoCache)
+				{
+					_residentPhotoCache.Clear();
+				}
+				ApplyResidentSearch(resetPage: true);
+				UpdateResidentSoftDeleteButtons();
+				UpdateRightPanelSelectionState();
 			_residentTabs.Enabled = true;
 		}
 		catch (Exception ex)
@@ -6555,19 +6561,83 @@ public void ShowHistory()
                                       r.birth_date AS date_of_birth,
                                       r.civil_status,
                                       r.contact_no,
-                                      CASE r.status
-                                          WHEN 'ACTIVE' THEN 'Active'
-                                          WHEN 'DECEASED' THEN 'Deceased'
-                                          WHEN 'MOVED_OUT' THEN 'Inactive'
-                                          ELSE r.status
-                                      END AS status,
-                                      r.photo
-                               FROM resident r
+	                                      CASE r.status
+	                                          WHEN 'ACTIVE' THEN 'Active'
+	                                          WHEN 'DECEASED' THEN 'Deceased'
+	                                          WHEN 'MOVED_OUT' THEN 'Inactive'
+	                                          ELSE r.status
+	                                      END AS status
+	                               FROM resident r
                                LEFT JOIN barangay b ON b.barangay_id = r.barangay_id
                                LEFT JOIN purok_sitio p ON p.purok_id = r.purok_id
                                LEFT JOIN household h ON h.household_id = r.household_id
-                               WHERE {deletedFilter}
-                               ORDER BY r.last_name, r.first_name");
+	                               WHERE {deletedFilter}
+	                               ORDER BY r.last_name, r.first_name");
+	}
+
+	private async Task LoadResidentPhotoAsync(int residentId, int detailLoadVersion, int photoLoadVersion)
+	{
+		if (residentId <= 0 || IsDisposed)
+		{
+			return;
+		}
+
+		byte[]? photoBytes = await Task.Run(() => TryGetResidentPhotoCached(residentId)).ConfigureAwait(true);
+
+		if (IsDisposed
+			|| detailLoadVersion != _residentDetailsLoadVersion
+			|| photoLoadVersion != _residentPhotoLoadVersion
+			|| !_selectedResidentId.HasValue
+			|| _selectedResidentId.Value != residentId
+			|| _residentPhotoPendingBytes != null
+			|| _residentPhotoRemoved)
+		{
+			return;
+		}
+
+		_residentPhotoBytes = photoBytes;
+		LoadResidentPhoto(_residentPhotoBytes);
+		UpdateResidentPhotoControls();
+	}
+
+	private byte[]? TryGetResidentPhotoCached(int residentId)
+	{
+		lock (_residentPhotoCache)
+		{
+			if (_residentPhotoCache.TryGetValue(residentId, out byte[]? cached))
+			{
+				return cached;
+			}
+		}
+
+		byte[]? loaded = QueryResidentPhotoBytes(residentId);
+		lock (_residentPhotoCache)
+		{
+			_residentPhotoCache[residentId] = loaded;
+		}
+
+		return loaded;
+	}
+
+	private static byte[]? QueryResidentPhotoBytes(int residentId)
+	{
+		try
+		{
+			using var conn = DBConnection.GetConnection();
+			conn.Open();
+			using var cmd = new MySqlCommand(
+				@"SELECT photo
+				  FROM resident
+				  WHERE resident_id = @id
+				  LIMIT 1", conn);
+			cmd.Parameters.AddWithValue("@id", residentId);
+			object? value = cmd.ExecuteScalar();
+			return value == null || value == DBNull.Value ? null : value as byte[];
+		}
+		catch
+		{
+			return null;
+		}
 	}
 
 
@@ -7452,10 +7522,10 @@ public void ShowHistory()
 		residentDto.Status = dataGridViewRow.Cells["status"].Value?.ToString() ?? string.Empty;
 
 
-		residentDto.PhotoBytes = ((dataGridViewRow.Cells["photo"].Value == DBNull.Value) ? null : (dataGridViewRow.Cells["photo"].Value as byte[]));
-		residentDto.BarangayId = GetCellNullableInt(dataGridViewRow, "barangay_id");
-		residentDto.PurokId = GetCellNullableInt(dataGridViewRow, "purok_id");
-		residentDto.HouseholdId = GetCellNullableInt(dataGridViewRow, "household_id");
+			residentDto.PhotoBytes = _residentPhotoPendingBytes ?? (_residentPhotoRemoved ? null : _residentPhotoBytes);
+			residentDto.BarangayId = GetCellNullableInt(dataGridViewRow, "barangay_id");
+			residentDto.PurokId = GetCellNullableInt(dataGridViewRow, "purok_id");
+			residentDto.HouseholdId = GetCellNullableInt(dataGridViewRow, "household_id");
 
 
 		return residentDto;
@@ -15490,12 +15560,13 @@ private int CountHistoryModule(string module)
 			return;
 		}
 
-		_selectedResidentId = residentId;
-		_residentDetailsLoadedId = residentId;
-		UpdateRightPanelSelectionState();
-		if (!_suppressAutoOverviewOnSelection)
-		{
-			SetResidentProfileTab("overview", userInitiated: false, force: true);
+			_selectedResidentId = residentId;
+			_residentDetailsLoadedId = residentId;
+			int loadVersion = ++_residentDetailsLoadVersion;
+			UpdateRightPanelSelectionState();
+			if (!_suppressAutoOverviewOnSelection)
+			{
+				SetResidentProfileTab("overview", userInitiated: false, force: true);
 		}
 
 		bool previous = _suppressEditChangeTracking;
@@ -15540,22 +15611,13 @@ private int CountHistoryModule(string module)
 		}
 
 
-		object obj2 = row.Cells["photo"]?.Value;
-
-
-		_residentPhotoBytes = ((obj2 == DBNull.Value) ? null : (obj2 as byte[]));
-
-
-		_residentPhotoPendingBytes = null;
-
-
-		_residentPhotoRemoved = false;
-
-
-		LoadResidentPhoto(_residentPhotoBytes);
-
-
-		UpdateResidentPhotoControls();
+			_residentPhotoBytes = null;
+			_residentPhotoPendingBytes = null;
+			_residentPhotoRemoved = false;
+			LoadResidentPhoto(null);
+			UpdateResidentPhotoControls();
+			int photoLoadVersion = ++_residentPhotoLoadVersion;
+			_ = LoadResidentPhotoAsync(residentId, loadVersion, photoLoadVersion);
 
 
 		SetDetailMessage(null);
@@ -15572,10 +15634,9 @@ private int CountHistoryModule(string module)
 		UpdateBlotterActionState();
 
 
-		int loadVersion = ++_residentDetailsLoadVersion;
-		_ = LoadResidentDocumentsAndAuditAsync(residentId, loadVersion);
-		ResetProfileViewport();
-		RaiseResidentRouteChanged();
+			_ = LoadResidentDocumentsAndAuditAsync(residentId, loadVersion);
+			ResetProfileViewport();
+			RaiseResidentRouteChanged();
 
 
 	}
@@ -17672,11 +17733,6 @@ private int CountHistoryModule(string module)
 		public int RepeatActiveCases { get; set; }
 	}
 }
-
-
-
-
-
 
 
 

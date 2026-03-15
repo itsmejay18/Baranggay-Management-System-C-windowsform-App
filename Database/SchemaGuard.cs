@@ -7,21 +7,73 @@ namespace baranggaysystem1.Database;
 
 internal static class SchemaGuard
 {
+    private static readonly object EnsureLock = new();
+    private static bool _databaseReadyEnsured;
+    private static readonly string[] RequiredTables =
+    {
+        "barangay",
+        "purok_sitio",
+        "household",
+        "resident",
+        "role",
+        "user_account",
+        "document_type",
+        "document_request",
+        "case_record",
+        "record_attachment",
+        "outbound_notification",
+        "resident_transfer_history",
+        "role_permission",
+        "backup_run",
+        "schema_migrations"
+    };
+
+    private static readonly (string Table, string Column)[] RequiredColumns =
+    {
+        ("resident", "is_deleted"),
+        ("resident", "photo"),
+        ("document_request", "document_no"),
+        ("document_request", "verification_token"),
+        ("document_request", "or_number"),
+        ("document_request", "fee"),
+        ("document_request", "expires_at"),
+        ("document_request", "renewed_from_request_id"),
+        ("case_record", "respondent_resident_id"),
+        ("case_record", "respondent_name"),
+        ("case_record", "ai_summary"),
+        ("purok_sitio", "latitude"),
+        ("purok_sitio", "longitude"),
+        ("user_account", "photo_url"),
+        ("backup_run", "status"),
+        ("backup_run", "started_at"),
+        ("backup_run", "backup_type"),
+        ("backup_run", "base_started_at"),
+        ("backup_run", "base_backup_run_id"),
+    };
+
     public static void EnsureDatabaseReady()
     {
-        using var conn = DBConnection.GetConnection();
-        conn.Open();
+        lock (EnsureLock)
+        {
+            if (_databaseReadyEnsured)
+            {
+                return;
+            }
 
-        MigrationRunner.ApplyPendingMigrations(conn);
+            using var conn = DBConnection.GetConnection();
+            conn.Open();
 
-        SchemaBootstrap.EnsureCoreDefaults(conn);
-        EnsureAppCompatColumns(conn);
-        EnsureAppCompatTables(conn);
-        EnsureAppCompatIndexes(conn);
-        SchemaBootstrap.EnsureCoreDefaults(conn);
+            MigrationRunner.ApplyPendingMigrations(conn);
+
+            SchemaBootstrap.EnsureCoreDefaults(conn);
+            EnsureAppCompatColumns(conn);
+            EnsureAppCompatTables(conn);
+            EnsureAppCompatIndexes(conn);
+            _databaseReadyEnsured = true;
+        }
     }
 
-    public static StartupHealthReport RunStartupHealthChecks()
+    public static StartupHealthReport RunStartupHealthChecks(bool includeDeepChecks = true)
     {
         var report = new StartupHealthReport();
 
@@ -57,28 +109,27 @@ internal static class SchemaGuard
                 report.Add("Migration files", StartupHealthLevel.Warning, ex.Message);
             }
 
+            if (!includeDeepChecks)
+            {
+                report.Add("Deep startup checks", StartupHealthLevel.Warning,
+                    "Skipped for faster startup. Set BARANGAY_DEEP_HEALTH_CHECKS=1 to run all checks.");
+                return report;
+            }
+
+            SchemaSnapshot snapshot;
             try
             {
-                string[] requiredTables =
-                {
-                    "barangay",
-                    "purok_sitio",
-                    "household",
-                    "resident",
-                    "role",
-                    "user_account",
-                    "document_type",
-                    "document_request",
-                    "case_record",
-                    "record_attachment",
-                    "outbound_notification",
-                    "resident_transfer_history",
-                    "role_permission",
-                    "backup_run",
-                    "schema_migrations"
-                };
+                snapshot = BuildSchemaSnapshot(conn);
+            }
+            catch (Exception ex)
+            {
+                report.Add("Schema metadata", StartupHealthLevel.Warning, ex.Message);
+                snapshot = SchemaSnapshot.Empty;
+            }
 
-                var missingTables = requiredTables.Where(t => !TableExists(conn, t)).ToList();
+            try
+            {
+                var missingTables = RequiredTables.Where(t => !snapshot.HasTable(t)).ToList();
                 if (missingTables.Count == 0)
                 {
                     report.Add("Required tables", StartupHealthLevel.Ok, "All required tables are present.");
@@ -96,39 +147,16 @@ internal static class SchemaGuard
 
             try
             {
-                var requiredColumns = new (string Table, string Column)[]
-                {
-                    ("resident", "is_deleted"),
-                    ("resident", "photo"),
-                    ("document_request", "document_no"),
-                    ("document_request", "verification_token"),
-                    ("document_request", "or_number"),
-                    ("document_request", "fee"),
-                    ("document_request", "expires_at"),
-                    ("document_request", "renewed_from_request_id"),
-                    ("case_record", "respondent_resident_id"),
-                    ("case_record", "respondent_name"),
-                    ("case_record", "ai_summary"),
-                    ("purok_sitio", "latitude"),
-                    ("purok_sitio", "longitude"),
-                    ("user_account", "photo_url"),
-                    ("backup_run", "status"),
-                    ("backup_run", "started_at"),
-                    ("backup_run", "backup_type"),
-                    ("backup_run", "base_started_at"),
-                    ("backup_run", "base_backup_run_id"),
-                };
-
                 var missingColumns = new List<string>();
-                foreach ((string table, string column) in requiredColumns)
+                foreach ((string table, string column) in RequiredColumns)
                 {
-                    if (!TableExists(conn, table))
+                    if (!snapshot.HasTable(table))
                     {
                         missingColumns.Add($"{table}.{column} (table missing)");
                         continue;
                     }
 
-                    if (!ColumnExists(conn, table, column))
+                    if (!snapshot.HasColumn(table, column))
                     {
                         missingColumns.Add($"{table}.{column}");
                     }
@@ -553,6 +581,73 @@ internal static class SchemaGuard
         TryExecuteIgnore(conn,
             "CREATE INDEX idx_backup_run_type_started_at ON backup_run(backup_type, started_at)");
     }
+
+    private readonly struct SchemaSnapshot
+    {
+        public static readonly SchemaSnapshot Empty = new(
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+
+        private readonly HashSet<string> _tables;
+        private readonly HashSet<string> _columns;
+
+        public SchemaSnapshot(HashSet<string> tables, HashSet<string> columns)
+        {
+            _tables = tables;
+            _columns = columns;
+        }
+
+        public bool HasTable(string table)
+            => _tables.Contains(table);
+
+        public bool HasColumn(string table, string column)
+            => _columns.Contains(BuildColumnKey(table, column));
+    }
+
+    private static SchemaSnapshot BuildSchemaSnapshot(MySqlConnection conn)
+    {
+        var tables = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        using (var tableCmd = new MySqlCommand(
+            @"SELECT TABLE_NAME
+              FROM INFORMATION_SCHEMA.TABLES
+              WHERE TABLE_SCHEMA = DATABASE()", conn))
+        using (var reader = tableCmd.ExecuteReader())
+        {
+            while (reader.Read())
+            {
+                string? table = reader["TABLE_NAME"]?.ToString();
+                if (!string.IsNullOrWhiteSpace(table))
+                {
+                    tables.Add(table);
+                }
+            }
+        }
+
+        var columns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        using (var columnCmd = new MySqlCommand(
+            @"SELECT TABLE_NAME, COLUMN_NAME
+              FROM INFORMATION_SCHEMA.COLUMNS
+              WHERE TABLE_SCHEMA = DATABASE()", conn))
+        using (var reader = columnCmd.ExecuteReader())
+        {
+            while (reader.Read())
+            {
+                string? table = reader["TABLE_NAME"]?.ToString();
+                string? column = reader["COLUMN_NAME"]?.ToString();
+                if (string.IsNullOrWhiteSpace(table) || string.IsNullOrWhiteSpace(column))
+                {
+                    continue;
+                }
+
+                columns.Add(BuildColumnKey(table, column));
+            }
+        }
+
+        return new SchemaSnapshot(tables, columns);
+    }
+
+    private static string BuildColumnKey(string table, string column)
+        => $"{table}.{column}";
 
     private static void TryExecuteIgnore(MySqlConnection conn, string sql)
     {

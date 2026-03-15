@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using MySql.Data.MySqlClient;
+using Microsoft.Data.Sqlite;
 using baranggaysystem1.helper;
 
 namespace baranggaysystem1.Database;
@@ -15,11 +18,20 @@ internal static class MigrationRunner
     public static void ApplyPendingMigrations(MySqlConnection conn)
     {
         EnsureMigrationsTable(conn);
+        ApplyPendingMigrationsGeneric(conn);
+    }
 
+    public static void ApplyPendingMigrations(SqliteConnection conn)
+    {
+        EnsureMigrationsTable(conn);
+        ApplyPendingMigrationsGeneric(conn);
+    }
+
+    private static void ApplyPendingMigrationsGeneric(DbConnection conn)
+    {
         var files = GetOrderedMigrationFiles();
         if (files.Count == 0)
         {
-            // Dev builds should copy migrations to output, but if not present, do not crash the app.
             AppLogger.LogWarning("Migrations directory not found; skipping migration runner.");
             return;
         }
@@ -89,13 +101,26 @@ internal static class MigrationRunner
         return GetOrderedMigrationFiles().Count > 0;
     }
 
-    private static void EnsureMigrationsTable(MySqlConnection conn)
+    private static void EnsureMigrationsTable(DbConnection conn)
     {
-        using var cmd = new MySqlCommand(@"
+        using var cmd = conn.CreateCommand();
+        if (conn is SqliteConnection)
+        {
+            cmd.CommandText = @"
+            CREATE TABLE IF NOT EXISTS schema_migrations (
+                migration_name TEXT NOT NULL PRIMARY KEY,
+                applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );";
+        }
+        else
+        {
+            cmd.CommandText = @"
             CREATE TABLE IF NOT EXISTS schema_migrations (
                 migration_name VARCHAR(255) NOT NULL PRIMARY KEY,
                 applied_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-            )", conn);
+            );";
+        }
+
         cmd.ExecuteNonQuery();
     }
 
@@ -178,14 +203,15 @@ internal static class MigrationRunner
         return (dateKey, priority, name);
     }
 
-    private static HashSet<string> LoadAppliedMigrations(MySqlConnection conn)
+    private static HashSet<string> LoadAppliedMigrations(DbConnection conn)
     {
         var applied = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        using var cmd = new MySqlCommand("SELECT migration_name FROM schema_migrations", conn);
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT migration_name FROM schema_migrations";
         using var reader = cmd.ExecuteReader();
         while (reader.Read())
         {
-            string? name = reader["migration_name"]?.ToString();
+            string? name = reader[0]?.ToString();
             if (!string.IsNullOrWhiteSpace(name))
             {
                 applied.Add(name);
@@ -194,12 +220,14 @@ internal static class MigrationRunner
         return applied;
     }
 
-    private static void MarkApplied(MySqlConnection conn, string migrationName)
+    private static void MarkApplied(DbConnection conn, string migrationName)
     {
-        using var cmd = new MySqlCommand(
-            "INSERT INTO schema_migrations (migration_name) VALUES (@name)",
-            conn);
-        cmd.Parameters.AddWithValue("@name", migrationName);
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "INSERT INTO schema_migrations (migration_name) VALUES (@name)";
+        var param = cmd.CreateParameter();
+        param.ParameterName = "@name";
+        param.Value = migrationName;
+        cmd.Parameters.Add(param);
         cmd.ExecuteNonQuery();
     }
 
@@ -214,7 +242,7 @@ internal static class MigrationRunner
         return sql.IndexOf(ManualTag, StringComparison.OrdinalIgnoreCase) >= 0;
     }
 
-    private static void ApplySqlScript(MySqlConnection conn, string migrationName, string sql)
+    private static void ApplySqlScript(DbConnection conn, string migrationName, string sql)
     {
         var statements = SplitStatements(sql).ToList();
         if (statements.Count == 0)
@@ -227,7 +255,22 @@ internal static class MigrationRunner
         for (int i = 0; i < statements.Count; i++)
         {
             string stmt = statements[i];
-            using var cmd = new MySqlCommand(stmt, conn);
+                if (conn is SqliteConnection)
+            {
+                stmt = ConvertToSqliteSql(stmt);
+            }
+
+            string stmtTrimmed = stmt.Trim();
+            if (string.IsNullOrEmpty(stmtTrimmed)
+                || stmtTrimmed.StartsWith("--", StringComparison.Ordinal)
+                || stmtTrimmed.StartsWith("/*", StringComparison.Ordinal)
+                || stmtTrimmed.Equals("-- skipped for sqlite", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = stmt;
             cmd.CommandTimeout = 60;
 
             try
@@ -251,6 +294,67 @@ internal static class MigrationRunner
                 throw;
             }
         }
+    }
+
+    private static string ConvertToSqliteSql(string sql)
+    {
+        if (string.IsNullOrWhiteSpace(sql))
+        {
+            return sql;
+        }
+
+        string normalized = sql.Replace("`", "", StringComparison.Ordinal)
+            .Replace("AUTO_INCREMENT", "AUTOINCREMENT", StringComparison.OrdinalIgnoreCase)
+            .Replace("ENGINE=InnoDB", "", StringComparison.OrdinalIgnoreCase)
+            .Replace("ENGINE=MyISAM", "", StringComparison.OrdinalIgnoreCase)
+            .Replace("UNSIGNED", "", StringComparison.OrdinalIgnoreCase)
+            .Replace("INT(11)", "INTEGER", StringComparison.OrdinalIgnoreCase)
+            .Replace("DATETIME", "TEXT", StringComparison.OrdinalIgnoreCase)
+            .Replace("NOW()", "CURRENT_TIMESTAMP", StringComparison.OrdinalIgnoreCase)
+            .Replace("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP", "CURRENT_TIMESTAMP", StringComparison.OrdinalIgnoreCase)
+            .Replace("TRUE", "1", StringComparison.OrdinalIgnoreCase)
+            .Replace("FALSE", "0", StringComparison.OrdinalIgnoreCase)
+            .Replace("boolean", "INTEGER", StringComparison.OrdinalIgnoreCase)
+            .Replace("tinyint(1)", "INTEGER", StringComparison.OrdinalIgnoreCase)
+            .Replace("text CHARACTER SET utf8mb4", "TEXT", StringComparison.OrdinalIgnoreCase)
+            .Replace("CHARACTER SET utf8mb4", "", StringComparison.OrdinalIgnoreCase);
+
+        // DROP DATABASE/USE and MySQL session statements are no-ops for sqlite
+        string trimmed = normalized.TrimStart();
+        if (trimmed.StartsWith("USE ", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("CREATE DATABASE", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("SET FOREIGN_KEY_CHECKS", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("SET @", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("SET SESSION", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("PREPARE ", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("EXECUTE ", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("DEALLOCATE ", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("CALL ", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("SET NAMES", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("SET CHARACTER SET", StringComparison.OrdinalIgnoreCase))
+        {
+            return "-- skipped for sqlite";
+        }
+
+        // Convert MySQL ENUM to sqlite compatible type.
+        normalized = Regex.Replace(normalized, "\\bENUM\\s*\\([^)]*\\)", "TEXT", RegexOptions.IgnoreCase);
+        normalized = Regex.Replace(normalized, "\\bLONGBLOB\\b", "BLOB", RegexOptions.IgnoreCase);
+        normalized = Regex.Replace(normalized, "\\bTINYINT\\s*\\(1\\)", "INTEGER", RegexOptions.IgnoreCase);
+        normalized = Regex.Replace(normalized, "\\bINT\\s+AUTOINCREMENT\\s+PRIMARY\\s+KEY\\b", "INTEGER PRIMARY KEY AUTOINCREMENT", RegexOptions.IgnoreCase);
+        normalized = Regex.Replace(normalized, "\\bINT\\s+AUTOINCREMENT\\b", "INTEGER", RegexOptions.IgnoreCase);
+        normalized = Regex.Replace(normalized, "AUTO_INCREMENT", "AUTOINCREMENT", RegexOptions.IgnoreCase);
+
+        // Remove inline MySQL index definitions inside CREATE TABLE statements.
+        normalized = Regex.Replace(normalized, "(?im)^\\s*INDEX\\s+[A-Za-z0-9_]+\\s*\\([^)]*\\)\\s*,?\\s*$", string.Empty);
+        normalized = Regex.Replace(normalized, "(?m),\\s*\\)\\s*$", ")");
+
+        // Convert MySQL insert upsert syntax to sqlite-friendly version by dropping duplicate-key update clauses.
+        normalized = Regex.Replace(normalized, "ON DUPLICATE KEY UPDATE.*", string.Empty, RegexOptions.IgnoreCase | RegexOptions.Singleline);
+
+        // SQLite only supports autoincrement on an INTEGER PRIMARY KEY
+        normalized = Regex.Replace(normalized, "INTEGER PRIMARY KEY AUTOINCREMENT", "INTEGER PRIMARY KEY AUTOINCREMENT", RegexOptions.IgnoreCase); // no-op
+
+        return normalized;
     }
 
     private static IEnumerable<string> SplitStatements(string sql)

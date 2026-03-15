@@ -7,12 +7,16 @@ namespace baranggaysystem1
     public partial class UsersListForm : Form
     {
         private readonly UsersListFormController _controller;
+        private readonly System.Windows.Forms.Timer _searchDebounceTimer = new System.Windows.Forms.Timer();
+        private bool _filtersInitialized;
 
         public UsersListForm()
         {
             InitializeComponent();
             _controller = new UsersListFormController(this);
             ApplyTheme();
+            _searchDebounceTimer.Interval = 350;
+            _searchDebounceTimer.Tick += SearchDebounceTimer_Tick;
         }
 
         private void ApplyTheme()
@@ -38,6 +42,7 @@ namespace baranggaysystem1
 
         private void UsersListForm_Load(object sender, EventArgs e)
         {
+            _filtersInitialized = true;
             _controller.LoadUsers();
         }
 
@@ -53,21 +58,44 @@ namespace baranggaysystem1
 
         private void btnClose_Click(object sender, EventArgs e)
         {
+            _searchDebounceTimer.Stop();
             Close();
         }
 
         private void txtSearch_TextChanged(object sender, EventArgs e)
         {
-            _controller.LoadUsers();
+            if (!_filtersInitialized)
+            {
+                return;
+            }
+
+            _searchDebounceTimer.Stop();
+            _searchDebounceTimer.Start();
         }
 
         private void cmbRole_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (!_filtersInitialized)
+            {
+                return;
+            }
+
             _controller.LoadUsers();
         }
 
         private void cmbStatus_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (!_filtersInitialized)
+            {
+                return;
+            }
+
+            _controller.LoadUsers();
+        }
+
+        private void SearchDebounceTimer_Tick(object? sender, EventArgs e)
+        {
+            _searchDebounceTimer.Stop();
             _controller.LoadUsers();
         }
 

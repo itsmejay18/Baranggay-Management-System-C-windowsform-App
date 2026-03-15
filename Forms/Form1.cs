@@ -22,6 +22,7 @@ public partial class Form1 : Form
 {
 	private System.Windows.Forms.Timer? _fadeTimer;
 	private readonly Form1Controller _controller;
+	private bool _isLoginInProgress;
 
 	internal event Action<Form>? LoginSucceeded;
 	internal event Action? RegisterRequested;
@@ -37,7 +38,12 @@ public partial class Form1 : Form
 
 	private void button1_Click(object sender, EventArgs e)
 	{
-		_controller.HandleLogin();
+		if (_isLoginInProgress)
+		{
+			return;
+		}
+
+		_controller.HandleLoginAsync();
 	}
 
 
@@ -170,12 +176,46 @@ public partial class Form1 : Form
 
 	internal void CompleteLogin(Form destinationForm)
 	{
+		_isLoginInProgress = false;
+		HideLoginProgress();
 		LoginSucceeded?.Invoke(destinationForm);
 	}
 
 	internal void OpenRegister()
 	{
 		RegisterRequested?.Invoke();
+	}
+
+	internal void ShowLoginProgress()
+	{
+		_isLoginInProgress = true;
+		if (InvokeRequired)
+		{
+			BeginInvoke(new Action(ShowLoginProgress));
+			return;
+		}
+
+		txtUsername.Enabled = false;
+		txtPassword.Enabled = false;
+		ss.Enabled = false;
+		button1.Enabled = false;
+		ss.Text = "Signing in...";
+	}
+
+	internal void HideLoginProgress()
+	{
+		_isLoginInProgress = false;
+		if (InvokeRequired)
+		{
+			BeginInvoke(new Action(HideLoginProgress));
+			return;
+		}
+
+		txtUsername.Enabled = true;
+		txtPassword.Enabled = true;
+		ss.Enabled = true;
+		button1.Enabled = true;
+		ss.Text = "Log in";
 	}
 
 

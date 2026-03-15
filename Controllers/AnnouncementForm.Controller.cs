@@ -64,16 +64,16 @@ namespace baranggaysystem1
 
                 try
                 {
-                    DbHelper.ExecuteNonQuery(
+                    DatabaseManager.Insert(
                         @"INSERT INTO announcements (title, body, priority, status, is_pinned)
                           VALUES (@title, @body, @priority, @status, @pinned)",
-                        cmd =>
+                        new[]
                         {
-                            cmd.Parameters.AddWithValue("@title", title);
-                            cmd.Parameters.AddWithValue("@body", body);
-                            cmd.Parameters.AddWithValue("@priority", priority);
-                            cmd.Parameters.AddWithValue("@status", status);
-                            cmd.Parameters.AddWithValue("@pinned", pinned);
+                            new DbParameterValue("@title", title),
+                            new DbParameterValue("@body", body),
+                            new DbParameterValue("@priority", priority),
+                            new DbParameterValue("@status", status),
+                            new DbParameterValue("@pinned", pinned)
                         });
 
                     _form.CloseWithSuccess();

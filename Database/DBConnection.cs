@@ -68,6 +68,26 @@ namespace baranggaysystem1.Database
                 {
                     return Cache(workingSaved);
                 }
+
+                if (IsRemoteConnection(savedConnection))
+                {
+                    return Cache(savedConnection);
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(runtime) && IsRemoteConnection(runtime))
+            {
+                return Cache(runtime);
+            }
+
+            if (!string.IsNullOrWhiteSpace(envConnection) && IsRemoteConnection(envConnection))
+            {
+                return Cache(envConnection);
+            }
+
+            if (IsRemoteConnection(bootstrapConnection))
+            {
+                return Cache(bootstrapConnection);
             }
 
             var candidates = new[]
@@ -118,10 +138,26 @@ namespace baranggaysystem1.Database
                 // Required by migration scripts that use MySQL user variables (e.g. PREPARE ... FROM @sql).
                 builder.AllowUserVariables = true;
                 builder.AllowPublicKeyRetrieval = true;
+                builder.Pooling = true;
+
+                if (builder.MinimumPoolSize == 0)
+                {
+                    builder.MinimumPoolSize = 1;
+                }
+
+                if (builder.MaximumPoolSize == 0)
+                {
+                    builder.MaximumPoolSize = 60;
+                }
 
                 if (builder.ConnectionTimeout == 0)
-                {
+                { 
                     builder.ConnectionTimeout = ConnectionTimeoutSeconds;
+                }
+
+                if (builder.DefaultCommandTimeout == 0)
+                {
+                    builder.DefaultCommandTimeout = 30;
                 }
 
                 return builder.ConnectionString;
@@ -260,6 +296,32 @@ namespace baranggaysystem1.Database
             return false;
         }
 
+        private static bool IsRemoteConnection(string connectionString)
+        {
+            try
+            {
+                var builder = new MySqlConnectionStringBuilder(connectionString);
+                return !IsLocalServer(builder.Server);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static bool IsLocalServer(string? server)
+        {
+            if (string.IsNullOrWhiteSpace(server))
+            {
+                return true;
+            }
+
+            return server.Equals("localhost", StringComparison.OrdinalIgnoreCase)
+                || server.Equals("127.0.0.1", StringComparison.OrdinalIgnoreCase)
+                || server.Equals("::1", StringComparison.OrdinalIgnoreCase)
+                || server.Equals(".", StringComparison.OrdinalIgnoreCase);
+        }
+
         public static string GetCurrentConnectionString()
         {
             return ResolveConnectionString();
@@ -291,6 +353,22 @@ namespace baranggaysystem1.Database
         public static bool TryOpenCurrent(out string errorMessage)
         {
             return TryOpen(GetCurrentConnectionString(), out errorMessage);
+        }
+
+        public static bool TryOpenCurrentWithTimeout(uint timeoutSeconds, out string errorMessage)
+        {
+            string cs = GetCurrentConnectionString();
+            try
+            {
+                var builder = new MySqlConnectionStringBuilder(cs);
+                builder.ConnectionTimeout = timeoutSeconds;
+                string fastCs = builder.ConnectionString;
+                return TryOpen(fastCs, out errorMessage);
+            }
+            catch
+            {
+                return TryOpen(cs, out errorMessage);
+            }
         }
 
         public static string BuildFromParts(string server, uint port, string database, string user, string password, bool useSsl)

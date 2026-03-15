@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
+using baranggaysystem1.Database;
+using baranggaysystem1.Services;
 
 namespace baranggaysystem1
 {
@@ -78,41 +80,66 @@ namespace baranggaysystem1
                     var ex = args.ExceptionObject as Exception;
                     helper.AppLogger.LogError("Unhandled non-UI exception.", ex);
                 };
+
+                DatabaseManager.Initialize();
+
+                // DEBUG: Force offline mode for testing
+                DatabaseManager.SetDebugMode(false);
+
                 if (!isUiTest)
                 {
-                    using var installer = new PackageInstallerForm();
-                    DialogResult setupResult = installer.ShowDialog();
-                    if (setupResult != DialogResult.OK)
+                    if (DatabaseManager.IsOnline)
                     {
-                        return;
+                        helper.AppLogger.LogInfo("Remote database is available; running in online mode.");
+                    }
+                    else
+                    {
+                        helper.AppLogger.LogWarning("Remote database is unavailable. Starting in offline mode using local offline cache.");
                     }
 
                     try
                     {
-                        Database.SchemaGuard.EnsureDatabaseReady();
-
-                        var health = Database.SchemaGuard.RunStartupHealthChecks();
-                        string healthIssues = health.ToMultilineText(includeOk: false);
-                        if (health.HasCriticalIssues)
+                        if (DatabaseManager.IsOnline)
                         {
-                            helper.AppLogger.LogError("Startup health checks failed.\n" + healthIssues);
-                            MessageBox.Show(
-                                "Startup health checks found critical issues.\n\n" +
-                                healthIssues +
-                                "\n\nPlease resolve these issues before using the app.",
-                                "Startup Health Check",
-                                MessageBoxButtons.OK,
-                                MessageBoxIcon.Error);
-                            return;
-                        }
+                            Database.SchemaGuard.EnsureDatabaseReady();
 
-                        if (health.HasWarnings)
-                        {
-                            helper.AppLogger.LogWarning("Startup health checks completed with warnings.\n" + healthIssues);
+                            bool runDeepHealthChecks = string.Equals(
+                                Environment.GetEnvironmentVariable("BARANGAY_DEEP_HEALTH_CHECKS"),
+                                "1",
+                                StringComparison.Ordinal);
+
+                            var health = Database.SchemaGuard.RunStartupHealthChecks(runDeepHealthChecks);
+                            string healthIssues = health.ToMultilineText(includeOk: false);
+                            if (health.HasCriticalIssues)
+                            {
+                                helper.AppLogger.LogError("Startup health checks failed.\n" + healthIssues);
+                                MessageBox.Show(
+                                    "Startup health checks found critical issues.\n\n" +
+                                    healthIssues +
+                                    "\n\nPlease resolve these issues before using the app.",
+                                    "Startup Health Check",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Error);
+                                return;
+                            }
+
+                            if (health.HasWarnings)
+                            {
+                                helper.AppLogger.LogWarning("Startup health checks completed with warnings.\n" + healthIssues);
+                            }
+                            else
+                            {
+                                helper.AppLogger.LogInfo("Startup health checks passed.");
+                            }
                         }
                         else
                         {
-                            helper.AppLogger.LogInfo("Startup health checks passed.");
+                            helper.AppLogger.LogWarning("Offline mode: skipping remote schema/health startup checks.");
+                        }
+
+                        if (DatabaseManager.IsOnline)
+                        {
+                            SyncService.TrySynchronizePendingChanges();
                         }
                     }
                     catch (Exception ex)
@@ -127,7 +154,7 @@ namespace baranggaysystem1
                         MessageBox.Show(
                             "Database setup failed.\n\n" +
                             details +
-                            "\n\nTip: verify your DB connection in Package Installer or set BARANGAY_DB_CONNECTION (use SslMode=Disabled).",
+                            "\n\nTip: set BARANGAY_DB_CONNECTION with the correct DB credentials and retry.",
                             "Database Error",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Error);
@@ -220,8 +247,11 @@ namespace baranggaysystem1
 
         private sealed class StartupApplicationContext : ApplicationContext
         {
+            private readonly ConnectivityMonitorService _connectivityMonitor = new();
+
             public StartupApplicationContext()
             {
+                _connectivityMonitor.Start();
                 Form1 loginForm = CreateLoginForm();
                 MainForm = loginForm;
                 loginForm.Show();
@@ -268,6 +298,7 @@ namespace baranggaysystem1
             {
                 if (ReferenceEquals(MainForm, sender))
                 {
+                    _connectivityMonitor.Dispose();
                     ExitThread();
                 }
             }

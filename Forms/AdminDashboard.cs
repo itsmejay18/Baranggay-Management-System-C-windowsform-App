@@ -16,7 +16,7 @@ public partial class AdminDashboard : Form
 {
     private enum DashboardResponsiveMode
     {
-        Unknown = 0,
+        Unknown = 0, 
         Wide,
         Medium,
         Narrow
@@ -94,6 +94,7 @@ public partial class AdminDashboard : Form
     private readonly IconButton _backupOpenFolderButton = new IconButton();
     private readonly ToolTip _backupToolTip = new ToolTip();
     private readonly ToolTip _officialStatusToolTip = new ToolTip();
+    private readonly Label _connectivityStatusLabel = new Label();
     private readonly HashSet<Panel> _lightBorderPanels = new HashSet<Panel>();
     private readonly FlowLayoutPanel _staffCardsFlow = new FlowLayoutPanel();
     private DateTime _lastBackupStatusRefreshAt = DateTime.MinValue;
@@ -130,6 +131,7 @@ public partial class AdminDashboard : Form
         ConfigureDynamicSidebar();
         WireOfficials();
         ShowDashboard();
+        WireConnectivityStatus();
     }
 
     private void DisableLegacyResidentSurface()
@@ -751,6 +753,12 @@ public partial class AdminDashboard : Form
 
     internal void SetNotifications(DataTable? table)
     {
+        if (InvokeRequired)
+        {
+            BeginInvoke(new Action(() => SetNotifications(table)));
+            return;
+        }
+
         int count = table?.Rows.Count ?? 0;
         notificationTitle.Text = count > 0 ? $"Notifications ({count})" : "Notifications";
         notificationViewAll.Enabled = count > 0;
@@ -793,6 +801,12 @@ public partial class AdminDashboard : Form
 
     internal void SetActionCenter(DataTable table)
     {
+        if (InvokeRequired)
+        {
+            BeginInvoke(new Action(() => SetActionCenter(table)));
+            return;
+        }
+
         _actionCenterTable = table?.Copy();
         _selectedActionTarget = ResolveActionTargetFromTable(_actionCenterTable);
         actionCenterHeader.Text = "Action Calendar";
@@ -3050,6 +3064,45 @@ public partial class AdminDashboard : Form
         officialsViewAll.Click += (_, __) => _controller.HandleViewAllStaff();
     }
 
+    private void WireConnectivityStatus()
+    {
+        // Initialize connectivity status label
+        _connectivityStatusLabel.Font = new Font("Segoe UI", 8F, FontStyle.Regular, GraphicsUnit.Point);
+        _connectivityStatusLabel.AutoSize = true;
+        _connectivityStatusLabel.Margin = new Padding(10, 0, 10, 0);
+        _connectivityStatusLabel.Dock = DockStyle.Right;
+        UpdateConnectivityStatus();
+
+        // Add to panel top (right side, before notification button)
+        if (!panelTop.Controls.Contains(_connectivityStatusLabel))
+        {
+            panelTop.Controls.Add(_connectivityStatusLabel);
+        }
+
+        // Subscribe to database mode changes
+        DatabaseManager.ModeChanged += (sender, args) => UpdateConnectivityStatus();
+    }
+
+    private void UpdateConnectivityStatus()
+    {
+        if (InvokeRequired)
+        {
+            BeginInvoke(new Action(UpdateConnectivityStatus));
+            return;
+        }
+
+        if (DatabaseManager.IsOnline)
+        {
+            _connectivityStatusLabel.Text = "● Online";
+            _connectivityStatusLabel.ForeColor = Color.FromArgb(34, 197, 94); // green
+        }
+        else
+        {
+            _connectivityStatusLabel.Text = "● Offline";
+            _connectivityStatusLabel.ForeColor = Color.FromArgb(148, 163, 184); // slate
+        }
+    }
+
     private void StyleStatusButton(Button button, OfficialPresence status)
     {
         button.Text = string.Empty;
@@ -3172,7 +3225,7 @@ public partial class AdminDashboard : Form
     private void button3_Click(object sender, EventArgs e) { }
     private void AdminDashboard_Load(object sender, EventArgs e)
     {
-        _controller.LoadDashboardStats();
+        // Stats are already loaded when ShowDashboard() is called during construction.
     }
 
     private void AdminDashboard_Resize(object? sender, EventArgs e)
@@ -3384,6 +3437,15 @@ public partial class AdminDashboard : Form
         int blotterOngoing, int blotterSettled, int blotterReferred,
         string[] monthLabels, int[] monthCounts)
     {
+        if (InvokeRequired)
+        {
+            BeginInvoke(new Action(() => SetDashboardTrendStats(
+                certRequested, certApproved, certIssued, certCancelled,
+                blotterOngoing, blotterSettled, blotterReferred,
+                monthLabels, monthCounts)));
+            return;
+        }
+
         _certTrend = new[] { certRequested, certApproved, certIssued, certCancelled };
         _blotterTrend = new[] { blotterOngoing, blotterSettled, blotterReferred };
         _residentTrend = monthCounts;
@@ -3438,6 +3500,12 @@ public partial class AdminDashboard : Form
 
     internal void SetOfficials(OfficialInfo[] officials)
     {
+        if (InvokeRequired)
+        {
+            BeginInvoke(new Action(() => SetOfficials(officials)));
+            return;
+        }
+
         int visibleStaff = Math.Min(_officialCards.Length, officials.Length);
         officialsViewAll.Text = $"View all staff ({visibleStaff})";
 

@@ -13,6 +13,7 @@ namespace baranggaysystem1
             private bool _featuresInitialized;
             private bool _kpiDrillDownWired;
             private bool _backupInProgress;
+            private bool _dashboardSchemaEnsured;
 
             public AdminDashboardController(AdminDashboard form)
             {
@@ -22,15 +23,10 @@ namespace baranggaysystem1
             public void LoadDashboardStats()
             {
                 InitializeFeatures();
-                EnsureAnnouncementsSchema();
-                EnsureAnnouncementUserStateSchema();
-                EnsureProjectsSchema();
+                EnsureDashboardSchema();
 
-                int totalResidents = SafeScalar("SELECT COUNT(*) FROM resident WHERE IFNULL(is_deleted,0)=0");
-                int activeResidents = SafeScalar("SELECT COUNT(*) FROM resident WHERE IFNULL(is_deleted,0)=0 AND status = 'ACTIVE'");
-                int households = SafeScalar("SELECT COUNT(*) FROM household");
-                int pendingCertificates = SafeScalar("SELECT COUNT(*) FROM document_request WHERE status = 'SUBMITTED'");
-                int ongoingBlotter = SafeScalar("SELECT COUNT(*) FROM case_record WHERE status = 'ONGOING'");
+                // Load critical counts on UI thread
+                (int totalResidents, int activeResidents, int households, int pendingCertificates, int ongoingBlotter) = LoadDashboardCounts();
 
                 _form.SetDashboardStats(
                     totalResidents,
@@ -39,14 +35,31 @@ namespace baranggaysystem1
                     pendingCertificates,
                     ongoingBlotter);
 
-                Try(LoadDashboardTrends);
-                Try(LoadOfficials);
-                Try(LoadAnnouncements);
-                Try(LoadProjects);
-                Try(LoadActionCenter);
-                Try(LoadNotifications);
-                Try(LoadBackupStatus);
-                Try(LoadSchemaVersion);
+                // Load non-critical data on background thread to avoid UI blocking
+                System.Threading.Tasks.Task.Run(() =>
+                {
+                    Try(LoadDashboardTrends);
+                    Try(LoadOfficials);
+                    Try(LoadAnnouncements);
+                    Try(LoadProjects);
+                    Try(LoadActionCenter);
+                    Try(LoadNotifications);
+                    Try(LoadBackupStatus);
+                    Try(LoadSchemaVersion);
+                });
+            }
+
+            private void EnsureDashboardSchema()
+            {
+                if (_dashboardSchemaEnsured)
+                {
+                    return;
+                }
+
+                EnsureAnnouncementsSchema();
+                EnsureAnnouncementUserStateSchema();
+                EnsureProjectsSchema();
+                _dashboardSchemaEnsured = true;
             }
 
             public void RefreshNotifications()
@@ -424,116 +437,73 @@ namespace baranggaysystem1
                 table.Columns.Add("target_view", typeof(string));
                 table.Columns.Add("priority_level", typeof(int));
 
-                // Reminders: SLA-driven due soon + overdue items.
-                AddActionRow(
-                    table,
-                    "Certificates",
-                    "Overdue approvals",
-                    SafeScalar($"SELECT COUNT(*)\r\n                                FROM document_request\r\n                                WHERE status = 'SUBMITTED'\r\n                                  AND requested_at < DATE_SUB(CURDATE(), INTERVAL {SlaRules.CertificateApprovalSlaDays} DAY)"),
-                    "Certificates",
-                    0);
+                var metrics = SafeLoadTable($@"
+                    SELECT
+                        (SELECT COUNT(*) FROM document_request
+                          WHERE status = 'SUBMITTED'
+                            AND requested_at < DATE_SUB(CURDATE(), INTERVAL {SlaRules.CertificateApprovalSlaDays} DAY)) AS overdue_approvals,
+                        (SELECT COUNT(*) FROM document_request
+                          WHERE status = 'APPROVED'
+                            AND approved_at IS NOT NULL
+                            AND approved_at < DATE_SUB(CURDATE(), INTERVAL {SlaRules.CertificateReleaseSlaDays} DAY)) AS overdue_pickups,
+                        (SELECT COUNT(*) FROM case_record
+                          WHERE status IN ('OPEN','ONGOING')
+                            AND created_at < DATE_SUB(CURDATE(), INTERVAL {SlaRules.BlotterResolutionSlaDays} DAY)) AS overdue_cases,
+                        (SELECT COUNT(*) FROM document_request
+                          WHERE status = 'SUBMITTED'
+                            AND requested_at >= DATE_SUB(CURDATE(), INTERVAL {SlaRules.CertificateApprovalSlaDays} DAY)
+                            AND requested_at < DATE_ADD(DATE_SUB(CURDATE(), INTERVAL {SlaRules.CertificateApprovalSlaDays} DAY), INTERVAL {SlaRules.CertificateDueSoonDays + 1} DAY)) AS approvals_due_soon,
+                        (SELECT COUNT(*) FROM document_request
+                          WHERE status = 'APPROVED'
+                            AND approved_at IS NOT NULL
+                            AND approved_at >= DATE_SUB(CURDATE(), INTERVAL {SlaRules.CertificateReleaseSlaDays} DAY)
+                            AND approved_at < DATE_ADD(DATE_SUB(CURDATE(), INTERVAL {SlaRules.CertificateReleaseSlaDays} DAY), INTERVAL {SlaRules.CertificateDueSoonDays + 1} DAY)) AS pickups_due_soon,
+                        (SELECT COUNT(*)
+                           FROM document_request dr
+                           INNER JOIN document_type dt ON dt.doc_type_id = dr.doc_type_id
+                          WHERE dr.status = 'RELEASED'
+                            AND dr.expires_at IS NOT NULL
+                            AND (UPPER(dt.code) = 'BC' OR UPPER(dt.name) = 'BARANGAY CLEARANCE')
+                            AND DATE(dr.expires_at) >= CURDATE()
+                            AND DATE(dr.expires_at) <= DATE_ADD(CURDATE(), INTERVAL IFNULL(dt.renewal_reminder_days, 30) DAY)) AS clearances_expiring_soon,
+                        (SELECT COUNT(*)
+                           FROM document_request dr
+                           INNER JOIN document_type dt ON dt.doc_type_id = dr.doc_type_id
+                          WHERE dr.status = 'RELEASED'
+                            AND dr.expires_at IS NOT NULL
+                            AND (UPPER(dt.code) = 'BC' OR UPPER(dt.name) = 'BARANGAY CLEARANCE')
+                            AND DATE(dr.expires_at) < CURDATE()) AS expired_clearances,
+                        (SELECT COUNT(*) FROM case_record
+                          WHERE status IN ('OPEN','ONGOING')
+                            AND created_at >= DATE_SUB(CURDATE(), INTERVAL {SlaRules.BlotterResolutionSlaDays} DAY)
+                            AND created_at < DATE_ADD(DATE_SUB(CURDATE(), INTERVAL {SlaRules.BlotterResolutionSlaDays} DAY), INTERVAL {SlaRules.BlotterDueSoonDays + 1} DAY)) AS cases_due_soon,
+                        (SELECT COUNT(*) FROM case_hearing
+                          WHERE status = 'SCHEDULED'
+                            AND schedule_at < CURDATE()) AS missed_hearings,
+                        (SELECT COUNT(*) FROM case_hearing
+                          WHERE status = 'SCHEDULED'
+                            AND schedule_at >= CURDATE()
+                            AND schedule_at < DATE_ADD(CURDATE(), INTERVAL 1 DAY)) AS hearings_today,
+                        (SELECT COUNT(*) FROM resident
+                          WHERE IFNULL(is_deleted,0)=0
+                            AND status = 'MOVED_OUT') AS inactive_residents,
+                        (SELECT COUNT(*) FROM user_account
+                          WHERE is_active = 0) AS inactive_accounts");
 
-                AddActionRow(
-                    table,
-                    "Certificates",
-                    "Overdue pickups",
-                    SafeScalar($"SELECT COUNT(*)\r\n                                FROM document_request\r\n                                WHERE status = 'APPROVED'\r\n                                  AND approved_at IS NOT NULL\r\n                                  AND approved_at < DATE_SUB(CURDATE(), INTERVAL {SlaRules.CertificateReleaseSlaDays} DAY)"),
-                    "Certificates",
-                    0);
+                DataRow? row = metrics.Rows.Count > 0 ? metrics.Rows[0] : null;
 
-                AddActionRow(
-                    table,
-                    "Blotter",
-                    "Overdue cases",
-                    SafeScalar($"SELECT COUNT(*)\r\n                                FROM case_record\r\n                                WHERE status IN ('OPEN','ONGOING')\r\n                                  AND created_at < DATE_SUB(CURDATE(), INTERVAL {SlaRules.BlotterResolutionSlaDays} DAY)"),
-                    "Blotter",
-                    0);
-
-                AddActionRow(
-                    table,
-                    "Certificates",
-                    "Approvals due soon",
-                    SafeScalar($"SELECT COUNT(*)\r\n                                FROM document_request\r\n                                WHERE status = 'SUBMITTED'\r\n                                  AND requested_at >= DATE_SUB(CURDATE(), INTERVAL {SlaRules.CertificateApprovalSlaDays} DAY)\r\n                                  AND requested_at < DATE_ADD(DATE_SUB(CURDATE(), INTERVAL {SlaRules.CertificateApprovalSlaDays} DAY), INTERVAL {SlaRules.CertificateDueSoonDays + 1} DAY)"),
-                    "Certificates",
-                    1);
-
-                AddActionRow(
-                    table,
-                    "Certificates",
-                    "Pickups due soon",
-                    SafeScalar($"SELECT COUNT(*)\r\n                                FROM document_request\r\n                                WHERE status = 'APPROVED'\r\n                                  AND approved_at IS NOT NULL\r\n                                  AND approved_at >= DATE_SUB(CURDATE(), INTERVAL {SlaRules.CertificateReleaseSlaDays} DAY)\r\n                                  AND approved_at < DATE_ADD(DATE_SUB(CURDATE(), INTERVAL {SlaRules.CertificateReleaseSlaDays} DAY), INTERVAL {SlaRules.CertificateDueSoonDays + 1} DAY)"),
-                    "Certificates",
-                    1);
-
-                AddActionRow(
-                    table,
-                    "Certificates",
-                    "Clearances expiring soon",
-                    SafeScalar(@"SELECT COUNT(*)
-                                 FROM document_request dr
-                                 INNER JOIN document_type dt ON dt.doc_type_id = dr.doc_type_id
-                                 WHERE dr.status = 'RELEASED'
-                                   AND dr.expires_at IS NOT NULL
-                                   AND (UPPER(dt.code) = 'BC' OR UPPER(dt.name) = 'BARANGAY CLEARANCE')
-                                   AND DATE(dr.expires_at) >= CURDATE()
-                                   AND DATE(dr.expires_at) <= DATE_ADD(CURDATE(), INTERVAL IFNULL(dt.renewal_reminder_days, 30) DAY)"),
-                    "Certificates",
-                    1);
-
-                AddActionRow(
-                    table,
-                    "Certificates",
-                    "Expired clearances",
-                    SafeScalar(@"SELECT COUNT(*)
-                                 FROM document_request dr
-                                 INNER JOIN document_type dt ON dt.doc_type_id = dr.doc_type_id
-                                 WHERE dr.status = 'RELEASED'
-                                   AND dr.expires_at IS NOT NULL
-                                   AND (UPPER(dt.code) = 'BC' OR UPPER(dt.name) = 'BARANGAY CLEARANCE')
-                                   AND DATE(dr.expires_at) < CURDATE()"),
-                    "Certificates",
-                    0);
-
-                AddActionRow(
-                    table,
-                    "Blotter",
-                    "Cases due soon",
-                    SafeScalar($"SELECT COUNT(*)\r\n                                FROM case_record\r\n                                WHERE status IN ('OPEN','ONGOING')\r\n                                  AND created_at >= DATE_SUB(CURDATE(), INTERVAL {SlaRules.BlotterResolutionSlaDays} DAY)\r\n                                  AND created_at < DATE_ADD(DATE_SUB(CURDATE(), INTERVAL {SlaRules.BlotterResolutionSlaDays} DAY), INTERVAL {SlaRules.BlotterDueSoonDays + 1} DAY)"),
-                    "Blotter",
-                    1);
-
-                // Hearing reminders (optional; depends on case_hearing usage).
-                AddActionRow(
-                    table,
-                    "Blotter",
-                    "Missed hearings",
-                    SafeScalar("SELECT COUNT(*) FROM case_hearing WHERE status = 'SCHEDULED' AND schedule_at < CURDATE()"),
-                    "Blotter",
-                    0);
-
-                AddActionRow(
-                    table,
-                    "Blotter",
-                    "Hearings today",
-                    SafeScalar("SELECT COUNT(*) FROM case_hearing WHERE status = 'SCHEDULED' AND schedule_at >= CURDATE() AND schedule_at < DATE_ADD(CURDATE(), INTERVAL 1 DAY)"),
-                    "Blotter",
-                    0);
-
-                AddActionRow(
-                    table,
-                    "Residents",
-                    "Inactive residents",
-                    SafeScalar("SELECT COUNT(*) FROM resident WHERE IFNULL(is_deleted,0)=0 AND status = 'MOVED_OUT'"),
-                    "Profile",
-                    2);
-
-                AddActionRow(
-                    table,
-                    "Staff",
-                    "Inactive accounts",
-                    SafeScalar("SELECT COUNT(*) FROM user_account WHERE is_active = 0"),
-                    "Users",
-                    2);
+                AddActionRow(table, "Certificates", "Overdue approvals", ReadInt(row, "overdue_approvals"), "Certificates", 0);
+                AddActionRow(table, "Certificates", "Overdue pickups", ReadInt(row, "overdue_pickups"), "Certificates", 0);
+                AddActionRow(table, "Blotter", "Overdue cases", ReadInt(row, "overdue_cases"), "Blotter", 0);
+                AddActionRow(table, "Certificates", "Approvals due soon", ReadInt(row, "approvals_due_soon"), "Certificates", 1);
+                AddActionRow(table, "Certificates", "Pickups due soon", ReadInt(row, "pickups_due_soon"), "Certificates", 1);
+                AddActionRow(table, "Certificates", "Clearances expiring soon", ReadInt(row, "clearances_expiring_soon"), "Certificates", 1);
+                AddActionRow(table, "Certificates", "Expired clearances", ReadInt(row, "expired_clearances"), "Certificates", 0);
+                AddActionRow(table, "Blotter", "Cases due soon", ReadInt(row, "cases_due_soon"), "Blotter", 1);
+                AddActionRow(table, "Blotter", "Missed hearings", ReadInt(row, "missed_hearings"), "Blotter", 0);
+                AddActionRow(table, "Blotter", "Hearings today", ReadInt(row, "hearings_today"), "Blotter", 0);
+                AddActionRow(table, "Residents", "Inactive residents", ReadInt(row, "inactive_residents"), "Profile", 2);
+                AddActionRow(table, "Staff", "Inactive accounts", ReadInt(row, "inactive_accounts"), "Users", 2);
 
                 if (table.Rows.Count == 0)
                 {
@@ -618,14 +588,24 @@ namespace baranggaysystem1
 
             private void LoadDashboardTrends()
             {
-                int certRequested = SafeScalar("SELECT COUNT(*) FROM document_request WHERE status = 'SUBMITTED'");
-                int certApproved = SafeScalar("SELECT COUNT(*) FROM document_request WHERE status = 'APPROVED'");
-                int certIssued = SafeScalar("SELECT COUNT(*) FROM document_request WHERE status = 'RELEASED'");
-                int certCancelled = SafeScalar("SELECT COUNT(*) FROM document_request WHERE status = 'CANCELLED'");
+                var summary = SafeLoadTable(@"
+                    SELECT
+                        (SELECT COUNT(*) FROM document_request WHERE status = 'SUBMITTED') AS cert_requested,
+                        (SELECT COUNT(*) FROM document_request WHERE status = 'APPROVED') AS cert_approved,
+                        (SELECT COUNT(*) FROM document_request WHERE status = 'RELEASED') AS cert_issued,
+                        (SELECT COUNT(*) FROM document_request WHERE status = 'CANCELLED') AS cert_cancelled,
+                        (SELECT COUNT(*) FROM case_record WHERE status = 'ONGOING') AS blotter_ongoing,
+                        (SELECT COUNT(*) FROM case_record WHERE status = 'SETTLED') AS blotter_settled,
+                        (SELECT COUNT(*) FROM case_record WHERE status = 'REFERRED') AS blotter_referred");
+                DataRow? summaryRow = summary.Rows.Count > 0 ? summary.Rows[0] : null;
 
-                int blotterOngoing = SafeScalar("SELECT COUNT(*) FROM case_record WHERE status = 'ONGOING'");
-                int blotterSettled = SafeScalar("SELECT COUNT(*) FROM case_record WHERE status = 'SETTLED'");
-                int blotterReferred = SafeScalar("SELECT COUNT(*) FROM case_record WHERE status = 'REFERRED'");
+                int certRequested = ReadInt(summaryRow, "cert_requested");
+                int certApproved = ReadInt(summaryRow, "cert_approved");
+                int certIssued = ReadInt(summaryRow, "cert_issued");
+                int certCancelled = ReadInt(summaryRow, "cert_cancelled");
+                int blotterOngoing = ReadInt(summaryRow, "blotter_ongoing");
+                int blotterSettled = ReadInt(summaryRow, "blotter_settled");
+                int blotterReferred = ReadInt(summaryRow, "blotter_referred");
 
                 var monthLabels = new string[6];
                 var monthCounts = new int[6];
@@ -671,16 +651,56 @@ namespace baranggaysystem1
                     monthLabels, monthCounts);
             }
 
-            private static int SafeScalar(string sql)
+            private static int ReadInt(DataRow? row, string columnName)
             {
+                if (row == null || !row.Table.Columns.Contains(columnName))
+                {
+                    return 0;
+                }
+
+                object? value = row[columnName];
+                if (value == null || value == DBNull.Value)
+                {
+                    return 0;
+                }
+
+                if (value is int directInt)
+                {
+                    return directInt;
+                }
+
+                if (int.TryParse(Convert.ToString(value), out int parsed))
+                {
+                    return parsed;
+                }
+
                 try
                 {
-                    return DbHelper.ExecuteScalar<int>(sql);
+                    return Convert.ToInt32(value);
                 }
                 catch
                 {
                     return 0;
                 }
+            }
+
+            private static (int TotalResidents, int ActiveResidents, int Households, int PendingCertificates, int OngoingBlotter) LoadDashboardCounts()
+            {
+                var table = SafeLoadTable(@"
+                    SELECT
+                        (SELECT COUNT(*) FROM resident WHERE IFNULL(is_deleted,0)=0) AS total_residents,
+                        (SELECT COUNT(*) FROM resident WHERE IFNULL(is_deleted,0)=0 AND status = 'ACTIVE') AS active_residents,
+                        (SELECT COUNT(*) FROM household) AS households,
+                        (SELECT COUNT(*) FROM document_request WHERE status = 'SUBMITTED') AS pending_certificates,
+                        (SELECT COUNT(*) FROM case_record WHERE status = 'ONGOING') AS ongoing_blotter");
+
+                DataRow? row = table.Rows.Count > 0 ? table.Rows[0] : null;
+                return (
+                    ReadInt(row, "total_residents"),
+                    ReadInt(row, "active_residents"),
+                    ReadInt(row, "households"),
+                    ReadInt(row, "pending_certificates"),
+                    ReadInt(row, "ongoing_blotter"));
             }
 
             private static System.Data.DataTable SafeLoadTable(string sql)
