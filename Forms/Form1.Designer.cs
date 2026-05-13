@@ -17,12 +17,12 @@ namespace baranggaysystem1
         private System.Windows.Forms.FlowLayoutPanel registerRow;
         private System.Windows.Forms.Label labelSubtitle;
 
-        private System.Windows.Forms.Button ss;
+        private System.Windows.Forms.Button loginButton;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox txtUsername;
         private System.Windows.Forms.TextBox txtPassword;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button registerLinkButton;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
 
@@ -54,10 +54,10 @@ namespace baranggaysystem1
             txtUsername = new System.Windows.Forms.TextBox();
             label2 = new System.Windows.Forms.Label();
             txtPassword = new System.Windows.Forms.TextBox();
-            ss = new System.Windows.Forms.Button();
+            loginButton = new System.Windows.Forms.Button();
             registerRow = new System.Windows.Forms.FlowLayoutPanel();
             label3 = new System.Windows.Forms.Label();
-            button1 = new System.Windows.Forms.Button();
+            registerLinkButton = new System.Windows.Forms.Button();
             rootLayout.SuspendLayout();
             panelLeft.SuspendLayout();
             heroStack.SuspendLayout();
@@ -199,7 +199,7 @@ namespace baranggaysystem1
             cardLayout.Controls.Add(txtUsername, 0, 3);
             cardLayout.Controls.Add(label2, 0, 4);
             cardLayout.Controls.Add(txtPassword, 0, 5);
-            cardLayout.Controls.Add(ss, 0, 6);
+            cardLayout.Controls.Add(loginButton, 0, 6);
             cardLayout.Controls.Add(registerRow, 0, 7);
             // 
             // label4
@@ -263,15 +263,15 @@ namespace baranggaysystem1
             // 
             // ss
             // 
-            ss.Anchor = ((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right));
-            ss.Location = new System.Drawing.Point(0, 164);
-            ss.Margin = new System.Windows.Forms.Padding(0, 0, 0, 10);
-            ss.Name = "ss";
-            ss.Size = new System.Drawing.Size(420, 29);
-            ss.TabIndex = 6;
-            ss.Text = "Log in";
-            ss.UseVisualStyleBackColor = true;
-            ss.Click += button1_Click;
+            loginButton.Anchor = ((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right));
+            loginButton.Location = new System.Drawing.Point(0, 164);
+            loginButton.Margin = new System.Windows.Forms.Padding(0, 0, 0, 10);
+            loginButton.Name = "ss";
+            loginButton.Size = new System.Drawing.Size(420, 29);
+            loginButton.TabIndex = 6;
+            loginButton.Text = "Log in";
+            loginButton.UseVisualStyleBackColor = true;
+            loginButton.Click += LoginButton_Click;
             // 
             // registerRow
             // 
@@ -284,7 +284,7 @@ namespace baranggaysystem1
             registerRow.TabIndex = 7;
             registerRow.WrapContents = false;
             registerRow.Controls.Add(label3);
-            registerRow.Controls.Add(button1);
+            registerRow.Controls.Add(registerLinkButton);
             // 
             // label3
             // 
@@ -298,15 +298,15 @@ namespace baranggaysystem1
             // 
             // button1
             // 
-            button1.AutoSize = true;
-            button1.Location = new System.Drawing.Point(136, 0);
-            button1.Margin = new System.Windows.Forms.Padding(0);
-            button1.Name = "button1";
-            button1.Size = new System.Drawing.Size(75, 23);
-            button1.TabIndex = 1;
-            button1.Text = "Register";
-            button1.UseVisualStyleBackColor = true;
-            button1.Click += button1_Click_1;
+            registerLinkButton.AutoSize = true;
+            registerLinkButton.Location = new System.Drawing.Point(136, 0);
+            registerLinkButton.Margin = new System.Windows.Forms.Padding(0);
+            registerLinkButton.Name = "button1";
+            registerLinkButton.Size = new System.Drawing.Size(75, 23);
+            registerLinkButton.TabIndex = 1;
+            registerLinkButton.Text = "Register";
+            registerLinkButton.UseVisualStyleBackColor = true;
+            registerLinkButton.Click += RegisterLinkButton_Click;
             // 
             // Form1
             // 

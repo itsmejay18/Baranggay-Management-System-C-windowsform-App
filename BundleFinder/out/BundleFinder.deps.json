@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "BundleFinder/1.0.0": {
+        "runtime": {
+          "BundleFinder.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "BundleFinder/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

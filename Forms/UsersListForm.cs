@@ -38,12 +38,12 @@ namespace baranggaysystem1
 
         private void UsersListForm_Load(object sender, EventArgs e)
         {
-            _controller.LoadUsers();
+            _controller.TriggerLoad(immediate: true);
         }
 
         private void btnRefresh_Click(object sender, EventArgs e)
         {
-            _controller.LoadUsers();
+            _controller.TriggerLoad(immediate: true);
         }
 
         private void btnEdit_Click(object sender, EventArgs e)
@@ -58,17 +58,17 @@ namespace baranggaysystem1
 
         private void txtSearch_TextChanged(object sender, EventArgs e)
         {
-            _controller.LoadUsers();
+            _controller.TriggerLoad();
         }
 
         private void cmbRole_SelectedIndexChanged(object sender, EventArgs e)
         {
-            _controller.LoadUsers();
+            _controller.TriggerLoad(immediate: true);
         }
 
         private void cmbStatus_SelectedIndexChanged(object sender, EventArgs e)
         {
-            _controller.LoadUsers();
+            _controller.TriggerLoad(immediate: true);
         }
 
         internal string SearchText => txtSearch.Text;

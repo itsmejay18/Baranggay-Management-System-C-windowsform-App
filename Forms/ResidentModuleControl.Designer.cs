@@ -124,10 +124,10 @@ namespace baranggaysystem1
         private System.Windows.Forms.Label historySummaryCertificatesValue;
         private System.Windows.Forms.Label historySummaryCertificatesLabel;
 
-        private System.Windows.Forms.Button add;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Button button2;
-        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.Button profileAddResidentButton;
+        private System.Windows.Forms.Button residentSearchButton;
+        private System.Windows.Forms.Button profileUpdateResidentButton;
+        private System.Windows.Forms.Button profileDeleteResidentButton;
 
         protected override void Dispose(bool disposing)
         {
@@ -154,8 +154,8 @@ namespace baranggaysystem1
             _tabProfile = new TabPage();
             profileContainer = new Panel();
             profileActions = new FlowLayoutPanel();
-            add = new Button();
-            button3 = new Button();
+            profileAddResidentButton = new Button();
+            profileDeleteResidentButton = new Button();
             _residentQuickEdit = new Button();
             profileBody = new TableLayoutPanel();
             profileInfoTable = new TableLayoutPanel();
@@ -255,12 +255,12 @@ namespace baranggaysystem1
             _searchBox = new TextBox();
             _searchClear = new Button();
             _actionsPanel = new FlowLayoutPanel();
-            button1 = new Button();
+            residentSearchButton = new Button();
             certDetailsHeader = new Label();
             certDataHeader = new Label();
             certSummaryTable = new TableLayoutPanel();
             certDetailTable = new TableLayoutPanel();
-            button2 = new Button();
+            profileUpdateResidentButton = new Button();
             contentPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitMain).BeginInit();
             splitMain.Panel1.SuspendLayout();
@@ -470,8 +470,8 @@ namespace baranggaysystem1
             // profileActions
             // 
             profileActions.AutoSize = true;
-            profileActions.Controls.Add(add);
-            profileActions.Controls.Add(button3);
+            profileActions.Controls.Add(profileAddResidentButton);
+            profileActions.Controls.Add(profileDeleteResidentButton);
             profileActions.Controls.Add(_residentQuickEdit);
             profileActions.Dock = DockStyle.Top;
             profileActions.Location = new Point(0, 318);
@@ -482,21 +482,21 @@ namespace baranggaysystem1
             // 
             // add
             // 
-            add.AutoSize = true;
-            add.Location = new Point(3, 15);
-            add.Name = "add";
-            add.Size = new Size(75, 30);
-            add.TabIndex = 0;
-            add.Text = "Add";
+            profileAddResidentButton.AutoSize = true;
+            profileAddResidentButton.Location = new Point(3, 15);
+            profileAddResidentButton.Name = "add";
+            profileAddResidentButton.Size = new Size(75, 30);
+            profileAddResidentButton.TabIndex = 0;
+            profileAddResidentButton.Text = "Add";
             // 
             // button3
             // 
-            button3.AutoSize = true;
-            button3.Location = new Point(84, 15);
-            button3.Name = "button3";
-            button3.Size = new Size(75, 30);
-            button3.TabIndex = 1;
-            button3.Text = "Delete";
+            profileDeleteResidentButton.AutoSize = true;
+            profileDeleteResidentButton.Location = new Point(84, 15);
+            profileDeleteResidentButton.Name = "button3";
+            profileDeleteResidentButton.Size = new Size(75, 30);
+            profileDeleteResidentButton.TabIndex = 1;
+            profileDeleteResidentButton.Text = "Delete";
             // 
             // _residentQuickEdit
             // 
@@ -1491,7 +1491,7 @@ namespace baranggaysystem1
             // _actionsPanel
             // 
             _actionsPanel.AutoSize = false;
-            _actionsPanel.Controls.Add(button1);
+            _actionsPanel.Controls.Add(residentSearchButton);
             _actionsPanel.Dock = DockStyle.Fill;
             _actionsPanel.Margin = Padding.Empty;
             _actionsPanel.Name = "_actionsPanel";
@@ -1502,10 +1502,10 @@ namespace baranggaysystem1
             // 
             // button1
             // 
-            button1.Location = new Point(3, 15);
-            button1.Name = "button1";
-            button1.Size = new Size(75, 23);
-            button1.TabIndex = 0;
+            residentSearchButton.Location = new Point(3, 15);
+            residentSearchButton.Name = "button1";
+            residentSearchButton.Size = new Size(75, 23);
+            residentSearchButton.TabIndex = 0;
             // 
             // certDetailsHeader
             // 
@@ -1537,10 +1537,10 @@ namespace baranggaysystem1
             // 
             // button2
             // 
-            button2.Location = new Point(0, 0);
-            button2.Name = "button2";
-            button2.Size = new Size(75, 23);
-            button2.TabIndex = 0;
+            profileUpdateResidentButton.Location = new Point(0, 0);
+            profileUpdateResidentButton.Name = "button2";
+            profileUpdateResidentButton.Size = new Size(75, 23);
+            profileUpdateResidentButton.TabIndex = 0;
             // 
             // ResidentModuleControl
             // 

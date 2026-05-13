@@ -32,13 +32,13 @@ public partial class RegisterForm : Form
 	}
 
 
-	private void button1_Click(object sender, EventArgs e)
+	private void RegisterButton_Click(object? sender, EventArgs e)
 	{
 		_controller.HandleRegister();
 	}
 
 
-	private void button2_Click(object sender, EventArgs e)
+	private void BackToLoginButton_Click(object? sender, EventArgs e)
 	{
 		_controller.HandleBackToLogin();
 	}
@@ -128,9 +128,9 @@ public partial class RegisterForm : Form
 
 		}
 
-		UiTheme.StylePrimaryButtons(button1);
+		UiTheme.StylePrimaryButtons(registerButton);
 
-		button1.Text = "Register";
+		registerButton.Text = "Register";
 
 		UiTheme.StylePrimaryButtons(buttonPhotoUpload);
 		buttonPhotoUpload.Text = "Upload";
@@ -144,11 +144,11 @@ public partial class RegisterForm : Form
 
 		label3.ForeColor = UiTheme.Slate500;
 
-		UiTheme.StyleGhostButton(button2);
+		UiTheme.StyleGhostButton(backToLoginButton);
 
-		button2.Text = "Log in";
+		backToLoginButton.Text = "Log in";
 
-		base.AcceptButton = button1;
+		base.AcceptButton = registerButton;
 
 		Font = UiTheme.BodyFont;
 

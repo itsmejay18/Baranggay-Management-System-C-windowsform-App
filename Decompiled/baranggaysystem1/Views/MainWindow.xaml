@@ -1,0 +1,291 @@
+<Window x:Class="baranggaysystem1.Views.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:fa="clr-namespace:FontAwesome.Sharp;assembly=FontAwesome.Sharp" Title="Barangay Management System" MinWidth="1100" MinHeight="650" WindowState="Maximized" WindowStartupLocation="CenterScreen" Style="{StaticResource BaseWindowStyle}" Background="{StaticResource PageBgBrush}" xmlns:views="clr-namespace:baranggaysystem1.Views;assembly=baranggaysystem1">
+  <FrameworkElement.Resources>
+    <ResourceDictionary>
+      <Style x:Key="SidebarNavLabelStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="Margin" Value="12,0,0,0" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        <Setter Property="TextWrapping" Value="NoWrap" />
+        <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource SidebarTextBrush}" />
+        <Style.Triggers>
+          <DataTrigger Value="True" Binding="{Binding Path=IsChecked, RelativeSource={RelativeSource AncestorType=RadioButton}}">
+            <Setter Property="Foreground" Value="{StaticResource SidebarActiveTextBrush}" />
+            <Setter Property="FontWeight" Value="Bold" />
+          </DataTrigger>
+          <DataTrigger Value="False" Binding="{Binding Path=IsEnabled, RelativeSource={RelativeSource AncestorType=RadioButton}}">
+            <Setter Property="UIElement.Opacity" Value="0.38" />
+          </DataTrigger>
+        </Style.Triggers>
+      </Style>
+    </ResourceDictionary>
+  </FrameworkElement.Resources>
+  <Grid>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Name="SidebarColumn" Width="286" />
+      <ColumnDefinition Width="*" />
+    </Grid.ColumnDefinitions>
+    <Border Name="SidebarRoot" Grid.Column="0" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource SidebarDividerBrush}" BorderThickness="0,0,1,0">
+      <DockPanel>
+        <Border DockPanel.Dock="Top" Padding="15,24,15,24">
+          <StackPanel Orientation="Horizontal">
+            <Border Width="40" Height="40" CornerRadius="12" MinWidth="40">
+              <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                  <GradientStop Color="#60A5FA" Offset="0" />
+                  <GradientStop Color="#2563EB" Offset="1" />
+                </LinearGradientBrush>
+              </Border.Background>
+              <Grid>
+                <Image Name="sidebarBrandLogo" Stretch="Uniform" Margin="6" Visibility="Collapsed" RenderOptions.BitmapScalingMode="HighQuality" />
+                <fa:IconBlock Name="sidebarBrandIcon" Icon="University" Foreground="#FFFFFFFF" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Grid>
+            </Border>
+            <StackPanel Margin="12,0,0,0" VerticalAlignment="Center" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}">
+              <TextBlock Text="PORTAL" FontSize="9" FontWeight="Bold" Foreground="#64748B" FontFamily="{StaticResource TrebuchetMs}" />
+              <TextBlock Name="sidebarBarangayName" Text="SAN JOSE" FontSize="15" FontWeight="Bold" Foreground="#FFFFFFFF" FontFamily="{StaticResource CenturyGothic}" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+        <Border DockPanel.Dock="Bottom" Padding="16,12" BorderBrush="{StaticResource SidebarDividerBrush}" BorderThickness="0,1,0,0">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="36" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Border Grid.Column="0" Width="36" Height="36" CornerRadius="18" Background="{StaticResource SidebarActiveBrush}">
+              <TextBlock Name="sidebarUserInitial" Text="A" FontSize="14" FontWeight="Bold" Foreground="#FFFFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Border>
+            <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}">
+              <TextBlock Name="sidebarUsername" Text="Admin User" Foreground="#FFFFFFFF" FontSize="12" FontWeight="Bold" FontFamily="{StaticResource TrebuchetMs}" />
+              <TextBlock Name="sidebarRole" Text="Administrator" Foreground="{StaticResource SidebarGroupBrush}" FontSize="11" FontFamily="{StaticResource TrebuchetMs}" />
+            </StackPanel>
+          </Grid>
+        </Border>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+          <StackPanel Margin="0,8,0,8">
+            <RadioButton Name="navHome" GroupName="SidebarNav" Style="{StaticResource NavItemStyle}" Tag="Home" Checked="NavItem_Checked">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="Home" FontSize="14" Width="20" HorizontalAlignment="Center" />
+                <TextBlock Text="Home" Style="{StaticResource SidebarNavLabelStyle}" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}" />
+              </StackPanel>
+            </RadioButton>
+            <RadioButton Name="navDashboard" GroupName="SidebarNav" Style="{StaticResource NavItemStyle}" Tag="DashboardNotifications" Checked="NavItem_Checked">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="ChartPie" FontSize="14" Width="20" HorizontalAlignment="Center" />
+                <TextBlock Text="Dashboard" Style="{StaticResource SidebarNavLabelStyle}" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}" />
+              </StackPanel>
+            </RadioButton>
+            <RadioButton Name="navGovernanceRegistry" GroupName="SidebarNav" Style="{StaticResource NavItemStyle}" Tag="GovernanceRegistry" Checked="NavItem_Checked">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="Bullhorn" FontSize="14" Width="20" HorizontalAlignment="Center" />
+                <TextBlock Text="Announcements &amp; Projects" Style="{StaticResource SidebarNavLabelStyle}" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}" />
+              </StackPanel>
+            </RadioButton>
+            <TextBlock Name="navGroupCommunity" Text="COMMUNITY RECORDS" Style="{StaticResource NavGroupStyle}" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}" />
+            <RadioButton Name="navResidents" GroupName="SidebarNav" Style="{StaticResource NavItemStyle}" Tag="ResidentWorkspace" Checked="NavItem_Checked">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="Users" FontSize="14" Width="20" HorizontalAlignment="Center" />
+                <TextBlock Text="Resident Records" Style="{StaticResource SidebarNavLabelStyle}" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}" />
+              </StackPanel>
+            </RadioButton>
+            <RadioButton Name="navSoloParents" GroupName="SidebarNav" Style="{StaticResource NavItemStyle}" Tag="ResidentSoloParents" Checked="NavItem_Checked">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="Users" FontSize="14" Width="20" HorizontalAlignment="Center" />
+                <TextBlock Text="Solo Parent Registry" Style="{StaticResource SidebarNavLabelStyle}" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}" />
+              </StackPanel>
+            </RadioButton>
+            <RadioButton Name="navYouth" GroupName="SidebarNav" Style="{StaticResource NavItemStyle}" Tag="ResidentYouth" Checked="NavItem_Checked">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="Star" FontSize="14" Width="20" HorizontalAlignment="Center" />
+                <TextBlock Text="Youth Registry" Style="{StaticResource SidebarNavLabelStyle}" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}" />
+              </StackPanel>
+            </RadioButton>
+            <RadioButton Name="navIndigent" GroupName="SidebarNav" Style="{StaticResource NavItemStyle}" Tag="ResidentIndigent" Checked="NavItem_Checked">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="HandsHelping" FontSize="14" Width="20" HorizontalAlignment="Center" />
+                <TextBlock Text="Indigent Registry" Style="{StaticResource SidebarNavLabelStyle}" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}" />
+              </StackPanel>
+            </RadioButton>
+            <RadioButton Name="navHouseholds" GroupName="SidebarNav" Style="{StaticResource NavItemStyle}" Tag="Households" Checked="NavItem_Checked">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="Home" FontSize="14" Width="20" HorizontalAlignment="Center" />
+                <TextBlock Text="Households" Style="{StaticResource SidebarNavLabelStyle}" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}" />
+              </StackPanel>
+            </RadioButton>
+            <RadioButton Name="navDeceased" GroupName="SidebarNav" Style="{StaticResource NavItemStyle}" Tag="DeceasedRegistry" Checked="NavItem_Checked">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="BookMedical" FontSize="14" Width="20" HorizontalAlignment="Center" />
+                <TextBlock Text="Deceased Registry" Style="{StaticResource SidebarNavLabelStyle}" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}" />
+              </StackPanel>
+            </RadioButton>
+            <RadioButton Name="navCategories" GroupName="SidebarNav" Style="{StaticResource NavItemStyle}" Tag="ResidentCategories" Checked="NavItem_Checked">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="Tags" FontSize="14" Width="20" HorizontalAlignment="Center" />
+                <TextBlock Text="Tags &amp; Categories" Style="{StaticResource SidebarNavLabelStyle}" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}" />
+              </StackPanel>
+            </RadioButton>
+            <TextBlock Name="navGroupServices" Text="SERVICES &amp; DOCUMENTS" Style="{StaticResource NavGroupStyle}" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}" />
+            <RadioButton Name="navClearances" GroupName="SidebarNav" Style="{StaticResource NavItemStyle}" Tag="Clearances" Checked="NavItem_Checked">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="Stamp" FontSize="14" Width="20" HorizontalAlignment="Center" />
+                <TextBlock Text="Clearances" Style="{StaticResource SidebarNavLabelStyle}" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}" />
+              </StackPanel>
+            </RadioButton>
+            <RadioButton Name="navPermits" GroupName="SidebarNav" Style="{StaticResource NavItemStyle}" Tag="Permits" Checked="NavItem_Checked">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="ShieldAlt" FontSize="14" Width="20" HorizontalAlignment="Center" />
+                <TextBlock Text="Permits" Style="{StaticResource SidebarNavLabelStyle}" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}" />
+              </StackPanel>
+            </RadioButton>
+            <TextBlock Name="navGroupBlotter" Text="BLOTTER &amp; CASES" Style="{StaticResource NavGroupStyle}" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}" />
+            <RadioButton Name="navBlotter" GroupName="SidebarNav" Style="{StaticResource NavItemStyle}" Tag="ResidentCases" Checked="NavItem_Checked">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="Gavel" FontSize="14" Width="20" HorizontalAlignment="Center" />
+                <TextBlock Text="Blotter Cases" Style="{StaticResource SidebarNavLabelStyle}" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}" />
+              </StackPanel>
+            </RadioButton>
+            <TextBlock Name="navGroupFinance" Text="FINANCE" Style="{StaticResource NavGroupStyle}" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}" />
+            <RadioButton Name="navPayments" GroupName="SidebarNav" Style="{StaticResource NavItemStyle}" Tag="ResidentPayments" Checked="NavItem_Checked">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="MoneyBill" FontSize="14" Width="20" HorizontalAlignment="Center" />
+                <TextBlock Text="Payments" Style="{StaticResource SidebarNavLabelStyle}" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}" />
+              </StackPanel>
+            </RadioButton>
+            <RadioButton Name="navAyuda" GroupName="SidebarNav" Style="{StaticResource NavItemStyle}" Tag="Ayuda" Checked="NavItem_Checked">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="HandsHelping" FontSize="14" Width="20" HorizontalAlignment="Center" />
+                <TextBlock Text="Ayuda Assistance" Style="{StaticResource SidebarNavLabelStyle}" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}" />
+              </StackPanel>
+            </RadioButton>
+            <RadioButton Name="navCollections" GroupName="SidebarNav" Style="{StaticResource NavItemStyle}" Tag="Collections" Checked="NavItem_Checked">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="BoxOpen" FontSize="14" Width="20" HorizontalAlignment="Center" />
+                <TextBlock Text="Finance Operations" Style="{StaticResource SidebarNavLabelStyle}" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}" />
+              </StackPanel>
+            </RadioButton>
+            <TextBlock Name="navGroupAdmin" Text="ADMINISTRATION" Style="{StaticResource NavGroupStyle}" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}" />
+            <RadioButton Name="navOfficials" GroupName="SidebarNav" Style="{StaticResource NavItemStyle}" Tag="Officials" Checked="NavItem_Checked">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="Star" FontSize="14" Width="20" HorizontalAlignment="Center" />
+                <TextBlock Text="Barangay Officials" Style="{StaticResource SidebarNavLabelStyle}" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}" />
+              </StackPanel>
+            </RadioButton>
+            <RadioButton Name="navStaff" GroupName="SidebarNav" Style="{StaticResource NavItemStyle}" Tag="StaffUsers" Checked="NavItem_Checked">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="UsersCog" FontSize="14" Width="20" HorizontalAlignment="Center" />
+                <TextBlock Text="Staff &amp; Users" Style="{StaticResource SidebarNavLabelStyle}" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}" />
+              </StackPanel>
+            </RadioButton>
+            <RadioButton Name="navRoles" GroupName="SidebarNav" Style="{StaticResource NavItemStyle}" Tag="RolePermissions" Checked="NavItem_Checked">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="Key" FontSize="14" Width="20" HorizontalAlignment="Center" />
+                <TextBlock Text="Roles &amp; Permissions" Style="{StaticResource SidebarNavLabelStyle}" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}" />
+              </StackPanel>
+            </RadioButton>
+            <RadioButton Name="navLogs" GroupName="SidebarNav" Style="{StaticResource NavItemStyle}" Tag="SystemLogs" Checked="NavItem_Checked">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="ClipboardList" FontSize="14" Width="20" HorizontalAlignment="Center" />
+                <TextBlock Text="System Logs" Style="{StaticResource SidebarNavLabelStyle}" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}" />
+              </StackPanel>
+            </RadioButton>
+            <RadioButton Name="navNotificationOutbox" GroupName="SidebarNav" Style="{StaticResource NavItemStyle}" Tag="NotificationOutbox" Checked="NavItem_Checked">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="PaperPlane" FontSize="14" Width="20" HorizontalAlignment="Center" />
+                <TextBlock Text="Notification Outbox" Style="{StaticResource SidebarNavLabelStyle}" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}" />
+              </StackPanel>
+            </RadioButton>
+            <RadioButton Name="navSettings" GroupName="SidebarNav" Style="{StaticResource NavItemStyle}" Tag="Settings" Checked="NavItem_Checked">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="Cog" FontSize="14" Width="20" HorizontalAlignment="Center" />
+                <TextBlock Text="System Settings" Style="{StaticResource SidebarNavLabelStyle}" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}" />
+              </StackPanel>
+            </RadioButton>
+          </StackPanel>
+        </ScrollViewer>
+      </DockPanel>
+    </Border>
+    <Grid Column="1">
+      <Grid.RowDefinitions>
+        <RowDefinition Name="TopBarRow" Height="72" />
+        <RowDefinition Height="*" />
+        <RowDefinition Name="StatusBarRow" Height="28" />
+      </Grid.RowDefinitions>
+      <Border Name="TopBarContainer" Grid.Row="0" Background="{StaticResource TopBarBgBrush}" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="0,0,0,1">
+        <Grid Margin="18,10,22,10">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+          <Button Name="btnToggleSidebar" Grid.Column="0" Style="{StaticResource IconButtonStyle}" Width="40" Height="40" Margin="0,0,14,0" Click="BtnToggleSidebar_Click">
+            <fa:IconBlock Icon="Bars" FontSize="16" Foreground="{StaticResource Slate600Brush}" />
+          </Button>
+          <Border Grid.Column="1" Background="#FFFFFFFF" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="1" CornerRadius="18" Padding="16,8">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+              <Border Width="30" Height="30" CornerRadius="15" Background="#DBEAFE" Margin="0,0,12,0">
+                <fa:IconBlock Icon="Compass" FontSize="13" Foreground="{StaticResource AccentBlueBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Name="breadcrumbRootLabel" Text="Home" Foreground="{StaticResource Slate500Brush}" FontSize="12" VerticalAlignment="Center" FontFamily="{StaticResource TrebuchetMs}" />
+                <TextBlock Name="breadcrumbSeparator" Text=" / " Foreground="{StaticResource Slate300Brush}" FontSize="12" VerticalAlignment="Center" />
+                <TextBlock Name="breadcrumbLabel" Text="Home" Foreground="{StaticResource Slate900Brush}" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" FontFamily="{StaticResource TrebuchetMs}" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+          <Border Grid.Column="2" Background="#FFFFFFFF" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="1" CornerRadius="18" Padding="10,6">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+              <Button Name="btnSearch" ToolTip="Global Search (Ctrl+K)" Style="{StaticResource IconButtonStyle}" Width="36" Height="36" Margin="0,0,6,0" Click="BtnSearch_Click">
+                <fa:IconBlock Icon="Search" FontSize="14" Foreground="{StaticResource Slate600Brush}" />
+              </Button>
+              <Button Name="btnEllie" ToolTip="Ellie AI Assistant" Style="{StaticResource IconButtonStyle}" Width="36" Height="36" Margin="0,0,6,0" Click="BtnEllie_Click">
+                <fa:IconBlock Icon="Robot" FontSize="14" Foreground="{StaticResource AccentBlueBrush}" />
+              </Button>
+              <Button Name="btnNotify" ToolTip="Notifications" Style="{StaticResource IconButtonStyle}" Width="36" Height="36" Margin="0,0,10,0" Click="BtnNotify_Click">
+                <fa:IconBlock Icon="Bell" FontSize="14" Foreground="{StaticResource Slate600Brush}" />
+              </Button>
+              <Border Width="1" Height="24" Background="{StaticResource Slate100Brush}" Margin="0,0,12,0" />
+              <Border Width="36" Height="36" CornerRadius="18" Background="{StaticResource AccentBlueBrush}" ToolTip="My Account" Cursor="Hand">
+                <TextBlock Name="topBarInitial" Text="A" FontSize="12" FontWeight="Bold" Foreground="#FFFFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+            </StackPanel>
+          </Border>
+        </Grid>
+      </Border>
+      <ContentControl Name="pageHost" Grid.Row="1" Background="{StaticResource PageBgBrush}" />
+      <Border Name="BottomStatusBar" Grid.Row="2" Background="{StaticResource StatusBarBgBrush}" Padding="16,0">
+        <Grid>
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <Border Name="dbStatusDot" Width="7" Height="7" CornerRadius="4" Background="#22C55E" Margin="0,0,6,0" />
+            <TextBlock Name="dbStatusLabel" Text="Connected" Style="{StaticResource StatusBarTextStyle}" />
+            <TextBlock Text="  |  " Style="{StaticResource StatusBarTextStyle}" />
+            <TextBlock Name="barangayLabel" Text="Barangay San Jose" Style="{StaticResource StatusBarTextStyle}" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+            <TextBlock Name="statusClock" Text="" Style="{StaticResource StatusBarTextStyle}" />
+          </StackPanel>
+        </Grid>
+      </Border>
+      <Popup Name="notificationPopup" Grid.Row="0" Grid.RowSpan="2" Placement="Bottom" StaysOpen="False" AllowsTransparency="True" PlacementTarget="{Binding ElementName=btnNotify}">
+        <Border Background="#FFFFFFFF" CornerRadius="10" Width="340" Padding="0,0,0,8" MaxHeight="480">
+          <UIElement.Effect>
+            <DropShadowEffect BlurRadius="20" ShadowDepth="4" Opacity="0.15" Direction="270" />
+          </UIElement.Effect>
+          <DockPanel>
+            <Border DockPanel.Dock="Top" Padding="16,12" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="0,0,0,1">
+              <Grid>
+                <TextBlock Text="Notifications" Style="{StaticResource SectionHeaderTextStyle}" />
+                <Button Content="View all" Style="{StaticResource GhostButtonStyle}" HorizontalAlignment="Right" Height="Auto" MinWidth="0" Padding="4,2" FontSize="11" Foreground="{StaticResource AccentBlueBrush}" Click="BtnNotifyViewAll_Click" />
+              </Grid>
+            </Border>
+            <ScrollViewer DockPanel.Dock="Bottom" VerticalScrollBarVisibility="Auto">
+              <StackPanel Name="notificationList" Margin="0,4" />
+            </ScrollViewer>
+          </DockPanel>
+        </Border>
+      </Popup>
+    </Grid>
+  </Grid>
+</Window>

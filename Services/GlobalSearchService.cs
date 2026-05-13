@@ -1,382 +1,144 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
 using baranggaysystem1.Database;
-using baranggaysystem1.helper;
 
 namespace baranggaysystem1;
 
-internal enum GlobalSearchScope
+/// <summary>
+/// Service for performing global searches across multiple entity types.
+/// </summary>
+public static class GlobalSearchService
 {
-    All,
-    Residents,
-    Certificates,
-    Blotter,
-    Users
-}
-
-internal enum GlobalSearchEntityType
-{
-    Resident,
-    Certificate,
-    Blotter,
-    User
-}
-
-internal sealed record GlobalSearchResult(
-    GlobalSearchEntityType EntityType,
-    int Id,
-    string Title,
-    string Subtitle,
-    int? ResidentId = null);
-
-internal static class GlobalSearchService
-{
-    internal static List<GlobalSearchResult> Search(string query, GlobalSearchScope scope, int limitPerType = 12)
+    /// <summary>
+    /// Searches residents, certificates, blotter, and users based on scope.
+    /// </summary>
+    public static List<GlobalSearchResult> Search(string query, GlobalSearchScope scope, int maxResults = 50)
     {
-        query = (query ?? string.Empty).Trim();
-        if (query.Length < 2)
+        var results = new List<GlobalSearchResult>();
+
+        if (string.IsNullOrWhiteSpace(query))
         {
-            return new List<GlobalSearchResult>();
+            return results;
         }
 
-        int limit = Math.Clamp(limitPerType, 3, 40);
-        string like = "%" + query + "%";
-        bool hasId = int.TryParse(query, out int idValue);
+        string likeParam = $"%{query.Trim()}%";
 
-        var results = new List<GlobalSearchResult>(limit * 4);
-
-        if (scope is GlobalSearchScope.All or GlobalSearchScope.Residents)
+        if (scope == GlobalSearchScope.All || scope == GlobalSearchScope.Residents)
         {
-            results.AddRange(SearchResidents(like, hasId ? idValue : (int?)null, limit));
-        }
+            var table = DbHelper.LoadTable(
+                @"SELECT resident_id, CONCAT(first_name, ' ', last_name) AS full_name,
+                         COALESCE(contact_number, '') AS contact
+                  FROM resident
+                  WHERE IFNULL(is_deleted, 0) = 0
+                    AND (CONCAT(first_name, ' ', last_name) LIKE @q OR contact_number LIKE @q)
+                  LIMIT @limit",
+                cmd =>
+                {
+                    cmd.Parameters.AddWithValue("@q", likeParam);
+                    cmd.Parameters.AddWithValue("@limit", maxResults);
+                });
 
-        if (scope is GlobalSearchScope.All or GlobalSearchScope.Certificates)
-        {
-            results.AddRange(SearchCertificates(like, hasId ? idValue : (int?)null, limit));
-        }
-
-        if (scope is GlobalSearchScope.All or GlobalSearchScope.Blotter)
-        {
-            results.AddRange(SearchBlotter(like, hasId ? idValue : (int?)null, limit));
-        }
-
-        if (scope is GlobalSearchScope.All or GlobalSearchScope.Users)
-        {
-            if (Permissions.CanManageUsers)
+            foreach (DataRow row in table.Rows)
             {
-                results.AddRange(SearchUsers(like, hasId ? idValue : (int?)null, limit));
+                results.Add(new GlobalSearchResult
+                {
+                    Id = Convert.ToInt32(row["resident_id"]),
+                    EntityType = GlobalSearchEntityType.Resident,
+                    Title = row["full_name"]?.ToString() ?? string.Empty,
+                    Subtitle = row["contact"]?.ToString() ?? string.Empty,
+                    ResidentId = Convert.ToInt32(row["resident_id"])
+                });
             }
         }
 
-        // Keep a stable-ish ordering without spending too much effort on scoring.
-        // Newest transactional items are already ordered by date in their queries.
+        if (scope == GlobalSearchScope.All || scope == GlobalSearchScope.Certificates)
+        {
+            var table = DbHelper.LoadTable(
+                @"SELECT c.certificate_id, c.certificate_type, c.status,
+                         CONCAT(r.first_name, ' ', r.last_name) AS resident_name, c.resident_id
+                  FROM certificate c
+                  INNER JOIN resident r ON r.resident_id = c.resident_id
+                  WHERE (c.certificate_type LIKE @q OR CONCAT(r.first_name, ' ', r.last_name) LIKE @q)
+                  LIMIT @limit",
+                cmd =>
+                {
+                    cmd.Parameters.AddWithValue("@q", likeParam);
+                    cmd.Parameters.AddWithValue("@limit", maxResults);
+                });
+
+            foreach (DataRow row in table.Rows)
+            {
+                results.Add(new GlobalSearchResult
+                {
+                    Id = Convert.ToInt32(row["certificate_id"]),
+                    EntityType = GlobalSearchEntityType.Certificate,
+                    Title = row["certificate_type"]?.ToString() ?? string.Empty,
+                    Subtitle = row["resident_name"]?.ToString() ?? string.Empty,
+                    ResidentId = row["resident_id"] != DBNull.Value ? Convert.ToInt32(row["resident_id"]) : null
+                });
+            }
+        }
+
+        if (scope == GlobalSearchScope.All || scope == GlobalSearchScope.Blotter)
+        {
+            var table = DbHelper.LoadTable(
+                @"SELECT cr.case_id, cr.incident_type, cr.status,
+                         cr.incident_details, cr.complainant_id
+                  FROM case_record cr
+                  WHERE (cr.incident_type LIKE @q OR cr.incident_details LIKE @q)
+                  LIMIT @limit",
+                cmd =>
+                {
+                    cmd.Parameters.AddWithValue("@q", likeParam);
+                    cmd.Parameters.AddWithValue("@limit", maxResults);
+                });
+
+            foreach (DataRow row in table.Rows)
+            {
+                results.Add(new GlobalSearchResult
+                {
+                    Id = Convert.ToInt32(row["case_id"]),
+                    EntityType = GlobalSearchEntityType.Blotter,
+                    Title = row["incident_type"]?.ToString() ?? string.Empty,
+                    Subtitle = row["status"]?.ToString() ?? string.Empty,
+                    ResidentId = row["complainant_id"] != DBNull.Value ? Convert.ToInt32(row["complainant_id"]) : null
+                });
+            }
+        }
+
+        if (scope == GlobalSearchScope.All || scope == GlobalSearchScope.Users)
+        {
+            var table = DbHelper.LoadTable(
+                @"SELECT user_id, username, COALESCE(display_name, '') AS display_name
+                  FROM users
+                  WHERE (username LIKE @q OR display_name LIKE @q)
+                  LIMIT @limit",
+                cmd =>
+                {
+                    cmd.Parameters.AddWithValue("@q", likeParam);
+                    cmd.Parameters.AddWithValue("@limit", maxResults);
+                });
+
+            foreach (DataRow row in table.Rows)
+            {
+                results.Add(new GlobalSearchResult
+                {
+                    Id = Convert.ToInt32(row["user_id"]),
+                    EntityType = GlobalSearchEntityType.User,
+                    Title = row["username"]?.ToString() ?? string.Empty,
+                    Subtitle = row["display_name"]?.ToString() ?? string.Empty,
+                    ResidentId = null
+                });
+            }
+        }
+
+        // Trim to maxResults total
+        if (results.Count > maxResults)
+        {
+            results.RemoveRange(maxResults, results.Count - maxResults);
+        }
+
         return results;
-    }
-
-    private static IEnumerable<GlobalSearchResult> SearchResidents(string like, int? idValue, int limit)
-    {
-        var sql = new StringBuilder();
-        sql.AppendLine("SELECT resident_id, first_name, middle_name, last_name, contact_no, status");
-        sql.AppendLine("FROM resident");
-        sql.AppendLine("WHERE IFNULL(is_deleted,0)=0");
-        sql.AppendLine("  AND (");
-        sql.AppendLine("        CONCAT_WS(' ', first_name, middle_name, last_name) LIKE @q");
-        sql.AppendLine("     OR first_name LIKE @q");
-        sql.AppendLine("     OR middle_name LIKE @q");
-        sql.AppendLine("     OR last_name LIKE @q");
-        sql.AppendLine("     OR contact_no LIKE @q");
-        if (idValue.HasValue)
-        {
-            sql.AppendLine("     OR resident_id = @id");
-        }
-        sql.AppendLine("  )");
-        sql.AppendLine("ORDER BY last_name, first_name");
-        sql.AppendLine($"LIMIT {limit}");
-
-        DataTable table = DbHelper.LoadTable(sql.ToString(), cmd =>
-        {
-            cmd.Parameters.AddWithValue("@q", like);
-            if (idValue.HasValue)
-            {
-                cmd.Parameters.AddWithValue("@id", idValue.Value);
-            }
-        });
-
-        foreach (DataRow row in table.Rows)
-        {
-            int residentId = ReadInt(row, "resident_id");
-            if (residentId <= 0) continue;
-
-            string name = JoinNonEmpty(
-                Convert.ToString(row["first_name"]),
-                Convert.ToString(row["middle_name"]),
-                Convert.ToString(row["last_name"]));
-            string contact = Convert.ToString(row["contact_no"]) ?? string.Empty;
-            string status = Convert.ToString(row["status"]) ?? string.Empty;
-
-            string subtitle = string.IsNullOrWhiteSpace(contact)
-                ? $"Status: {status}"
-                : $"Contact: {contact} | Status: {status}";
-
-            yield return new GlobalSearchResult(
-                GlobalSearchEntityType.Resident,
-                residentId,
-                string.IsNullOrWhiteSpace(name) ? $"Resident #{residentId}" : name,
-                subtitle,
-                residentId);
-        }
-    }
-
-    private static IEnumerable<GlobalSearchResult> SearchCertificates(string like, int? idValue, int limit)
-    {
-        var sql = new StringBuilder();
-        sql.AppendLine("SELECT dr.doc_request_id AS certificate_id, dr.resident_id, dr.document_no, dr.purpose, dr.status, dr.requested_at,");
-        sql.AppendLine("       dt.name AS certificate_type, r.first_name, r.middle_name, r.last_name");
-        sql.AppendLine("FROM document_request dr");
-        sql.AppendLine("LEFT JOIN document_type dt ON dt.doc_type_id = dr.doc_type_id");
-        sql.AppendLine("LEFT JOIN resident r ON r.resident_id = dr.resident_id");
-        sql.AppendLine("WHERE IFNULL(r.is_deleted,0)=0");
-        sql.AppendLine("  AND (");
-        sql.AppendLine("        dr.document_no LIKE @q");
-        sql.AppendLine("     OR dr.verification_token LIKE @q");
-        sql.AppendLine("     OR dr.purpose LIKE @q");
-        sql.AppendLine("     OR dr.status LIKE @q");
-        sql.AppendLine("     OR dt.name LIKE @q");
-        sql.AppendLine("     OR CONCAT_WS(' ', r.first_name, r.middle_name, r.last_name) LIKE @q");
-        if (idValue.HasValue)
-        {
-            sql.AppendLine("     OR dr.doc_request_id = @id");
-        }
-        sql.AppendLine("  )");
-        sql.AppendLine("ORDER BY dr.requested_at DESC, dr.doc_request_id DESC");
-        sql.AppendLine($"LIMIT {limit}");
-
-        DataTable table = DbHelper.LoadTable(sql.ToString(), cmd =>
-        {
-            cmd.Parameters.AddWithValue("@q", like);
-            if (idValue.HasValue)
-            {
-                cmd.Parameters.AddWithValue("@id", idValue.Value);
-            }
-        });
-
-        foreach (DataRow row in table.Rows)
-        {
-            int certId = ReadInt(row, "certificate_id");
-            int residentId = ReadInt(row, "resident_id");
-            if (certId <= 0 || residentId <= 0) continue;
-
-            string docNo = Convert.ToString(row["document_no"]) ?? string.Empty;
-            string type = Convert.ToString(row["certificate_type"]) ?? "Certificate";
-            string status = Convert.ToString(row["status"]) ?? string.Empty;
-            DateTime? requestedAt = ReadDateTime(row, "requested_at");
-            string residentName = JoinNonEmpty(
-                Convert.ToString(row["first_name"]),
-                Convert.ToString(row["middle_name"]),
-                Convert.ToString(row["last_name"]));
-
-            string title = $"{type} {(string.IsNullOrWhiteSpace(docNo) ? $"#{certId}" : docNo)}";
-            if (!string.IsNullOrWhiteSpace(residentName))
-            {
-                title += $" | {residentName}";
-            }
-
-            string subtitle = string.IsNullOrWhiteSpace(status) ? "Certificate request" : $"Status: {status}";
-            if (requestedAt.HasValue)
-            {
-                subtitle += $" | Requested: {requestedAt.Value:MMM dd, yyyy}";
-            }
-
-            yield return new GlobalSearchResult(
-                GlobalSearchEntityType.Certificate,
-                certId,
-                title,
-                subtitle,
-                residentId);
-        }
-    }
-
-    private static IEnumerable<GlobalSearchResult> SearchBlotter(string like, int? idValue, int limit)
-    {
-        var sql = new StringBuilder();
-        sql.AppendLine("SELECT cr.case_id AS blotter_id, cr.complainant_id AS resident_id, cr.case_no, cr.respondent_name, cr.incident_type,");
-        sql.AppendLine("       cr.incident_date, cr.status, r.first_name, r.middle_name, r.last_name");
-        sql.AppendLine("FROM case_record cr");
-        sql.AppendLine("LEFT JOIN resident r ON r.resident_id = cr.complainant_id");
-        sql.AppendLine("WHERE cr.complainant_id IS NOT NULL");
-        sql.AppendLine("  AND IFNULL(r.is_deleted,0)=0");
-        sql.AppendLine("  AND (");
-        sql.AppendLine("        cr.case_no LIKE @q");
-        sql.AppendLine("     OR cr.respondent_name LIKE @q");
-        sql.AppendLine("     OR cr.incident_type LIKE @q");
-        sql.AppendLine("     OR cr.incident_location LIKE @q");
-        sql.AppendLine("     OR cr.summary LIKE @q");
-        sql.AppendLine("     OR cr.incident_details LIKE @q");
-        sql.AppendLine("     OR CONCAT_WS(' ', r.first_name, r.middle_name, r.last_name) LIKE @q");
-        if (idValue.HasValue)
-        {
-            sql.AppendLine("     OR cr.case_id = @id");
-        }
-        sql.AppendLine("  )");
-        sql.AppendLine("ORDER BY COALESCE(cr.incident_date, cr.date_filed) DESC, cr.case_id DESC");
-        sql.AppendLine($"LIMIT {limit}");
-
-        DataTable table = DbHelper.LoadTable(sql.ToString(), cmd =>
-        {
-            cmd.Parameters.AddWithValue("@q", like);
-            if (idValue.HasValue)
-            {
-                cmd.Parameters.AddWithValue("@id", idValue.Value);
-            }
-        });
-
-        foreach (DataRow row in table.Rows)
-        {
-            int blotterId = ReadInt(row, "blotter_id");
-            int residentId = ReadInt(row, "resident_id");
-            if (blotterId <= 0 || residentId <= 0) continue;
-
-            string caseNo = Convert.ToString(row["case_no"]) ?? string.Empty;
-            string respondent = Convert.ToString(row["respondent_name"]) ?? string.Empty;
-            string incidentType = Convert.ToString(row["incident_type"]) ?? "Blotter";
-            string status = Convert.ToString(row["status"]) ?? string.Empty;
-            DateTime? incidentDate = ReadDateTime(row, "incident_date");
-            string residentName = JoinNonEmpty(
-                Convert.ToString(row["first_name"]),
-                Convert.ToString(row["middle_name"]),
-                Convert.ToString(row["last_name"]));
-
-            string title = $"{incidentType} | {(string.IsNullOrWhiteSpace(respondent) ? $"Case #{blotterId}" : respondent)}";
-            if (!string.IsNullOrWhiteSpace(caseNo))
-            {
-                title = $"{caseNo} | {title}";
-            }
-
-            var subtitleParts = new List<string>();
-            if (!string.IsNullOrWhiteSpace(residentName))
-            {
-                subtitleParts.Add("Complainant: " + residentName);
-            }
-            if (incidentDate.HasValue)
-            {
-                subtitleParts.Add("Incident: " + incidentDate.Value.ToString("MMM dd, yyyy"));
-            }
-            if (!string.IsNullOrWhiteSpace(status))
-            {
-                subtitleParts.Add("Status: " + status);
-            }
-
-            yield return new GlobalSearchResult(
-                GlobalSearchEntityType.Blotter,
-                blotterId,
-                title,
-                subtitleParts.Count == 0 ? "Blotter case" : string.Join(" | ", subtitleParts),
-                residentId);
-        }
-    }
-
-    private static IEnumerable<GlobalSearchResult> SearchUsers(string like, int? idValue, int limit)
-    {
-        var sql = new StringBuilder();
-        sql.AppendLine("SELECT ua.user_id, ua.username, ua.first_name, ua.middle_name, ua.last_name, ua.is_active,");
-        sql.AppendLine("       COALESCE(r.name, 'Staff') AS role");
-        sql.AppendLine("FROM user_account ua");
-        sql.AppendLine("LEFT JOIN user_role ur ON ur.user_id = ua.user_id");
-        sql.AppendLine("LEFT JOIN role r ON r.role_id = ur.role_id");
-        sql.AppendLine("WHERE (");
-        sql.AppendLine("       ua.username LIKE @q");
-        sql.AppendLine("    OR ua.first_name LIKE @q");
-        sql.AppendLine("    OR ua.middle_name LIKE @q");
-        sql.AppendLine("    OR ua.last_name LIKE @q");
-        sql.AppendLine("    OR ua.email LIKE @q");
-        sql.AppendLine("    OR ua.contact_no LIKE @q");
-        sql.AppendLine("    OR CONCAT_WS(' ', ua.first_name, ua.middle_name, ua.last_name) LIKE @q");
-        if (idValue.HasValue)
-        {
-            sql.AppendLine("    OR ua.user_id = @id");
-        }
-        sql.AppendLine(")");
-        sql.AppendLine("ORDER BY ua.username");
-        sql.AppendLine($"LIMIT {limit}");
-
-        DataTable table = DbHelper.LoadTable(sql.ToString(), cmd =>
-        {
-            cmd.Parameters.AddWithValue("@q", like);
-            if (idValue.HasValue)
-            {
-                cmd.Parameters.AddWithValue("@id", idValue.Value);
-            }
-        });
-
-        foreach (DataRow row in table.Rows)
-        {
-            int userId = ReadInt(row, "user_id");
-            if (userId <= 0) continue;
-
-            string username = Convert.ToString(row["username"]) ?? string.Empty;
-            string name = JoinNonEmpty(
-                Convert.ToString(row["first_name"]),
-                Convert.ToString(row["middle_name"]),
-                Convert.ToString(row["last_name"]));
-            string role = Convert.ToString(row["role"]) ?? "Staff";
-            bool isActive = ReadInt(row, "is_active") == 1;
-
-            string title = string.IsNullOrWhiteSpace(name)
-                ? string.IsNullOrWhiteSpace(username) ? $"User #{userId}" : username
-                : string.IsNullOrWhiteSpace(username) ? name : $"{name} ({username})";
-
-            string subtitle = $"{role} | {(isActive ? "Active" : "Inactive")}";
-
-            yield return new GlobalSearchResult(
-                GlobalSearchEntityType.User,
-                userId,
-                title,
-                subtitle);
-        }
-    }
-
-    private static int ReadInt(DataRow row, string column)
-    {
-        if (!row.Table.Columns.Contains(column))
-        {
-            return 0;
-        }
-
-        object? value = row[column];
-        if (value == null || value == DBNull.Value)
-        {
-            return 0;
-        }
-
-        return int.TryParse(Convert.ToString(value), out int parsed) ? parsed : Convert.ToInt32(value);
-    }
-
-    private static DateTime? ReadDateTime(DataRow row, string column)
-    {
-        if (!row.Table.Columns.Contains(column))
-        {
-            return null;
-        }
-
-        object? value = row[column];
-        if (value == null || value == DBNull.Value)
-        {
-            return null;
-        }
-
-        if (value is DateTime dt)
-        {
-            return dt;
-        }
-
-        return DateTime.TryParse(Convert.ToString(value), out var parsed) ? parsed : null;
-    }
-
-    private static string JoinNonEmpty(params string?[] parts)
-    {
-        return string.Join(" ", parts.Where(p => !string.IsNullOrWhiteSpace(p)).Select(p => p!.Trim()));
     }
 }

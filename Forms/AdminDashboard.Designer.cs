@@ -1,4 +1,3 @@
-
 namespace baranggaysystem1
 {
     partial class AdminDashboard
@@ -32,8 +31,8 @@ namespace baranggaysystem1
 
         private System.Windows.Forms.Panel _residentHeader;
         private System.Windows.Forms.Label _residentHeaderName;
-        private System.Windows.Forms.Label _residentHeaderMeta;
         private System.Windows.Forms.Label _residentHeaderStatus;
+        private System.Windows.Forms.Label _residentHeaderMeta;
 
         private System.Windows.Forms.TabControl _residentTabs;
         private System.Windows.Forms.TabPage _tabProfile;
@@ -229,10 +228,9 @@ namespace baranggaysystem1
         private System.Windows.Forms.Label _historyFilterFromLabel;
         private System.Windows.Forms.Label _historyFilterToLabel;
 
-        private System.Windows.Forms.Button add;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Button button2;
-        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.Button profileCreateResidentButton;
+        private System.Windows.Forms.Button residentsRefreshButton;
+        private System.Windows.Forms.Button profileOpenResidentsButton;
 
         private FontAwesome.Sharp.IconButton btnUsers;
         private FontAwesome.Sharp.IconButton iconButton2;
@@ -241,6 +239,9 @@ namespace baranggaysystem1
         private FontAwesome.Sharp.IconButton iconButton5;
         private FontAwesome.Sharp.IconButton _sidebarReports;
         private FontAwesome.Sharp.IconButton _sidebarSettings;
+
+        private FontAwesome.Sharp.IconButton btnStaff;
+        private FontAwesome.Sharp.IconButton btnBrgyOfficials;
 
         protected override void Dispose(bool disposing)
         {
@@ -412,8 +413,8 @@ namespace baranggaysystem1
             _tabProfile = new TabPage();
             profileContainer = new Panel();
             profileActions = new FlowLayoutPanel();
-            add = new Button();
-            button3 = new Button();
+            profileCreateResidentButton = new Button();
+            profileOpenResidentsButton = new Button();
             _residentQuickEdit = new Button();
             profileBody = new TableLayoutPanel();
             profileInfoTable = new TableLayoutPanel();
@@ -493,8 +494,7 @@ namespace baranggaysystem1
             _searchBox = new TextBox();
             _searchClear = new Button();
             _actionsPanel = new FlowLayoutPanel();
-            button1 = new Button();
-            button2 = new Button();
+            residentsRefreshButton = new Button();
             blotterEmptyLayout = new TableLayoutPanel();
             blotterEmptyInner = new FlowLayoutPanel();
             certEmptyLayout = new TableLayoutPanel();
@@ -503,95 +503,136 @@ namespace baranggaysystem1
             historyEmptyInner = new FlowLayoutPanel();
             label1 = new Label();
             panelSidebar.SuspendLayout();
-            panelTop.SuspendLayout();
-            panel2.SuspendLayout();
-            _signedInPanel.SuspendLayout();
-            notificationPanel.SuspendLayout();
-            notificationList.SuspendLayout();
-            notificationHeaderPanel.SuspendLayout();
-            panel1.SuspendLayout();
-            dashboardLowerPanel.SuspendLayout();
-            dashboardFeaturesPanel.SuspendLayout();
-            dashboardFeaturesTable.SuspendLayout();
-            announcementsPanel.SuspendLayout();
-            announcementsActions.SuspendLayout();
-            projectsPanel.SuspendLayout();
-            projectsActions.SuspendLayout();
-            actionCenterPanel.SuspendLayout();
-            actionCenterLayout.SuspendLayout();
-            dashboardLowerTable.SuspendLayout();
-            officialsPanel.SuspendLayout();
-            officialsFlow.SuspendLayout();
-            officialCard1.SuspendLayout();
-            officialFooterTable1.SuspendLayout();
-            officialFooter1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)officialPhoto1).BeginInit();
-            officialCard2.SuspendLayout();
-            officialFooterTable2.SuspendLayout();
-            officialFooter2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)officialPhoto2).BeginInit();
-            officialCard3.SuspendLayout();
-            officialFooterTable3.SuspendLayout();
-            officialFooter3.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)officialPhoto3).BeginInit();
-            officialsFooter.SuspendLayout();
-            dashboardTrendsPanel.SuspendLayout();
-            trendsTable.SuspendLayout();
-            certTrendPanel.SuspendLayout();
-            certTrendTable.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)certSparkline).BeginInit();
-            blotterTrendPanel.SuspendLayout();
-            blotterTrendTable.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)blotterSparkline).BeginInit();
-            residentsTrendPanel.SuspendLayout();
-            residentsTrendTable.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)residentsSparkline).BeginInit();
-            dashboardPanel.SuspendLayout();
-            dashboardCards.SuspendLayout();
-            statResidentsCard.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)_statResidentsIcon).BeginInit();
-            statActiveCard.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)_statActiveIcon).BeginInit();
-            statHouseholdsCard.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)_statHouseholdsIcon).BeginInit();
-            statCertsCard.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)_statCertsIcon).BeginInit();
-            statBlotterCard.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)_statBlotterIcon).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)announcementsGrid).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)projectsGrid).BeginInit();
-            contentPanel.SuspendLayout();
-            datapanel.SuspendLayout();
-            _residentTabs.SuspendLayout();
-            _tabProfile.SuspendLayout();
-            profileContainer.SuspendLayout();
-            profileActions.SuspendLayout();
-            profileBody.SuspendLayout();
-            profileInfoTable.SuspendLayout();
-            profilePhotoPanel.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)_residentPhoto).BeginInit();
-            profilePhotoButtons.SuspendLayout();
-            _tabBlotter.SuspendLayout();
-            blotterContainer.SuspendLayout();
-            _tabCertificates.SuspendLayout();
-            certContainer.SuspendLayout();
-            certBody.SuspendLayout();
-            certDetailsPanel.SuspendLayout();
-            certDetailsContainer.SuspendLayout();
-            certDetailTable.SuspendLayout();
-            certSummaryTable.SuspendLayout();
-            certFilters.SuspendLayout();
-            _tabHistory.SuspendLayout();
-            historyContainer.SuspendLayout();
-            historyFilters.SuspendLayout();
-            _residentHeader.SuspendLayout();
-            _listPanel.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)dgvResidents).BeginInit();
-            _searchPanel.SuspendLayout();
-            _actionsPanel.SuspendLayout();
-            blotterEmptyLayout.SuspendLayout();
-            certEmptyLayout.SuspendLayout();
-            historyEmptyLayout.SuspendLayout();
+            panelTop.ResumeLayout(false);
+            panelTop.PerformLayout();
+            panel2.ResumeLayout(false);
+            _signedInPanel.ResumeLayout(false);
+            _signedInPanel.PerformLayout();
+            notificationPanel.ResumeLayout(false);
+            notificationList.ResumeLayout(false);
+            notificationList.PerformLayout();
+            notificationHeaderPanel.ResumeLayout(false);
+            notificationHeaderPanel.PerformLayout();
+            panel1.ResumeLayout(false);
+            dashboardLowerPanel.ResumeLayout(false);
+            dashboardFeaturesPanel.ResumeLayout(false);
+            dashboardFeaturesTable.ResumeLayout(false);
+            announcementsPanel.ResumeLayout(false);
+            announcementsPanel.PerformLayout();
+            announcementsActions.ResumeLayout(false);
+            projectsPanel.ResumeLayout(false);
+            projectsPanel.PerformLayout();
+            projectsActions.ResumeLayout(false);
+            actionCenterPanel.ResumeLayout(false);
+            actionCenterPanel.PerformLayout();
+            actionCenterLayout.ResumeLayout(false);
+            dashboardLowerTable.ResumeLayout(false);
+            officialsPanel.ResumeLayout(false);
+            officialsPanel.PerformLayout();
+            officialsFlow.ResumeLayout(false);
+            officialCard1.ResumeLayout(false);
+            officialCard1.PerformLayout();
+            officialFooterTable1.ResumeLayout(false);
+            officialFooter1.ResumeLayout(false);
+            officialFooter1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)officialPhoto1).EndInit();
+            officialCard2.ResumeLayout(false);
+            officialCard2.PerformLayout();
+            officialFooterTable2.ResumeLayout(false);
+            officialFooter2.ResumeLayout(false);
+            officialFooter2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)officialPhoto2).EndInit();
+            officialCard3.ResumeLayout(false);
+            officialCard3.PerformLayout();
+            officialFooterTable3.ResumeLayout(false);
+            officialFooter3.ResumeLayout(false);
+            officialFooter3.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)officialPhoto3).EndInit();
+            officialsFooter.ResumeLayout(false);
+            dashboardTrendsPanel.ResumeLayout(false);
+            trendsTable.ResumeLayout(false);
+            certTrendPanel.ResumeLayout(false);
+            certTrendPanel.PerformLayout();
+            certTrendTable.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)certSparkline).EndInit();
+            blotterTrendPanel.ResumeLayout(false);
+            blotterTrendPanel.PerformLayout();
+            blotterTrendTable.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)blotterSparkline).EndInit();
+            residentsTrendPanel.ResumeLayout(false);
+            residentsTrendPanel.PerformLayout();
+            residentsTrendTable.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)residentsSparkline).EndInit();
+            dashboardPanel.ResumeLayout(false);
+            dashboardCards.ResumeLayout(false);
+            statResidentsCard.ResumeLayout(false);
+            statResidentsCard.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)_statResidentsIcon).EndInit();
+            statActiveCard.ResumeLayout(false);
+            statActiveCard.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)_statActiveIcon).EndInit();
+            statHouseholdsCard.ResumeLayout(false);
+            statHouseholdsCard.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)_statHouseholdsIcon).EndInit();
+            statCertsCard.ResumeLayout(false);
+            statCertsCard.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)_statCertsIcon).EndInit();
+            statBlotterCard.ResumeLayout(false);
+            statBlotterCard.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)_statBlotterIcon).EndInit();
+            ((System.ComponentModel.ISupportInitialize)announcementsGrid).EndInit();
+            ((System.ComponentModel.ISupportInitialize)projectsGrid).EndInit();
+            contentPanel.ResumeLayout(false);
+            datapanel.ResumeLayout(false);
+            datapanel.PerformLayout();
+            _residentTabs.ResumeLayout(false);
+            _tabProfile.ResumeLayout(false);
+            profileContainer.ResumeLayout(false);
+            profileContainer.PerformLayout();
+            profileActions.ResumeLayout(false);
+            profileBody.ResumeLayout(false);
+            profileBody.PerformLayout();
+            profileInfoTable.ResumeLayout(false);
+            profileInfoTable.PerformLayout();
+            profilePhotoPanel.ResumeLayout(false);
+            profilePhotoPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)_residentPhoto).EndInit();
+            profilePhotoButtons.ResumeLayout(false);
+            _tabBlotter.ResumeLayout(false);
+            blotterContainer.ResumeLayout(false);
+            _tabCertificates.ResumeLayout(false);
+            certContainer.ResumeLayout(false);
+            certContainer.PerformLayout();
+            certBody.ResumeLayout(false);
+            certDetailsPanel.ResumeLayout(false);
+            certDetailsPanel.PerformLayout();
+            certDetailsContainer.ResumeLayout(false);
+            certDetailsContainer.PerformLayout();
+            certDetailTable.ResumeLayout(false);
+            certDetailTable.PerformLayout();
+            certSummaryTable.ResumeLayout(false);
+            certSummaryTable.PerformLayout();
+            certFilters.ResumeLayout(false);
+            certFilters.PerformLayout();
+            _tabHistory.ResumeLayout(false);
+            historyContainer.ResumeLayout(false);
+            historyContainer.PerformLayout();
+            historyFilters.ResumeLayout(false);
+            historyFilters.PerformLayout();
+            _residentHeader.ResumeLayout(false);
+            _residentHeader.PerformLayout();
+            _listPanel.ResumeLayout(false);
+            _listPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvResidents).EndInit();
+            _searchPanel.ResumeLayout(false);
+            _searchPanel.PerformLayout();
+            _actionsPanel.ResumeLayout(false);
+            blotterEmptyLayout.ResumeLayout(false);
+            blotterEmptyLayout.PerformLayout();
+            certEmptyLayout.ResumeLayout(false);
+            certEmptyLayout.PerformLayout();
+            historyEmptyLayout.ResumeLayout(false);
+            historyEmptyLayout.PerformLayout();
             SuspendLayout();
             // 
             // panelSidebar
@@ -707,7 +748,7 @@ namespace baranggaysystem1
             btnUsers.TabIndex = 0;
             btnUsers.Text = "Dashboard";
             btnUsers.UseVisualStyleBackColor = true;
-            btnUsers.Click += iconButton1_Click;
+            btnUsers.Click += SidebarDashboard_Click;
             // 
             // panelTop
             // 
@@ -1188,7 +1229,6 @@ namespace baranggaysystem1
             officialsFlow.Controls.Add(officialCard2, 1, 0);
             officialsFlow.Controls.Add(officialCard3, 2, 0);
             officialsFlow.Dock = DockStyle.Fill;
-            officialsFlow.GrowStyle = TableLayoutPanelGrowStyle.FixedSize;
             officialsFlow.Location = new Point(16, 12);
             officialsFlow.Margin = new Padding(0);
             officialsFlow.Name = "officialsFlow";
@@ -1975,49 +2015,14 @@ namespace baranggaysystem1
             monthLabel3.Name = "monthLabel3";
             monthLabel3.Size = new Size(64, 22);
             monthLabel3.TabIndex = 6;
-            monthLabel3.Text = "M-3";
-            // 
-            // monthBar3
-            // 
-            monthBar3.Location = new Point(76, 50);
-            monthBar3.Margin = new Padding(6);
-            monthBar3.MaximumSize = new Size(0, 10);
-            monthBar3.Name = "monthBar3";
-            monthBar3.Size = new Size(0, 10);
-            monthBar3.TabIndex = 7;
-            // 
-            // monthValue3
-            // 
-            monthValue3.Location = new Point(111, 44);
-            monthValue3.Name = "monthValue3";
-            monthValue3.Size = new Size(34, 22);
-            monthValue3.TabIndex = 8;
-            monthValue3.Text = "0";
-            monthValue3.TextAlign = ContentAlignment.MiddleRight;
-            // 
-            // monthLabel4
-            // 
-            monthLabel4.Location = new Point(3, 66);
-            monthLabel4.Name = "monthLabel4";
-            monthLabel4.Size = new Size(64, 22);
-            monthLabel4.TabIndex = 9;
-            monthLabel4.Text = "M-2";
-            // 
-            // monthBar4
-            // 
-            monthBar4.Location = new Point(76, 72);
-            monthBar4.Margin = new Padding(6);
-            monthBar4.MaximumSize = new Size(0, 10);
-            monthBar4.Name = "monthBar4";
-            monthBar4.Size = new Size(0, 10);
-            monthBar4.TabIndex = 10;
             // 
             // monthValue4
             // 
-            monthValue4.Location = new Point(111, 66);
+            monthValue4.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            monthValue4.Location = new Point(73, 66);
             monthValue4.Name = "monthValue4";
-            monthValue4.Size = new Size(34, 22);
-            monthValue4.TabIndex = 11;
+            monthValue4.Size = new Size(64, 22);
+            monthValue4.TabIndex = 9;
             monthValue4.Text = "0";
             monthValue4.TextAlign = ContentAlignment.MiddleRight;
             // 
@@ -2465,8 +2470,8 @@ namespace baranggaysystem1
             // 
             profileActions.AutoSize = true;
             profileActions.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            profileActions.Controls.Add(add);
-            profileActions.Controls.Add(button3);
+            profileActions.Controls.Add(profileCreateResidentButton);
+            profileActions.Controls.Add(profileOpenResidentsButton);
             profileActions.Controls.Add(_residentQuickEdit);
             profileActions.Dock = DockStyle.Top;
             profileActions.Location = new Point(0, 20);
@@ -2477,34 +2482,34 @@ namespace baranggaysystem1
             profileActions.TabIndex = 0;
             profileActions.WrapContents = false;
             // 
-            // add
+            // profileCreateResidentButton
             // 
-            add.Location = new Point(3, 20);
-            add.Margin = new Padding(3, 4, 3, 4);
-            add.Name = "add";
-            add.Size = new Size(107, 39);
-            add.TabIndex = 2;
-            add.Text = "Add";
-            add.UseVisualStyleBackColor = true;
-            add.Click += add_Click;
+            profileCreateResidentButton.Location = new Point(3, 20);
+            profileCreateResidentButton.Margin = new Padding(3, 4, 3, 4);
+            profileCreateResidentButton.Name = "profileCreateResidentButton";
+            profileCreateResidentButton.Size = new Size(122, 39);
+            profileCreateResidentButton.TabIndex = 2;
+            profileCreateResidentButton.Text = "New Resident";
+            profileCreateResidentButton.UseVisualStyleBackColor = true;
+            profileCreateResidentButton.Click += ProfileCreateResidentButton_Click;
             // 
-            // button3
+            // profileOpenResidentsButton
             // 
-            button3.Location = new Point(116, 20);
-            button3.Margin = new Padding(3, 4, 3, 4);
-            button3.Name = "button3";
-            button3.Size = new Size(107, 39);
-            button3.TabIndex = 3;
-            button3.Text = "Delete";
-            button3.UseVisualStyleBackColor = true;
-            button3.Click += button3_Click;
+            profileOpenResidentsButton.Location = new Point(131, 20);
+            profileOpenResidentsButton.Margin = new Padding(3, 4, 3, 4);
+            profileOpenResidentsButton.Name = "profileOpenResidentsButton";
+            profileOpenResidentsButton.Size = new Size(131, 39);
+            profileOpenResidentsButton.TabIndex = 3;
+            profileOpenResidentsButton.Text = "Open Residents";
+            profileOpenResidentsButton.UseVisualStyleBackColor = true;
+            profileOpenResidentsButton.Click += ProfileOpenResidentsButton_Click;
             // 
             // _residentQuickEdit
             // 
-            _residentQuickEdit.Location = new Point(229, 20);
+            _residentQuickEdit.Location = new Point(268, 20);
             _residentQuickEdit.Margin = new Padding(3, 4, 3, 4);
             _residentQuickEdit.Name = "_residentQuickEdit";
-            _residentQuickEdit.Size = new Size(86, 31);
+            _residentQuickEdit.Size = new Size(90, 31);
             _residentQuickEdit.TabIndex = 4;
             _residentQuickEdit.Text = "Edit Profile";
             // 
@@ -3400,7 +3405,7 @@ namespace baranggaysystem1
             // _actionsPanel
             // 
             _actionsPanel.AutoSize = true;
-            _actionsPanel.Controls.Add(button1);
+            _actionsPanel.Controls.Add(residentsRefreshButton);
             _actionsPanel.Dock = DockStyle.Top;
             _actionsPanel.Location = new Point(0, 0);
             _actionsPanel.Margin = new Padding(3, 4, 3, 4);
@@ -3410,26 +3415,16 @@ namespace baranggaysystem1
             _actionsPanel.TabIndex = 0;
             _actionsPanel.WrapContents = false;
             // 
-            // button1
+            // residentsRefreshButton
             // 
-            button1.Location = new Point(3, 20);
-            button1.Margin = new Padding(3, 4, 3, 4);
-            button1.Name = "button1";
-            button1.Size = new Size(107, 39);
-            button1.TabIndex = 0;
-            button1.Text = "Refresh";
-            button1.UseVisualStyleBackColor = true;
-            button1.Click += button1_Click;
-            // 
-            // button2
-            // 
-            button2.Location = new Point(0, 0);
-            button2.Name = "button2";
-            button2.Size = new Size(94, 29);
-            button2.TabIndex = 1;
-            button2.Text = "Update";
-            button2.UseVisualStyleBackColor = true;
-            button2.Click += button2_Click;
+            residentsRefreshButton.Location = new Point(3, 20);
+            residentsRefreshButton.Margin = new Padding(3, 4, 3, 4);
+            residentsRefreshButton.Name = "residentsRefreshButton";
+            residentsRefreshButton.Size = new Size(107, 39);
+            residentsRefreshButton.TabIndex = 0;
+            residentsRefreshButton.Text = "Refresh";
+            residentsRefreshButton.UseVisualStyleBackColor = true;
+            residentsRefreshButton.Click += ResidentsRefreshButton_Click;
             // 
             // blotterEmptyLayout
             // 

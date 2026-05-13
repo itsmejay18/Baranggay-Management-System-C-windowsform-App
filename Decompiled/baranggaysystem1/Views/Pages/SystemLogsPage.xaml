@@ -1,0 +1,391 @@
+<UserControl x:Class="baranggaysystem1.Views.Pages.SystemLogsPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:fa="clr-namespace:FontAwesome.Sharp;assembly=FontAwesome.Sharp" Background="{StaticResource PageBgBrush}" xmlns:pages="clr-namespace:baranggaysystem1.Views.Pages;assembly=baranggaysystem1">
+  <FrameworkElement.Resources>
+    <ResourceDictionary>
+      <Style x:Key="LogsSurfaceCardStyle" TargetType="{x:Type Border}">
+        <Setter Property="Background" Value="#FFFFFFFF" />
+        <Setter Property="BorderBrush" Value="{StaticResource Slate100Brush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Border.CornerRadius" Value="16" />
+        <Setter Property="UIElement.Effect">
+          <Setter.Value>
+            <DropShadowEffect BlurRadius="18" ShadowDepth="2" Opacity="0.06" Direction="270" />
+          </Setter.Value>
+        </Setter>
+      </Style>
+      <Style x:Key="LogsHeroChipStyle" TargetType="{x:Type Border}">
+        <Setter Property="Background" Value="#F8FAFC" />
+        <Setter Property="BorderBrush" Value="{StaticResource Slate100Brush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Border.CornerRadius" Value="999" />
+        <Setter Property="Border.Padding" Value="7,2" />
+        <Setter Property="Margin" Value="0,3,5,0" />
+      </Style>
+      <Style x:Key="LogsHeroChipTextStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource SmallTextStyle}">
+        <Setter Property="Foreground" Value="{StaticResource Slate700Brush}" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="FontSize" Value="10" />
+      </Style>
+      <Style x:Key="LogsMetricCardStyle" TargetType="{x:Type Border}" BasedOn="{StaticResource LogsSurfaceCardStyle}">
+        <Setter Property="Border.Padding" Value="10,8" />
+      </Style>
+      <Style x:Key="LogsMetricLabelStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource SmallTextStyle}">
+        <Setter Property="Foreground" Value="{StaticResource Slate500Brush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontSize" Value="9" />
+      </Style>
+      <Style x:Key="LogsMetricValueStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource HeadingTextStyle}">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
+      </Style>
+      <Style x:Key="LogsSearchShellStyle" TargetType="{x:Type Border}">
+        <Setter Property="Background" Value="#FCFDFE" />
+        <Setter Property="BorderBrush" Value="{StaticResource Slate200Brush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Border.CornerRadius" Value="10" />
+        <Setter Property="Height" Value="36" />
+      </Style>
+      <Style x:Key="LogsCompactButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource SecondaryButtonStyle}">
+        <Setter Property="Height" Value="30" />
+        <Setter Property="Padding" Value="10,0" />
+        <Setter Property="FontSize" Value="10.5" />
+        <Setter Property="MinWidth" Value="92" />
+      </Style>
+      <Style x:Key="LogsCompactPrimaryButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource PrimaryButtonStyle}">
+        <Setter Property="Height" Value="30" />
+        <Setter Property="Padding" Value="10,0" />
+        <Setter Property="FontSize" Value="10.5" />
+        <Setter Property="MinWidth" Value="112" />
+      </Style>
+      <Style x:Key="LogsCompactLabelStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource SmallTextStyle}">
+        <Setter Property="FontSize" Value="9.5" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="{StaticResource Slate600Brush}" />
+        <Setter Property="Margin" Value="0,0,0,3" />
+      </Style>
+      <Style x:Key="LogsDataGridHeaderStyle" TargetType="{x:Type DataGridColumnHeader}" BasedOn="{StaticResource StyledDataGridColumnHeaderStyle}">
+        <Setter Property="Background" Value="#0F172A" />
+        <Setter Property="Foreground" Value="#FFFFFFFF" />
+        <Setter Property="Height" Value="42" />
+        <Setter Property="Padding" Value="14,0" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+      </Style>
+      <Style x:Key="LogsDataGridRowStyle" TargetType="{x:Type DataGridRow}" BasedOn="{StaticResource StyledDataGridRowStyle}">
+        <Setter Property="Background" Value="#FFFFFFFF" />
+        <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Style.Triggers>
+          <Trigger Property="DataGridRow.AlternationIndex" Value="1">
+            <Setter Property="Background" Value="#FFFCFDFE" />
+          </Trigger>
+          <Trigger Property="UIElement.IsMouseOver" Value="True">
+            <Setter Property="Background" Value="#FFF8FAFC" />
+          </Trigger>
+          <Trigger Property="DataGridRow.IsSelected" Value="True">
+            <Setter Property="Background" Value="#FFEFF6FF" />
+            <Setter Property="Foreground" Value="#FF1D4ED8" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+          </Trigger>
+        </Style.Triggers>
+      </Style>
+      <Style x:Key="LogsDataGridCellStyle" TargetType="{x:Type DataGridCell}">
+        <Setter Property="Background" Value="#00FFFFFF" />
+        <Setter Property="BorderBrush" Value="{StaticResource Slate100Brush}" />
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+        <Setter Property="Padding" Value="10,8" />
+      </Style>
+      <Style x:Key="LogsSelectionMetaStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource SmallTextStyle}">
+        <Setter Property="Foreground" Value="{StaticResource Slate500Brush}" />
+        <Setter Property="FontSize" Value="10.5" />
+      </Style>
+    </ResourceDictionary>
+  </FrameworkElement.Resources>
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="36" />
+    </Grid.RowDefinitions>
+    <Border Grid.Row="0" Style="{StaticResource PageHeaderStyle}" Padding="16,10,16,10">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="0" Orientation="Horizontal">
+          <Border Width="44" Height="44" CornerRadius="12" Background="#ECFDF5" Margin="0,0,14,0">
+            <fa:IconBlock Icon="ClipboardList" Foreground="#059669" FontSize="19" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Border>
+          <StackPanel VerticalAlignment="Center">
+            <TextBlock Text="System Logs &amp; Audit Trail" Style="{StaticResource HeadingTextStyle}" />
+            <TextBlock Name="recordCountLabel" Text="Review operational history, audit events, and application warnings." Style="{StaticResource SubtitleTextStyle}" Margin="0,1,0,0" FontWeight="SemiBold" />
+            <WrapPanel Margin="0,6,0,0">
+              <Border Style="{StaticResource LogsHeroChipStyle}">
+                <StackPanel Orientation="Horizontal">
+                  <fa:IconBlock Icon="Stream" FontSize="10" Foreground="#2563EB" Margin="0,0,5,0" VerticalAlignment="Center" />
+                  <TextBlock Name="visibleNowChip" Text="0 entries visible" Style="{StaticResource LogsHeroChipTextStyle}" />
+                </StackPanel>
+              </Border>
+              <Border Style="{StaticResource LogsHeroChipStyle}">
+                <StackPanel Orientation="Horizontal">
+                  <fa:IconBlock Icon="LayerGroup" FontSize="10" Foreground="#047857" Margin="0,0,5,0" VerticalAlignment="Center" />
+                  <TextBlock Name="moduleCoverageChip" Text="0 modules covered" Style="{StaticResource LogsHeroChipTextStyle}" />
+                </StackPanel>
+              </Border>
+              <Border Style="{StaticResource LogsHeroChipStyle}">
+                <StackPanel Orientation="Horizontal">
+                  <fa:IconBlock Icon="Clock" FontSize="10" Foreground="#D97706" Margin="0,0,5,0" VerticalAlignment="Center" />
+                  <TextBlock Name="lastRefreshChip" Text="Last scan not loaded" Style="{StaticResource LogsHeroChipTextStyle}" />
+                </StackPanel>
+              </Border>
+            </WrapPanel>
+          </StackPanel>
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
+          <Button Style="{StaticResource LogsCompactButtonStyle}" Margin="0,0,8,0" Click="BtnOpenFolder_Click">
+            <StackPanel Orientation="Horizontal">
+              <fa:IconBlock Icon="FolderOpen" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center" />
+              <TextBlock Text="Open Folder" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Button Style="{StaticResource LogsCompactPrimaryButtonStyle}" Click="BtnExport_Click">
+            <StackPanel Orientation="Horizontal">
+              <fa:IconBlock Icon="FileExport" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center" />
+              <TextBlock Text="Export CSV" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
+      </Grid>
+    </Border>
+    <Grid Row="1" Margin="12,10,12,0">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="*" />
+      </Grid.ColumnDefinitions>
+      <Border Grid.Column="0" Style="{StaticResource LogsMetricCardStyle}" Margin="0,0,10,0">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="46" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+          <Border Width="36" Height="36" CornerRadius="12" Background="#DBEAFE">
+            <fa:IconBlock Icon="ClipboardCheck" Foreground="#2563EB" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Border>
+          <StackPanel Grid.Column="1" VerticalAlignment="Center">
+            <TextBlock Text="Audit Entries" Style="{StaticResource LogsMetricLabelStyle}" />
+            <TextBlock Name="auditCountValue" Text="0" Style="{StaticResource LogsMetricValueStyle}" />
+          </StackPanel>
+        </Grid>
+      </Border>
+      <Border Grid.Column="1" Style="{StaticResource LogsMetricCardStyle}" Margin="0,0,10,0">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="46" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+          <Border Width="36" Height="36" CornerRadius="12" Background="#E0F2FE">
+            <fa:IconBlock Icon="Terminal" Foreground="#0284C7" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Border>
+          <StackPanel Grid.Column="1" VerticalAlignment="Center">
+            <TextBlock Text="Application Events" Style="{StaticResource LogsMetricLabelStyle}" />
+            <TextBlock Name="applicationCountValue" Text="0" Style="{StaticResource LogsMetricValueStyle}" />
+          </StackPanel>
+        </Grid>
+      </Border>
+      <Border Grid.Column="2" Style="{StaticResource LogsMetricCardStyle}" Margin="0,0,10,0">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="46" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+          <Border Width="36" Height="36" CornerRadius="12" Background="#FEF3C7">
+            <fa:IconBlock Icon="ExclamationTriangle" Foreground="#D97706" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Border>
+          <StackPanel Grid.Column="1" VerticalAlignment="Center">
+            <TextBlock Text="Error Signals" Style="{StaticResource LogsMetricLabelStyle}" />
+            <TextBlock Name="errorCountValue" Text="0" Style="{StaticResource LogsMetricValueStyle}" />
+          </StackPanel>
+        </Grid>
+      </Border>
+      <Border Grid.Column="3" Style="{StaticResource LogsMetricCardStyle}">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="46" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+          <Border Width="36" Height="36" CornerRadius="12" Background="#DCFCE7">
+            <fa:IconBlock Icon="Users" Foreground="#16A34A" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Border>
+          <StackPanel Grid.Column="1" VerticalAlignment="Center">
+            <TextBlock Text="Active Actors" Style="{StaticResource LogsMetricLabelStyle}" />
+            <TextBlock Name="actorCountValue" Text="0" Style="{StaticResource LogsMetricValueStyle}" />
+          </StackPanel>
+        </Grid>
+      </Border>
+    </Grid>
+    <Border Grid.Row="2" Style="{StaticResource ToolbarBorderStyle}" Padding="14,8" Margin="12,12,12,0">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="320" />
+          <ColumnDefinition Width="140" />
+          <ColumnDefinition Width="170" />
+          <ColumnDefinition Width="140" />
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Border Grid.Column="0" Style="{StaticResource LogsSearchShellStyle}">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="34" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <fa:IconBlock Grid.Column="0" Icon="Search" FontSize="12" Foreground="{StaticResource Slate500Brush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            <TextBox Name="searchBox" Grid.Column="1" BorderThickness="0" Background="#00FFFFFF" Margin="0,0,8,0" VerticalContentAlignment="Center" FontSize="12.5" TextChanged="SearchBox_TextChanged" />
+          </Grid>
+        </Border>
+        <ComboBox Name="sourceFilterCombo" Grid.Column="1" Height="36" Margin="10,0,0,0" SelectionChanged="FilterCombo_SelectionChanged" />
+        <ComboBox Name="moduleFilterCombo" Grid.Column="2" Height="36" Margin="10,0,0,0" SelectionChanged="FilterCombo_SelectionChanged" />
+        <ComboBox Name="windowFilterCombo" Grid.Column="3" Height="36" Margin="10,0,0,0" SelectionChanged="FilterCombo_SelectionChanged" />
+        <Border Grid.Column="4" Margin="12,0,0,0" Padding="12,6" Background="#FFF7ED" BorderBrush="#FCD34D" BorderThickness="1" CornerRadius="14">
+          <StackPanel>
+            <TextBlock Name="filterSummaryTitle" Text="Showing the full system activity feed." Foreground="#B45309" FontWeight="Bold" FontSize="11.5" />
+            <TextBlock Name="filterSummaryBody" Text="Filters: all entries, all sources, all modules, all dates." Style="{StaticResource SmallTextStyle}" Foreground="#C2410C" Margin="0,2,0,0" />
+          </StackPanel>
+        </Border>
+        <Button Grid.Column="5" Style="{StaticResource LogsCompactButtonStyle}" Margin="12,0,0,0" Click="BtnClearFilters_Click">
+          <StackPanel Orientation="Horizontal">
+            <fa:IconBlock Icon="TimesCircle" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center" />
+            <TextBlock Text="Clear Filters" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+        <Button Grid.Column="6" Style="{StaticResource LogsCompactButtonStyle}" Margin="8,0,0,0" Click="BtnRefresh_Click">
+          <StackPanel Orientation="Horizontal">
+            <fa:IconBlock Icon="SyncAlt" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center" />
+            <TextBlock Text="Refresh Logs" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+      </Grid>
+    </Border>
+    <Grid Row="3" Margin="12,12,12,0">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="2.2*" />
+        <ColumnDefinition Width="1.1*" />
+      </Grid.ColumnDefinitions>
+      <Border Grid.Column="0" Style="{StaticResource LogsSurfaceCardStyle}" Margin="0,0,12,0" ClipToBounds="True">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+          </Grid.RowDefinitions>
+          <Grid Margin="16,14,16,10">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+              <TextBlock Text="Activity Feed" Style="{StaticResource SectionHeaderTextStyle}" />
+              <TextBlock Name="tableMetaLabel" Text="Latest audit and runtime events" Style="{StaticResource SmallTextStyle}" Margin="0,2,0,0" />
+            </StackPanel>
+            <TextBlock Name="tableVisibleLabel" Grid.Column="1" Text="0 visible" Style="{StaticResource SmallTextStyle}" FontWeight="Bold" VerticalAlignment="Center" />
+          </Grid>
+          <Grid Row="1">
+            <DataGrid Name="mainGrid" AutoGenerateColumns="False" IsReadOnly="True" AlternationCount="2" HeadersVisibility="Column" Style="{StaticResource StyledDataGridStyle}" ColumnHeaderStyle="{StaticResource LogsDataGridHeaderStyle}" RowStyle="{StaticResource LogsDataGridRowStyle}" CellStyle="{StaticResource LogsDataGridCellStyle}" SelectionChanged="MainGrid_SelectionChanged">
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="Timestamp" Width="170" Binding="{Binding TimestampDisplay}" />
+                <DataGridTextColumn Header="Source" Width="118" Binding="{Binding SourceDisplay}" />
+                <DataGridTextColumn Header="Type" Width="95" Binding="{Binding CategoryDisplay}" />
+                <DataGridTextColumn Header="Module" Width="110" Binding="{Binding ModuleDisplay}" />
+                <DataGridTextColumn Header="Actor" Width="140" Binding="{Binding ActorDisplay}" />
+                <DataGridTextColumn Header="Summary" Width="2*" Binding="{Binding Summary}" />
+                <DataGridTextColumn Header="Record" Width="155" Binding="{Binding EntityDisplay}" />
+              </DataGrid.Columns>
+            </DataGrid>
+            <StackPanel Name="emptyState" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="Collapsed">
+              <fa:IconBlock Icon="ClipboardList" FontSize="48" Foreground="{StaticResource Slate300Brush}" HorizontalAlignment="Center" Margin="0,0,0,12" />
+              <TextBlock Name="emptyLabel" Text="No logs matched the current filters." Style="{StaticResource SubtitleTextStyle}" HorizontalAlignment="Center" />
+            </StackPanel>
+          </Grid>
+        </Grid>
+      </Border>
+      <Border Grid.Column="1" Style="{StaticResource LogsSurfaceCardStyle}" Padding="16,14,16,16">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+          </Grid.RowDefinitions>
+          <StackPanel>
+            <TextBlock Text="Selected Entry" Style="{StaticResource SectionHeaderTextStyle}" />
+            <TextBlock Name="selectedSummaryLabel" Text="Select a log entry to inspect its details." Style="{StaticResource SubtitleTextStyle}" Margin="0,4,0,0" TextWrapping="Wrap" />
+          </StackPanel>
+          <WrapPanel Grid.Row="1" Margin="0,10,0,0">
+            <Border Style="{StaticResource LogsHeroChipStyle}">
+              <TextBlock Name="selectedSourceChip" Text="Source: -" Style="{StaticResource LogsHeroChipTextStyle}" />
+            </Border>
+            <Border Style="{StaticResource LogsHeroChipStyle}">
+              <TextBlock Name="selectedTypeChip" Text="Type: -" Style="{StaticResource LogsHeroChipTextStyle}" />
+            </Border>
+            <Border Style="{StaticResource LogsHeroChipStyle}">
+              <TextBlock Name="selectedModuleChip" Text="Module: -" Style="{StaticResource LogsHeroChipTextStyle}" />
+            </Border>
+          </WrapPanel>
+          <Grid Row="2" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+              <TextBlock Text="Timestamp" Style="{StaticResource LogsCompactLabelStyle}" />
+              <TextBlock Name="selectedTimestampLabel" Text="-" Style="{StaticResource LogsSelectionMetaStyle}" TextWrapping="Wrap" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Margin="16,0,0,0">
+              <TextBlock Text="Actor" Style="{StaticResource LogsCompactLabelStyle}" />
+              <TextBlock Name="selectedActorLabel" Text="-" Style="{StaticResource LogsSelectionMetaStyle}" TextWrapping="Wrap" />
+            </StackPanel>
+          </Grid>
+          <Grid Row="3" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+              <TextBlock Text="Affected Record" Style="{StaticResource LogsCompactLabelStyle}" />
+              <TextBlock Name="selectedEntityLabel" Text="-" Style="{StaticResource LogsSelectionMetaStyle}" TextWrapping="Wrap" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Margin="16,0,0,0">
+              <TextBlock Text="Captured From" Style="{StaticResource LogsCompactLabelStyle}" />
+              <TextBlock Name="selectedOriginLabel" Text="-" Style="{StaticResource LogsSelectionMetaStyle}" TextWrapping="Wrap" />
+            </StackPanel>
+          </Grid>
+          <ScrollViewer Grid.Row="4" Margin="0,14,0,0" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+              <TextBlock Text="Details" Style="{StaticResource LogsCompactLabelStyle}" />
+              <TextBox Name="selectedDetailsBox" Margin="0,0,0,12" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True" MinHeight="120" MaxHeight="220" BorderBrush="{StaticResource Slate200Brush}" BorderThickness="1" Background="#FCFDFE" Padding="10" VerticalScrollBarVisibility="Auto" />
+              <TextBlock Name="beforeStateLabel" Text="Before State" Style="{StaticResource LogsCompactLabelStyle}" Visibility="Collapsed" />
+              <TextBox Name="selectedBeforeBox" Margin="0,0,0,12" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True" MinHeight="90" MaxHeight="180" BorderBrush="{StaticResource Slate200Brush}" BorderThickness="1" Background="#FCFDFE" Padding="10" VerticalScrollBarVisibility="Auto" Visibility="Collapsed" />
+              <TextBlock Name="afterStateLabel" Text="After State" Style="{StaticResource LogsCompactLabelStyle}" Visibility="Collapsed" />
+              <TextBox Name="selectedAfterBox" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True" MinHeight="90" MaxHeight="180" BorderBrush="{StaticResource Slate200Brush}" BorderThickness="1" Background="#FCFDFE" Padding="10" VerticalScrollBarVisibility="Auto" Visibility="Collapsed" />
+            </StackPanel>
+          </ScrollViewer>
+        </Grid>
+      </Border>
+    </Grid>
+    <Border Grid.Row="4" Margin="20,6,20,14" Background="#00FFFFFF">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <TextBlock Name="footerCountLabel" Text="No logs loaded." Style="{StaticResource SmallTextStyle}" VerticalAlignment="Center" />
+        <TextBlock Name="footerPathLabel" Grid.Column="1" Text="Local log path not loaded" Style="{StaticResource SmallTextStyle}" VerticalAlignment="Center" Opacity="0.72" />
+      </Grid>
+    </Border>
+  </Grid>
+</UserControl>

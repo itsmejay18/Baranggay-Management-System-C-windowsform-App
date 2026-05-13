@@ -1,0 +1,119 @@
+<Window x:Class="baranggaysystem1.Views.Dialogs.AyudaReleaseWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:fa="clr-namespace:FontAwesome.Sharp;assembly=FontAwesome.Sharp" Width="760" Height="860" WindowStartupLocation="CenterOwner" Style="{StaticResource BaseWindowStyle}" ShowInTaskbar="False" ResizeMode="NoResize" Background="{StaticResource Slate50Brush}" xmlns:dialogs="clr-namespace:baranggaysystem1.Views.Dialogs;assembly=baranggaysystem1" Title="{Binding WindowTitle}">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+    <Border Grid.Row="0" Background="#15803D" Padding="24,20">
+      <StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+          <fa:IconBlock Icon="HandsHelping" Foreground="#86EFAC" FontSize="20" Margin="0,0,12,0" VerticalAlignment="Center" />
+          <TextBlock Foreground="#FFFFFFFF" FontSize="14" FontWeight="Black" VerticalAlignment="Center" Text="{Binding WindowEyebrowText}" />
+        </StackPanel>
+        <TextBlock Foreground="#FFFFFFFF" FontSize="24" FontWeight="Bold" FontFamily="{StaticResource CenturyGothic}" Text="{Binding HeaderTitleText}" />
+        <TextBlock Foreground="#DCFCE7" FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap" Text="{Binding HeaderDescriptionText}" />
+      </StackPanel>
+    </Border>
+    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,20">
+      <StackPanel>
+        <TextBlock Text="Ayuda Budget Program" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+        <ComboBox DisplayMemberPath="DisplayName" Style="{StaticResource StyledComboBoxStyle}" Height="40" ItemsSource="{Binding ProgramOptions}" SelectedItem="{Binding SelectedProgram}" />
+        <Border Margin="0,10,0,0" Padding="12,10" Background="#F0FDF4" BorderBrush="#BBF7D0" BorderThickness="1" CornerRadius="8">
+          <TextBlock Foreground="#166534" FontWeight="SemiBold" TextWrapping="Wrap" Text="{Binding RemainingBudgetText}" />
+        </Border>
+        <Grid Margin="0,18,0,0">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1.45*" />
+            <ColumnDefinition Width="0.95*" />
+          </Grid.ColumnDefinitions>
+          <StackPanel Grid.Column="0" Margin="0,0,10,0">
+            <TextBlock Text="Resident Beneficiary" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+            <TextBlock Text="Search by resident name or contact number" Style="{StaticResource SmallTextStyle}" Margin="0,0,0,6" Foreground="{StaticResource Slate500Brush}" />
+            <TextBox Style="{StaticResource StyledTextBoxStyle}" Height="36" Margin="0,0,0,8" Text="{Binding ResidentSearchText, UpdateSourceTrigger=PropertyChanged}" />
+            <ComboBox DisplayMemberPath="DisplayName" Style="{StaticResource StyledComboBoxStyle}" Height="40" MaxDropDownHeight="360" ItemsSource="{Binding ResidentOptions}" SelectedItem="{Binding SelectedResident}" />
+            <TextBlock Style="{StaticResource SmallTextStyle}" Margin="0,6,0,0" Foreground="{StaticResource Slate500Brush}" TextWrapping="Wrap" Text="{Binding ResidentSearchStatusText}" />
+          </StackPanel>
+          <StackPanel Grid.Column="1" Margin="10,0,0,0">
+            <TextBlock Text="Release Amount (PHP)" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+            <TextBox Style="{StaticResource StyledTextBoxStyle}" Height="40" FontSize="18" FontWeight="Bold" Foreground="#15803D" Text="{Binding Amount, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}" />
+          </StackPanel>
+        </Grid>
+        <Grid Margin="0,18,0,0">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+          <StackPanel Grid.Column="0" Margin="0,0,10,0">
+            <TextBlock Text="Release Date" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+            <DatePicker Height="40" SelectedDate="{Binding ReleaseDate}" />
+          </StackPanel>
+          <StackPanel Grid.Column="1" Margin="10,0,0,0">
+            <TextBlock Text="Reference Preview" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+            <TextBox IsReadOnly="True" Style="{StaticResource StyledTextBoxStyle}" Height="40" Background="#F1F5F9" FontWeight="Bold" Text="{Binding ReferenceNo}" />
+          </StackPanel>
+        </Grid>
+        <TextBlock Text="Release / Report Notes" Style="{StaticResource LabelTextStyle}" Margin="0,20,0,8" />
+        <TextBox Style="{StaticResource StyledTextBoxStyle}" Height="88" TextWrapping="Wrap" AcceptsReturn="True" VerticalContentAlignment="Top" Padding="10" Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" />
+        <Border Margin="0,22,0,0" Padding="16" Background="#FFFFFFFF" BorderBrush="{StaticResource Slate200Brush}" BorderThickness="1" CornerRadius="10">
+          <StackPanel>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <StackPanel>
+                <TextBlock Text="Beneficiary List" Style="{StaticResource SectionHeaderTextStyle}" />
+                <TextBlock Style="{StaticResource SmallTextStyle}" Margin="0,4,0,0" Text="{Binding BeneficiarySummaryText}" />
+              </StackPanel>
+              <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Style="{StaticResource PrimaryButtonStyle}" Background="#15803D" BorderBrush="#15803D" Height="36" MinWidth="140" Margin="0,0,8,0" Content="{Binding StageButtonText}" Command="{Binding StageBeneficiaryCommand}" />
+                <Button Content="Clear" Style="{StaticResource SecondaryButtonStyle}" Height="36" MinWidth="88" Margin="0,0,8,0" Command="{Binding ClearBeneficiaryEntryCommand}" />
+                <Button Content="Remove" Style="{StaticResource SecondaryButtonStyle}" Height="36" MinWidth="88" Command="{Binding RemoveSelectedBeneficiaryCommand}" />
+              </StackPanel>
+            </Grid>
+            <DataGrid Margin="0,14,0,0" Style="{StaticResource StyledDataGridStyle}" ColumnHeaderStyle="{StaticResource StyledDataGridColumnHeaderStyle}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" RowHeight="52" HeadersVisibility="Column" ItemsSource="{Binding Beneficiaries}" SelectedItem="{Binding SelectedBatchItem}">
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="Beneficiary" Width="2.2*" Binding="{Binding ResidentName}" />
+                <DataGridTextColumn Header="Contact" Width="1.45*" Binding="{Binding ContactNo}" />
+                <DataGridTextColumn Header="Amount" Width="1.05*" Binding="{Binding AmountDisplay}" />
+              </DataGrid.Columns>
+            </DataGrid>
+            <TextBlock Text="Add residents to this list one by one, then post them together as one ayuda release batch with a generated PDF report." Style="{StaticResource SmallTextStyle}" Margin="0,10,0,0" Foreground="{StaticResource Slate500Brush}" TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+        <Border Margin="0,24,0,0" Padding="16" Background="#ECFCCB" CornerRadius="8" BorderBrush="#BEF264" BorderThickness="1">
+          <StackPanel Orientation="Horizontal">
+            <fa:IconBlock Icon="ShieldAlt" Foreground="#3F6212" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center" />
+            <TextBlock Text="Posting ayuda deducts the staged total from the selected program immediately and also generates a beneficiary report, so review the beneficiary list before saving." Foreground="#365314" FontSize="12" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="580" />
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+    <Border Grid.Row="2" Background="#FFFFFFFF" BorderBrush="{StaticResource Slate200Brush}" BorderThickness="0,1,0,0" Padding="24,16">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+        <Button Content="Cancel" Style="{StaticResource SecondaryButtonStyle}" Width="100" Height="40" Margin="0,0,12,0" IsCancel="True" />
+        <Button Style="{StaticResource PrimaryButtonStyle}" Background="#15803D" BorderBrush="#15803D" Width="190" Height="40" Content="{Binding SaveButtonText}" Command="{Binding SaveReleaseCommand}" />
+      </StackPanel>
+    </Border>
+    <Border Grid.RowSpan="3" Background="#80FFFFFF" Visibility="{Binding IsProcessing, Converter={StaticResource BooleanToVisibilityConverter}}">
+      <StackPanel VerticalAlignment="Center">
+        <fa:IconBlock Icon="Spinner" FontSize="40" Foreground="#15803D" HorizontalAlignment="Center">
+          <UIElement.RenderTransform>
+            <RotateTransform CenterX="20" CenterY="20" />
+          </UIElement.RenderTransform>
+          <FrameworkElement.Triggers>
+            <EventTrigger RoutedEvent="Loaded">
+              <BeginStoryboard>
+                <Storyboard>
+                  <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" From="0" To="360" Duration="0:0:1" RepeatBehavior="Forever" />
+                </Storyboard>
+              </BeginStoryboard>
+            </EventTrigger>
+          </FrameworkElement.Triggers>
+        </fa:IconBlock>
+        <TextBlock Style="{StaticResource SubtitleTextStyle}" HorizontalAlignment="Center" Margin="0,12,0,0" Text="{Binding ProcessingMessage}" />
+      </StackPanel>
+    </Border>
+  </Grid>
+</Window>

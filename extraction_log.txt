@@ -1,0 +1,17 @@
+File size: 97794361 bytes
+=== Finding all bundle entries ===
+=== Extracting baranggaysystem1.dll ===
+  offset=15952175, uncompressed_size=2080768, compressed_size=551984
+  First bytes of compressed data: DC-BD-77-7C-15-45-F7-07
+  Decompressed: 2080768 bytes (expected 2080768)
+  SUCCESS! Valid PE file!
+
+=== Looking for runtimeconfig.json ===
+  Found name at offset 97765399
+  offset=16504159, size=592, compressed=0
+  Extracted (592 bytes)
+
+=== baranggaysystem1.dll is valid (2080768 bytes) ===
+Ready for decompilation with: ilspycmd -p -o Decompiled baranggaysystem1.dll
+
+Done.

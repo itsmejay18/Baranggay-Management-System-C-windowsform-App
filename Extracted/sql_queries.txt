@@ -1,0 +1,30 @@
+CreateComInterfaceFlags
+CreateObjectFlags
+CreateDefaultInstance
+CreateCustomMarshalerHelper
+CreateMarshaler
+CreateAggregatedObjectNative
+Created MOW: 0x%p
+Created EOC (Unique Instance: %d): 0x%p
+Created Target for External: 0x%p => 0x%p
+CreateHandle: %p, type=%d
+Update finally target flags
+Update flow graph early pass
+Create EH funclets
+Update flow graph opt pass
+Insert GC Polls
+CreateScalarUnsafe
+InsertVector128
+InsertVector256
+DeleteCriticalSection
+CreateMemoryResourceNotification
+CreateThreadpoolTimer
+CreateSemaphoreExW
+CreateFileMappingW
+CreateNamedPipeA
+CreateDirectoryW
+CreateStreamOnHGlobal
+CreateFileMappingA
+DeleteCriticalSection
+CreateFileMappingW
+CreateSemaphoreExW

@@ -98,8 +98,10 @@ public partial class ResidentModuleControl : UserControl
 	private ComboBox _editPurok = new ComboBox();
 	private ComboBox _editHousehold = new ComboBox();
 	private DataTable? _residentTable;
-	private const int ResidentPageSize = 50;
+	private const int ResidentPageSize = 10;
 	private int _residentPageIndex;
+	private int _residentTotalCount;
+	private string _residentSearchTerm = string.Empty;
 	private readonly TableLayoutPanel _residentPagerPanel = new TableLayoutPanel();
 	private readonly Button _residentPagePrev = new Button();
 	private readonly Button _residentPageNext = new Button();
@@ -245,10 +247,14 @@ public partial class ResidentModuleControl : UserControl
 	private int? _residentDetailsLoadedId;
 	private int _residentDetailsLoadVersion;
 	private int _residentAsyncLoadDepth;
+	private int? _pendingResidentBarangayId;
+	private int? _pendingResidentPurokId;
+	private int? _pendingResidentHouseholdId;
 	private bool _legacyProfileCleanupApplied;
 	private bool _residentInitialLoadTriggered;
 	private bool _residentLoadInProgress;
 	private bool _residentReloadPending;
+	private bool _residentReloadPendingResetPage;
 	private int _residentLoadVersion;
 	private bool _residentSchemaInitQueued;
 	private bool _suppressResidentSelectionChanged;
@@ -1421,12 +1427,13 @@ public partial class ResidentModuleControl : UserControl
 		SetTabHeadersVisible(visible: false);
 		UiTheme.StandardizeButtonLayout(this);
 		UiTheme.SetTabOrder(
-			button1,
 			_searchBox,
+			residentSearchButton,
 			_searchClear,
+			_residentTopAddButton,
 			dgvResidents,
-			add,
-			button3,
+			profileAddResidentButton,
+			profileDeleteResidentButton,
 			_residentQuickEdit,
 			_btnResidentAttachments,
 			_btnFileBlotter,
@@ -2865,16 +2872,16 @@ public partial class ResidentModuleControl : UserControl
 
 		StyleResidentPrimaryButton(_residentQuickEdit, 136);
 
-		StyleResidentPrimaryButton(add, 140);
-		StyleResidentDangerButton(button3, 92);
-		add.Text = "Add Resident";
-		button3.Text = "Delete";
-		add.AutoSize = true;
-		button3.AutoSize = true;
-		add.Click -= add_Click;
-		add.Click += add_Click;
-		button3.Click -= button3_Click;
-		button3.Click += button3_Click;
+		StyleResidentPrimaryButton(profileAddResidentButton, 140);
+		StyleResidentDangerButton(profileDeleteResidentButton, 92);
+		profileAddResidentButton.Text = "Add Resident";
+		profileDeleteResidentButton.Text = "Delete";
+		profileAddResidentButton.AutoSize = true;
+		profileDeleteResidentButton.AutoSize = true;
+		profileAddResidentButton.Click -= ProfileAddResidentButton_Click;
+		profileAddResidentButton.Click += ProfileAddResidentButton_Click;
+		profileDeleteResidentButton.Click -= ProfileDeleteResidentButton_Click;
+		profileDeleteResidentButton.Click += ProfileDeleteResidentButton_Click;
 
 		_residentRestoreButton.Text = "Restore";
 		UiTheme.StyleSecondaryButton(_residentRestoreButton);
@@ -4237,6 +4244,8 @@ public partial class ResidentModuleControl : UserControl
 		_certGrid.SelectionChanged += CertGrid_SelectionChanged;
 		_certGrid.CellFormatting -= CertGrid_CellFormatting;
 		_certGrid.CellFormatting += CertGrid_CellFormatting;
+		_certGrid.DataError -= CertGrid_DataError;
+		_certGrid.DataError += CertGrid_DataError;
 		_certGrid.CellContentClick -= CertGrid_CellContentClick;
 		_certGrid.CellContentClick += CertGrid_CellContentClick;
 
@@ -4638,6 +4647,10 @@ private void ConfigureHistoryDesignerControls()
 
 	_historyGrid.SelectionChanged -= HistoryGrid_SelectionChanged;
 	_historyGrid.SelectionChanged += HistoryGrid_SelectionChanged;
+	_historyGrid.CellFormatting -= HistoryGrid_CellFormatting;
+	_historyGrid.CellFormatting += HistoryGrid_CellFormatting;
+	_historyGrid.DataError -= HistoryGrid_DataError;
+	_historyGrid.DataError += HistoryGrid_DataError;
 
 	if (!_historyGridHost.Controls.Contains(_historyGrid))
 	{
@@ -5343,6 +5356,8 @@ private void ConfigureEmptyStatePanel(Panel panel, Label titleLabel, Label messa
 		dgvResidents.SelectionChanged += DgvResidents_SelectionChanged;
 		dgvResidents.CellFormatting -= DgvResidents_CellFormatting;
 		dgvResidents.CellFormatting += DgvResidents_CellFormatting;
+		dgvResidents.DataError -= DgvResidents_DataError;
+		dgvResidents.DataError += DgvResidents_DataError;
 
 
 	}
@@ -5504,15 +5519,69 @@ private void ConfigureEmptyStatePanel(Panel panel, Label titleLabel, Label messa
 		{
 			tableLeftRoot.AutoScroll = false;
 			tableLeftRoot.Padding = new Padding(12);
-			tableLeftRoot.RowCount = 3;
+			tableLeftRoot.RowCount = 4;
 			tableLeftRoot.ColumnCount = 1;
 			tableLeftRoot.ColumnStyles.Clear();
 			tableLeftRoot.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
 			tableLeftRoot.RowStyles.Clear();
+			tableLeftRoot.RowStyles.Add(new RowStyle(SizeType.Absolute, 42F));
 			tableLeftRoot.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
 			tableLeftRoot.RowStyles.Add(new RowStyle(SizeType.Absolute, 44F));
 			tableLeftRoot.RowStyles.Add(new RowStyle(SizeType.Absolute, 34F));
 			tableLeftRoot.Controls.Clear();
+
+			_residentSearchLayout.SuspendLayout();
+			_residentSearchLayout.Dock = DockStyle.Fill;
+			_residentSearchLayout.Margin = Padding.Empty;
+			_residentSearchLayout.Padding = Padding.Empty;
+			_residentSearchLayout.ColumnCount = 4;
+			_residentSearchLayout.RowCount = 1;
+			_residentSearchLayout.ColumnStyles.Clear();
+			_residentSearchLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+			_residentSearchLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+			_residentSearchLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+			_residentSearchLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+			_residentSearchLayout.RowStyles.Clear();
+			_residentSearchLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+			_residentSearchLayout.Controls.Clear();
+
+			UiTheme.StyleTextBox(_searchBox);
+			_searchBox.Dock = DockStyle.Fill;
+			_searchBox.Margin = new Padding(0, 0, 8, 0);
+			_searchBox.PlaceholderText = "Search residents...";
+			_searchBox.TextChanged -= SearchBox_TextChanged;
+			_searchBox.TextChanged += SearchBox_TextChanged;
+			_searchBox.KeyDown -= SearchBox_KeyDown;
+			_searchBox.KeyDown += SearchBox_KeyDown;
+
+			UiTheme.StylePrimaryButton(residentSearchButton);
+			residentSearchButton.Text = "Search";
+			residentSearchButton.AutoSize = true;
+			residentSearchButton.Margin = new Padding(0, 0, 8, 0);
+			residentSearchButton.Click -= ResidentSearchButton_Click;
+			residentSearchButton.Click += ResidentSearchButton_Click;
+
+			UiTheme.StyleSecondaryButton(_searchClear);
+			_searchClear.Text = "Clear";
+			_searchClear.AutoSize = true;
+			_searchClear.Margin = new Padding(0, 0, 8, 0);
+			_searchClear.Click -= SearchClear_Click;
+			_searchClear.Click += SearchClear_Click;
+
+			StyleResidentPrimaryButton(_residentTopAddButton, 136);
+			_residentTopAddButton.Text = "Add Resident";
+			_residentTopAddButton.AutoSize = true;
+			_residentTopAddButton.Margin = Padding.Empty;
+			_residentTopAddButton.Cursor = Cursors.Hand;
+			_residentTopAddButton.Click -= ProfileAddResidentButton_Click;
+			_residentTopAddButton.Click += ProfileAddResidentButton_Click;
+
+			_residentSearchLayout.Controls.Add(_searchBox, 0, 0);
+			_residentSearchLayout.Controls.Add(residentSearchButton, 1, 0);
+			_residentSearchLayout.Controls.Add(_searchClear, 2, 0);
+			_residentSearchLayout.Controls.Add(_residentTopAddButton, 3, 0);
+			_residentSearchLayout.ResumeLayout(performLayout: true);
+			tableLeftRoot.Controls.Add(_residentSearchLayout, 0, 0);
 
 			_residentGridHost.Dock = DockStyle.Fill;
 			_residentGridHost.Name = "residentsGridHost";
@@ -5521,7 +5590,7 @@ private void ConfigureEmptyStatePanel(Panel panel, Label titleLabel, Label messa
 			_residentGridHost.BackColor = Color.White;
 			_residentGridHost.AutoScroll = false;
 			_residentGridHost.Parent?.Controls.Remove(_residentGridHost);
-			tableLeftRoot.Controls.Add(_residentGridHost, 0, 0);
+			tableLeftRoot.Controls.Add(_residentGridHost, 0, 1);
 
 			if (panelLeftPagerHost != null)
 			{
@@ -5530,7 +5599,7 @@ private void ConfigureEmptyStatePanel(Panel panel, Label titleLabel, Label messa
 				panelLeftPagerHost.Padding = Padding.Empty;
 				panelLeftPagerHost.AutoScroll = false;
 				panelLeftPagerHost.Parent?.Controls.Remove(panelLeftPagerHost);
-				tableLeftRoot.Controls.Add(panelLeftPagerHost, 0, 1);
+				tableLeftRoot.Controls.Add(panelLeftPagerHost, 0, 2);
 			}
 
 			dgvResidents.Dock = DockStyle.Fill;
@@ -5578,7 +5647,7 @@ private void ConfigureEmptyStatePanel(Panel panel, Label titleLabel, Label messa
 			}
 
 			_residentStatusPanel.Parent?.Controls.Remove(_residentStatusPanel);
-			tableLeftRoot.Controls.Add(_residentStatusPanel, 0, 2);
+			tableLeftRoot.Controls.Add(_residentStatusPanel, 0, 3);
 
 			if (!_residentGridHost.Controls.Contains(_residentListEmptyPanel))
 			{
@@ -5675,14 +5744,13 @@ private static void ConfigureResidentLegendLabel(Label label, string text, Color
 		{
 			Dock = DockStyle.Fill,
 			ColumnCount = 1,
-			RowCount = 3,
+			RowCount = 2,
 			Margin = Padding.Empty,
 			Padding = Padding.Empty
 		};
 		layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-		layout.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
 		layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-		layout.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+		layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
 
 		FlowLayoutPanel stack = new FlowLayoutPanel
 		{
@@ -5690,8 +5758,8 @@ private static void ConfigureResidentLegendLabel(Label label, string text, Color
 			WrapContents = false,
 			AutoSize = true,
 			AutoSizeMode = AutoSizeMode.GrowAndShrink,
-			Anchor = AnchorStyles.None,
-			Margin = Padding.Empty
+			Anchor = AnchorStyles.Top | AnchorStyles.Left,
+			Margin = new Padding(16, 14, 0, 0)
 		};
 
 		_residentListEmptyTitle.AutoSize = true;
@@ -5709,13 +5777,14 @@ private static void ConfigureResidentLegendLabel(Label label, string text, Color
 		_residentListAddButton.Text = "Add Resident";
 		StyleResidentPrimaryButton(_residentListAddButton, 136);
 		_residentListAddButton.AutoSize = true;
-		_residentListAddButton.Click -= add_Click;
-		_residentListAddButton.Click += add_Click;
+		_residentListAddButton.Cursor = Cursors.Hand;
+		_residentListAddButton.Click -= ProfileAddResidentButton_Click;
+		_residentListAddButton.Click += ProfileAddResidentButton_Click;
 
 		stack.Controls.Add(_residentListEmptyTitle);
 		stack.Controls.Add(_residentListEmptyMessage);
 		stack.Controls.Add(_residentListAddButton);
-		layout.Controls.Add(stack, 0, 1);
+		layout.Controls.Add(stack, 0, 0);
 		_residentListEmptyPanel.Controls.Add(layout);
 	}
 
@@ -5731,7 +5800,7 @@ private static void ConfigureResidentLegendLabel(Label label, string text, Color
 		dgvResidents.Enabled = controlsEnabled;
 		_searchBox.Enabled = controlsEnabled;
 		_searchClear.Enabled = controlsEnabled;
-		button1.Enabled = controlsEnabled;
+		residentSearchButton.Enabled = controlsEnabled;
 		_residentTopAddButton.Enabled = controlsEnabled && Permissions.CanCreateResidents;
 		if (enabled)
 		{
@@ -5745,7 +5814,7 @@ private static void ConfigureResidentLegendLabel(Label label, string text, Color
 	private void UpdateResidentListVisualState()
 	{
 		bool residentView = IsResidentView();
-		int total = residentView ? (_residentTable?.DefaultView.Count ?? 0) : 0;
+		int total = residentView ? _residentTotalCount : 0;
 		bool hasSearch = !string.IsNullOrWhiteSpace(_searchBox.Text);
 		bool showEmpty = residentView && !_residentListLoading && total == 0;
 
@@ -5754,6 +5823,8 @@ private static void ConfigureResidentLegendLabel(Label label, string text, Color
 		_residentListLoadingPanel.Visible = _residentListLoading;
 		_residentListAddButton.Visible = residentView && Permissions.CanCreateResidents;
 		_residentTopAddButton.Visible = residentView && Permissions.CanCreateResidents;
+		_residentListAddButton.Enabled = residentView && Permissions.CanCreateResidents && !_residentListLoading;
+		_residentTopAddButton.Enabled = residentView && Permissions.CanCreateResidents && !_residentListLoading;
 
 		if (_residentListLoading)
 		{
@@ -5769,6 +5840,7 @@ private static void ConfigureResidentLegendLabel(Label label, string text, Color
 				? "Try a different search term or clear the search box."
 				: "Try a different search or add a resident.";
 			_residentListEmptyPanel.BringToFront();
+			_residentListAddButton.BringToFront();
 		}
 	}
 
@@ -5803,17 +5875,17 @@ private static void ConfigureResidentLegendLabel(Label label, string text, Color
 		}
 
 		_residentPageIndex--;
-		ApplyResidentSearch(resetPage: false);
+		LoadResidents(resetPage: false);
 	}
 
 	private void ResidentPageNext_Click(object? sender, EventArgs e)
 	{
-		if (_residentTable == null)
+		if (_residentTotalCount <= 0)
 		{
 			return;
 		}
 
-		int total = _residentTable.DefaultView.Count;
+		int total = _residentTotalCount;
 		int maxPageIndex = total <= 0 ? 0 : (int)Math.Ceiling(total / (double)ResidentPageSize) - 1;
 		if (_residentPageIndex >= maxPageIndex)
 		{
@@ -5821,7 +5893,7 @@ private static void ConfigureResidentLegendLabel(Label label, string text, Color
 		}
 
 		_residentPageIndex++;
-		ApplyResidentSearch(resetPage: false);
+		LoadResidents(resetPage: false);
 	}
 
 	private void UpdateResidentPagerState()
@@ -5837,7 +5909,7 @@ private static void ConfigureResidentLegendLabel(Label label, string text, Color
 			return;
 		}
 
-		int total = _residentTable?.DefaultView.Count ?? 0;
+		int total = _residentTotalCount;
 		int totalPages = total <= 0 ? 1 : (int)Math.Ceiling(total / (double)ResidentPageSize);
 		if (_residentPageIndex < 0)
 		{
@@ -6093,6 +6165,12 @@ private static void ConfigureResidentLegendLabel(Label label, string text, Color
 
 		if (!string.Equals(column.Name, "status", StringComparison.OrdinalIgnoreCase))
 		{
+			if (string.Equals(column.Name, "requested_at", StringComparison.OrdinalIgnoreCase)
+				|| string.Equals(column.Name, "issued_date", StringComparison.OrdinalIgnoreCase))
+			{
+				e.Value = FormatDate(e.Value);
+				e.FormattingApplied = true;
+			}
 			return;
 		}
 
@@ -6140,6 +6218,12 @@ private static void ConfigureResidentLegendLabel(Label label, string text, Color
 		e.CellStyle.ForeColor = foreColor;
 		e.CellStyle.SelectionBackColor = backColor;
 		e.CellStyle.SelectionForeColor = foreColor;
+	}
+
+	private void CertGrid_DataError(object? sender, DataGridViewDataErrorEventArgs e)
+	{
+		e.ThrowException = false;
+		AppLogger.LogWarning($"Resident certificates grid data formatting issue at row {e.RowIndex}, column {e.ColumnIndex}.", e.Exception);
 	}
 
 	private void CertGrid_CellContentClick(object? sender, DataGridViewCellEventArgs e)
@@ -6457,9 +6541,21 @@ public void ShowHistory()
 
 
 	{
+		LoadResidents(resetPage: true);
+	}
+
+	private void LoadResidents(bool resetPage)
+	{
+		if (resetPage)
+		{
+			_residentPageIndex = 0;
+			_residentSearchTerm = _searchBox.Text.Trim();
+		}
+
 		if (_residentLoadInProgress)
 		{
 			_residentReloadPending = true;
+			_residentReloadPendingResetPage |= resetPage;
 			return;
 		}
 
@@ -6491,6 +6587,7 @@ public void ShowHistory()
 	{
 		_residentLoadInProgress = true;
 		_residentReloadPending = false;
+		_residentReloadPendingResetPage = false;
 		int loadVersion = ++_residentLoadVersion;
 
 		SetResidentListLoading(enabled: true, "Loading residents...");
@@ -6502,7 +6599,8 @@ public void ShowHistory()
 			_residentDetailsLoadVersion++;
 
 			string deletedFilter = _showDeletedResidents ? "IFNULL(r.is_deleted,0)=1" : "IFNULL(r.is_deleted,0)=0";
-			DataTable dataTable = await Task.Run(() => QueryResidentsTable(deletedFilter));
+			(DataTable dataTable, int totalCount, int pageIndex) = await Task.Run(
+				() => QueryResidentsTable(deletedFilter, _residentSearchTerm, _residentPageIndex));
 
 			if (IsDisposed || loadVersion != _residentLoadVersion)
 			{
@@ -6510,7 +6608,9 @@ public void ShowHistory()
 			}
 
 			_residentTable = dataTable;
-			ApplyResidentSearch(resetPage: true);
+			_residentTotalCount = totalCount;
+			_residentPageIndex = pageIndex;
+			ApplyResidentPaging(resetPage: false);
 			UpdateResidentSoftDeleteButtons();
 			UpdateRightPanelSelectionState();
 			_residentTabs.Enabled = true;
@@ -6529,15 +6629,40 @@ public void ShowHistory()
 			_residentLoadInProgress = false;
 			if (_residentReloadPending && !IsDisposed)
 			{
+				bool reloadWithReset = _residentReloadPendingResetPage;
 				_residentReloadPending = false;
-				LoadResidents();
+				_residentReloadPendingResetPage = false;
+				LoadResidents(resetPage: reloadWithReset);
 			}
 		}
 	}
 
-	private static DataTable QueryResidentsTable(string deletedFilter)
+	private static (DataTable Table, int TotalCount, int PageIndex) QueryResidentsTable(
+		string deletedFilter,
+		string searchTerm,
+		int requestedPageIndex)
 	{
-		return DbHelper.LoadTable($@"SELECT r.resident_id,
+		string trimmedSearch = searchTerm?.Trim() ?? string.Empty;
+		bool hasSearch = !string.IsNullOrWhiteSpace(trimmedSearch);
+		string searchPredicate = hasSearch
+			? " AND (r.first_name LIKE @search OR r.middle_name LIKE @search OR r.last_name LIKE @search)"
+			: string.Empty;
+
+		int totalCount = DbHelper.ExecuteScalar<int>($@"SELECT COUNT(*)
+                               FROM resident r
+                               WHERE {deletedFilter}{searchPredicate}", cmd =>
+		{
+			if (hasSearch)
+			{
+				cmd.Parameters.AddWithValue("@search", $"%{trimmedSearch}%");
+			}
+		});
+
+		int totalPages = totalCount <= 0 ? 1 : (int)Math.Ceiling(totalCount / (double)ResidentPageSize);
+		int pageIndex = Math.Max(0, Math.Min(requestedPageIndex, totalPages - 1));
+		int offset = pageIndex * ResidentPageSize;
+
+		DataTable pageTable = DbHelper.LoadTable($@"SELECT r.resident_id,
                                       r.barangay_id,
                                       r.purok_id,
                                       r.household_id,
@@ -6566,8 +6691,20 @@ public void ShowHistory()
                                LEFT JOIN barangay b ON b.barangay_id = r.barangay_id
                                LEFT JOIN purok_sitio p ON p.purok_id = r.purok_id
                                LEFT JOIN household h ON h.household_id = r.household_id
-                               WHERE {deletedFilter}
-                               ORDER BY r.last_name, r.first_name");
+								   WHERE {deletedFilter}{searchPredicate}
+								   ORDER BY r.last_name, r.first_name
+								   LIMIT @limit OFFSET @offset", cmd =>
+		{
+			if (hasSearch)
+			{
+				cmd.Parameters.AddWithValue("@search", $"%{trimmedSearch}%");
+			}
+
+			cmd.Parameters.AddWithValue("@limit", ResidentPageSize);
+			cmd.Parameters.AddWithValue("@offset", offset);
+		});
+
+		return (pageTable, totalCount, pageIndex);
 	}
 
 
@@ -6587,12 +6724,12 @@ public void ShowHistory()
 		_residentShowDeletedToggle.Visible = isResidentView && canDelete;
 		_residentRestoreButton.Visible = isResidentView && canDelete && _showDeletedResidents;
 
-		add.Enabled = isResidentView && canCreate;
+		profileAddResidentButton.Enabled = isResidentView && canCreate;
 		_residentTopAddButton.Enabled = isResidentView && canCreate && !_residentListLoading;
 		_residentTopAddButton.Visible = isResidentView && canCreate;
 		_residentListAddButton.Enabled = isResidentView && canCreate && !_residentListLoading;
 		_residentListAddButton.Visible = isResidentView && canCreate;
-		button3.Enabled = isResidentView && canDelete && hasSelection && !_showDeletedResidents;
+		profileDeleteResidentButton.Enabled = isResidentView && canDelete && hasSelection && !_showDeletedResidents;
 		_residentRestoreButton.Enabled = isResidentView && canDelete && hasSelection && _showDeletedResidents;
 		_residentQuickEdit.Enabled = isResidentView && canUpdate && hasSelection && !_showDeletedResidents && !_isEditing;
 		_btnResidentAttachments.Enabled = isResidentView && hasSelection;
@@ -7320,7 +7457,7 @@ public void ShowHistory()
 
 
 
-	private void add_Click(object sender, EventArgs e)
+	private void ProfileAddResidentButton_Click(object? sender, EventArgs e)
 
 
 	{
@@ -7333,7 +7470,7 @@ public void ShowHistory()
 
 
 
-	private void button2_Click(object sender, EventArgs e)
+	private void ProfileUpdateResidentButton_Click(object? sender, EventArgs e)
 
 
 	{
@@ -7346,7 +7483,7 @@ public void ShowHistory()
 
 
 
-	private void button1_Click(object sender, EventArgs e)
+	private void ResidentSearchButton_Click(object? sender, EventArgs e)
 
 
 	{
@@ -7359,7 +7496,7 @@ public void ShowHistory()
 
 
 
-	private void button3_Click(object sender, EventArgs e)
+	private void ProfileDeleteResidentButton_Click(object? sender, EventArgs e)
 
 
 	{
@@ -8204,6 +8341,12 @@ public void ShowHistory()
 
 	}
 
+	private void DgvResidents_DataError(object? sender, DataGridViewDataErrorEventArgs e)
+	{
+		e.ThrowException = false;
+		AppLogger.LogWarning($"Resident list grid data formatting issue at row {e.RowIndex}, column {e.ColumnIndex}.", e.Exception);
+	}
+
 
 
 
@@ -8584,8 +8727,8 @@ public void ShowHistory()
 		_residentHeaderDeactivateButton.ForeColor = ResidentDangerRed;
 		_residentHeaderDeactivateButton.FlatAppearance.BorderColor = Color.FromArgb(252, 165, 165);
 		_residentHeaderDeactivateButton.FlatAppearance.BorderSize = 1;
-		_residentHeaderDeactivateButton.Click -= button3_Click;
-		_residentHeaderDeactivateButton.Click += button3_Click;
+		_residentHeaderDeactivateButton.Click -= ProfileDeleteResidentButton_Click;
+		_residentHeaderDeactivateButton.Click += ProfileDeleteResidentButton_Click;
 
 		_residentHeaderToggleButton.Text = _isProfileDetailsExpanded ? "v" : ">";
 		_residentHeaderToggleButton.AutoSize = false;
@@ -10194,7 +10337,7 @@ public void ShowHistory()
 		{
 			typeColumn.Visible = true;
 			typeColumn.HeaderText = "Document Type";
-			typeColumn.DisplayIndex = 1;
+			typeColumn.DisplayIndex = Math.Max(0, Math.Min(1, _certGrid.Columns.Count - 1));
 			typeColumn.FillWeight = 30F;
 		}
 
@@ -10202,7 +10345,7 @@ public void ShowHistory()
 		{
 			purposeColumn.Visible = true;
 			purposeColumn.HeaderText = "Purpose";
-			purposeColumn.DisplayIndex = 2;
+			purposeColumn.DisplayIndex = Math.Max(0, Math.Min(2, _certGrid.Columns.Count - 1));
 			purposeColumn.FillWeight = 30F;
 		}
 
@@ -10210,7 +10353,7 @@ public void ShowHistory()
 		{
 			statusColumn.Visible = true;
 			statusColumn.HeaderText = "Status";
-			statusColumn.DisplayIndex = 3;
+			statusColumn.DisplayIndex = Math.Max(0, Math.Min(3, _certGrid.Columns.Count - 1));
 			statusColumn.FillWeight = 14F;
 		}
 
@@ -10219,8 +10362,7 @@ public void ShowHistory()
 		{
 			requestedAtColumn.Visible = true;
 			requestedAtColumn.HeaderText = "Requested At";
-			requestedAtColumn.DisplayIndex = 4;
-			requestedAtColumn.DefaultCellStyle.Format = "MMM dd, yyyy";
+			requestedAtColumn.DisplayIndex = Math.Max(0, Math.Min(4, _certGrid.Columns.Count - 1));
 			requestedAtColumn.FillWeight = 16F;
 		}
 
@@ -10243,7 +10385,7 @@ public void ShowHistory()
 		if (_certGrid.Columns[CertificateRowNumberColumnName] is DataGridViewColumn numberColumn)
 		{
 			numberColumn.Visible = true;
-			numberColumn.DisplayIndex = 0;
+			numberColumn.DisplayIndex = Math.Max(0, Math.Min(0, _certGrid.Columns.Count - 1));
 			numberColumn.ReadOnly = true;
 			numberColumn.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
 		}
@@ -10251,7 +10393,7 @@ public void ShowHistory()
 		if (_certGrid.Columns[CertificateActionsColumnName] is DataGridViewColumn actions)
 		{
 			actions.Visible = true;
-			actions.DisplayIndex = 5;
+			actions.DisplayIndex = Math.Max(0, Math.Min(5, _certGrid.Columns.Count - 1));
 			actions.SortMode = DataGridViewColumnSortMode.NotSortable;
 			actions.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
 			actions.Width = 120;
@@ -12049,7 +12191,6 @@ public void ShowHistory()
 		if (_historyGrid.Columns["action_at"] != null)
 		{
 			_historyGrid.Columns["action_at"].HeaderText = "Date";
-			_historyGrid.Columns["action_at"].DefaultCellStyle.Format = "MMM dd, yyyy h:mm tt";
 			_historyGrid.Columns["action_at"].FillWeight = 22F;
 		}
 		if (_historyGrid.Columns["module"] != null)
@@ -12072,6 +12213,33 @@ public void ShowHistory()
 			_historyGrid.Columns["action_by"].HeaderText = "By";
 			_historyGrid.Columns["action_by"].FillWeight = 12F;
 		}
+	}
+
+	private void HistoryGrid_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
+	{
+		if (e.RowIndex < 0 || e.ColumnIndex < 0)
+		{
+			return;
+		}
+
+		if (_historyGrid.Columns[e.ColumnIndex] is not DataGridViewColumn column)
+		{
+			return;
+		}
+
+		if (!string.Equals(column.Name, "action_at", StringComparison.OrdinalIgnoreCase))
+		{
+			return;
+		}
+
+		e.Value = FormatDateTime(e.Value);
+		e.FormattingApplied = true;
+	}
+
+	private void HistoryGrid_DataError(object? sender, DataGridViewDataErrorEventArgs e)
+	{
+		e.ThrowException = false;
+		AppLogger.LogWarning($"Resident activity grid data formatting issue at row {e.RowIndex}, column {e.ColumnIndex}.", e.Exception);
 	}
 
 	private void LoadAllHistory()
@@ -13506,6 +13674,9 @@ private Panel CreateEmptyStatePanel(Label titleLabel, Label messageLabel)
 		_selectedResidentId = null;
 		_residentDetailsLoadedId = null;
 		_residentDetailsLoadVersion++;
+		_pendingResidentBarangayId = null;
+		_pendingResidentPurokId = null;
+		_pendingResidentHouseholdId = null;
 
 
 		SetDetailEditing(enabled: false);
@@ -15275,8 +15446,17 @@ private int CountHistoryModule(string module)
 
 
 	{
+		UpdateResidentListVisualState();
+	}
 
+	private void SearchBox_KeyDown(object? sender, KeyEventArgs e)
+	{
+		if (e.KeyCode != Keys.Enter)
+		{
+			return;
+		}
 
+		e.SuppressKeyPress = true;
 		ApplyResidentSearch();
 
 
@@ -15290,55 +15470,7 @@ private int CountHistoryModule(string module)
 
 
 	{
-
-
-		if (_residentTable == null)
-
-
-		{
-
-
-			UpdateResidentPagerState();
-			UpdateResidentListVisualState();
-
-
-			return;
-
-
-		}
-
-
-		string text = _searchBox.Text.Trim();
-
-
-		if (string.IsNullOrWhiteSpace(text))
-
-
-		{
-
-
-			_residentTable.DefaultView.RowFilter = string.Empty;
-
-
-		}
-
-
-		else
-
-
-		{
-
-
-			text = text.Replace("[", "[[]").Replace("]", "[]]").Replace("'", "''");
-
-
-			_residentTable.DefaultView.RowFilter = $"firstname LIKE '%{text}%' OR middlename LIKE '%{text}%' OR lastname LIKE '%{text}%'";
-
-
-		}
-
-
-		ApplyResidentPaging(resetPage);
+		LoadResidents(resetPage);
 
 
 	}
@@ -15354,38 +15486,12 @@ private int CountHistoryModule(string module)
 			return;
 		}
 
-		DataView view = _residentTable.DefaultView;
-		int total = view.Count;
-		int totalPages = total <= 0 ? 1 : (int)Math.Ceiling(total / (double)ResidentPageSize);
-		if (resetPage)
-		{
-			_residentPageIndex = 0;
-		}
-
-		if (_residentPageIndex < 0)
-		{
-			_residentPageIndex = 0;
-		}
-
-		if (_residentPageIndex >= totalPages)
-		{
-			_residentPageIndex = totalPages - 1;
-		}
-
-		int startIndex = _residentPageIndex * ResidentPageSize;
-		int endIndex = Math.Min(total, startIndex + ResidentPageSize);
-		DataTable pageTable = _residentTable.Clone();
-		for (int i = startIndex; i < endIndex; i++)
-		{
-			pageTable.ImportRow(view[i].Row);
-		}
-
 		int? previousResidentId = _selectedResidentId;
 		bool hasRows;
 		_suppressResidentSelectionChanged = true;
 		try
 		{
-			dgvResidents.DataSource = pageTable;
+			dgvResidents.DataSource = _residentTable;
 			ConfigureResidentGridColumns();
 			UpdateResidentPagerState();
 			UpdateResidentListVisualState();
@@ -15500,6 +15606,9 @@ private int CountHistoryModule(string module)
 
 		bool previous = _suppressEditChangeTracking;
 		_suppressEditChangeTracking = true;
+		int? selectedBarangayId = GetCellNullableInt(row, "barangay_id");
+		int? selectedPurokId = GetCellNullableInt(row, "purok_id");
+		int? selectedHouseholdId = GetCellNullableInt(row, "household_id");
 		try
 		{
 
@@ -15522,10 +15631,16 @@ private int CountHistoryModule(string module)
 
 
 			_editStatus.Text = GetCellText(row, "status");
-			SetResidentLocationSelection(
-				GetCellNullableInt(row, "barangay_id"),
-				GetCellNullableInt(row, "purok_id"),
-				GetCellNullableInt(row, "household_id"));
+			_pendingResidentBarangayId = selectedBarangayId;
+			_pendingResidentPurokId = selectedPurokId;
+			_pendingResidentHouseholdId = selectedHouseholdId;
+			if (_isEditing)
+			{
+				SetResidentLocationSelection(
+					_pendingResidentBarangayId,
+					_pendingResidentPurokId,
+					_pendingResidentHouseholdId);
+			}
 
 
 			object obj = row.Cells["date_of_birth"]?.Value;
@@ -15568,10 +15683,6 @@ private int CountHistoryModule(string module)
 		UpdateResidentHeader();
 
 
-		LoadBlottersForResident(residentId);
-		UpdateBlotterActionState();
-
-
 		int loadVersion = ++_residentDetailsLoadVersion;
 		_ = LoadResidentDocumentsAndAuditAsync(residentId, loadVersion);
 		ResetProfileViewport();
@@ -15593,12 +15704,28 @@ private int CountHistoryModule(string module)
 			panelRightRoot.Enabled = false;
 		}
 
-		BeginModuleLoading("Loading resident documents and audit logs...");
+		BeginModuleLoading("Loading resident records...");
 		try
 		{
+			Task<List<BlotterRecordSummary>> blotterTask = Task.Run(() => QueryBlotterRecordsForResident(residentId));
 			Task<DataTable> certificatesTask = Task.Run(() => QueryCertificatesForResident(residentId));
 			Task<DataTable> historyTask = Task.Run(() => QueryResidentHistory(residentId));
-			await Task.WhenAll(certificatesTask, historyTask);
+			Task combinedTask = Task.WhenAll(blotterTask, certificatesTask, historyTask);
+			Task completedTask = await Task.WhenAny(combinedTask, Task.Delay(TimeSpan.FromSeconds(8)));
+			if (!ReferenceEquals(completedTask, combinedTask))
+			{
+				AppLogger.LogWarning($"Resident data load timed out for resident #{residentId}. Rendering partial fallback.");
+				if (!IsDisposed
+					&& loadVersion == _residentDetailsLoadVersion
+					&& _selectedResidentId.HasValue
+					&& _selectedResidentId.Value == residentId)
+				{
+					ApplyBlotterRecords(new List<BlotterRecordSummary>());
+					ApplyCertificatesData(new DataTable());
+					ApplyResidentHistoryData(new DataTable());
+				}
+				return;
+			}
 
 			if (IsDisposed
 				|| loadVersion != _residentDetailsLoadVersion
@@ -15608,6 +15735,7 @@ private int CountHistoryModule(string module)
 				return;
 			}
 
+			ApplyBlotterRecords(blotterTask.Result);
 			ApplyCertificatesData(certificatesTask.Result);
 			ApplyResidentHistoryData(historyTask.Result);
 			UpdateResidentInsightPanel();
@@ -15617,7 +15745,7 @@ private int CountHistoryModule(string module)
 			if (!IsDisposed && loadVersion == _residentDetailsLoadVersion)
 			{
 				_residentDetailsLoadedId = null;
-				ControllerDialogs.Error(ex, "Unable to load resident documents and audit logs.", "Error");
+				ControllerDialogs.Error(ex, "Unable to load resident records.", "Error");
 			}
 		}
 		finally
@@ -15699,13 +15827,13 @@ private int CountHistoryModule(string module)
 		dgvResidents.Enabled = !enabled;
 
 
-		add.Enabled = !enabled;
+		profileAddResidentButton.Enabled = !enabled;
 
 
-		button3.Enabled = !enabled;
+		profileDeleteResidentButton.Enabled = !enabled;
 
 
-		button1.Enabled = !enabled;
+		residentSearchButton.Enabled = !enabled;
 
 
 		_residentEditModeBadge.Visible = enabled;
@@ -15731,6 +15859,10 @@ private int CountHistoryModule(string module)
 
 
 		SetProfileDetailsExpanded(expanded: true);
+		SetResidentLocationSelection(
+			_pendingResidentBarangayId,
+			_pendingResidentPurokId,
+			_pendingResidentHouseholdId);
 		SyncResidentChoiceEditorsFromText();
 		ResetResidentEditDirty();
 		SetDetailEditing(enabled: true);
@@ -16039,7 +16171,7 @@ private int CountHistoryModule(string module)
 
 
 
-	private void LoadBlottersForResident(int residentId)
+	private async void LoadBlottersForResident(int residentId)
 
 
 	{
@@ -16052,12 +16184,47 @@ private int CountHistoryModule(string module)
 		{
 
 
-			string respondentIdSelect = _supportsRespondentResidentId
-				? "respondent_resident_id,\r\n                         "
-				: string.Empty;
+			Task<List<BlotterRecordSummary>> queryTask = Task.Run(() => QueryBlotterRecordsForResident(residentId));
+			Task completedTask = await Task.WhenAny(queryTask, Task.Delay(TimeSpan.FromSeconds(8)));
+			if (!ReferenceEquals(completedTask, queryTask))
+			{
+				AppLogger.LogWarning($"Blotter load timed out for resident #{residentId}.");
+				ApplyBlotterRecords(new List<BlotterRecordSummary>());
+				return;
+			}
 
-			string sql = _supportsBlotterExtended
-				? $@"SELECT case_id AS blotter_id,
+			ApplyBlotterRecords(queryTask.Result);
+
+
+		}
+
+
+		catch (Exception ex)
+
+
+		{
+
+
+			ControllerDialogs.Error(ex, "Unable to load blotter records.", "Error");
+
+
+		}
+		finally
+		{
+			EndModuleLoading();
+		}
+
+
+	}
+
+	private List<BlotterRecordSummary> QueryBlotterRecordsForResident(int residentId)
+	{
+		string respondentIdSelect = _supportsRespondentResidentId
+			? "respondent_resident_id,\r\n                         "
+			: string.Empty;
+
+		string sql = _supportsBlotterExtended
+			? $@"SELECT case_id AS blotter_id,
                          {respondentIdSelect}respondent_name,
                          incident_type,
                          incident_date,
@@ -16080,7 +16247,7 @@ private int CountHistoryModule(string module)
                   FROM case_record
                   WHERE complainant_id = @cid
                   ORDER BY incident_date DESC, created_at DESC"
-				: $@"SELECT case_id AS blotter_id,
+			: $@"SELECT case_id AS blotter_id,
                          {respondentIdSelect}respondent_name,
                          incident_type,
                          incident_date,
@@ -16099,98 +16266,82 @@ private int CountHistoryModule(string module)
                   WHERE complainant_id = @cid
                   ORDER BY incident_date DESC, created_at DESC";
 
-			DataTable dataTable = DbHelper.LoadTable(sql, cmd => cmd.Parameters.AddWithValue("@cid", residentId));
-
-			_blotterRecords = new List<BlotterRecordSummary>();
-			foreach (DataRow row in dataTable.Rows)
+		DataTable dataTable = DbHelper.LoadTable(sql, cmd => cmd.Parameters.AddWithValue("@cid", residentId));
+		List<BlotterRecordSummary> records = new List<BlotterRecordSummary>();
+		foreach (DataRow row in dataTable.Rows)
+		{
+			int blotterId = row["blotter_id"] != DBNull.Value ? Convert.ToInt32(row["blotter_id"]) : 0;
+			if (blotterId <= 0)
 			{
-				int blotterId = row["blotter_id"] != DBNull.Value ? Convert.ToInt32(row["blotter_id"]) : 0;
-				if (blotterId <= 0)
-				{
-					continue;
-				}
-
-				int? respondentResidentId = null;
-				if (dataTable.Columns.Contains("respondent_resident_id") && row["respondent_resident_id"] != DBNull.Value)
-				{
-					int parsedRespondentId = Convert.ToInt32(row["respondent_resident_id"]);
-					if (parsedRespondentId > 0)
-					{
-						respondentResidentId = parsedRespondentId;
-					}
-				}
-
-				DateTime incidentDate = DateTime.Today;
-				if (row["incident_date"] != DBNull.Value && DateTime.TryParse(row["incident_date"]?.ToString(), out DateTime parsedIncidentDate))
-				{
-					incidentDate = parsedIncidentDate.Date;
-				}
-
-				DateTime createdAt = DateTime.MinValue;
-				if (row["created_at"] != DBNull.Value && DateTime.TryParse(row["created_at"]?.ToString(), out DateTime parsedCreatedAt))
-				{
-					createdAt = parsedCreatedAt;
-				}
-
-				TimeSpan? incidentTime = null;
-				if (dataTable.Columns.Contains("incident_time") && row["incident_time"] != DBNull.Value)
-				{
-					if (row["incident_time"] is TimeSpan ts)
-					{
-						incidentTime = ts;
-					}
-					else if (TimeSpan.TryParse(row["incident_time"]?.ToString(), out TimeSpan parsedTime))
-					{
-						incidentTime = parsedTime;
-					}
-				}
-
-				_blotterRecords.Add(new BlotterRecordSummary
-				{
-					BlotterId = blotterId,
-					RespondentResidentId = respondentResidentId,
-					RespondentName = row["respondent_name"]?.ToString() ?? string.Empty,
-					IncidentType = row["incident_type"]?.ToString() ?? string.Empty,
-					IncidentDate = incidentDate,
-					IncidentTime = incidentTime,
-					IncidentLocation = dataTable.Columns.Contains("incident_location") ? row["incident_location"]?.ToString() ?? string.Empty : string.Empty,
-					Witnesses = dataTable.Columns.Contains("witness_names") ? row["witness_names"]?.ToString() ?? string.Empty : string.Empty,
-					ActionTaken = dataTable.Columns.Contains("action_taken") ? row["action_taken"]?.ToString() ?? string.Empty : string.Empty,
-					ResolutionDetails = dataTable.Columns.Contains("resolution_details") ? row["resolution_details"]?.ToString() ?? string.Empty : string.Empty,
-					IncidentDetails = row["incident_details"]?.ToString() ?? string.Empty,
-					Status = row["status"]?.ToString() ?? string.Empty,
-					StatusRaw = dataTable.Columns.Contains("status_raw") ? row["status_raw"]?.ToString() ?? string.Empty : string.Empty,
-					CreatedAt = createdAt
-				});
+				continue;
 			}
 
-			ApplyRepeatRespondentCounts();
-			_blotterPageIndex = 0;
-			RenderBlotterCards();
-			UpdateBlotterEmptyState();
-			UpdateBlotterActionState();
-			UpdateResidentInsightPanel();
+			int? respondentResidentId = null;
+			if (dataTable.Columns.Contains("respondent_resident_id") && row["respondent_resident_id"] != DBNull.Value)
+			{
+				int parsedRespondentId = Convert.ToInt32(row["respondent_resident_id"]);
+				if (parsedRespondentId > 0)
+				{
+					respondentResidentId = parsedRespondentId;
+				}
+			}
 
+			DateTime incidentDate = DateTime.Today;
+			if (row["incident_date"] != DBNull.Value && DateTime.TryParse(row["incident_date"]?.ToString(), out DateTime parsedIncidentDate))
+			{
+				incidentDate = parsedIncidentDate.Date;
+			}
 
+			DateTime createdAt = DateTime.MinValue;
+			if (row["created_at"] != DBNull.Value && DateTime.TryParse(row["created_at"]?.ToString(), out DateTime parsedCreatedAt))
+			{
+				createdAt = parsedCreatedAt;
+			}
+
+			TimeSpan? incidentTime = null;
+			if (dataTable.Columns.Contains("incident_time") && row["incident_time"] != DBNull.Value)
+			{
+				if (row["incident_time"] is TimeSpan ts)
+				{
+					incidentTime = ts;
+				}
+				else if (TimeSpan.TryParse(row["incident_time"]?.ToString(), out TimeSpan parsedTime))
+				{
+					incidentTime = parsedTime;
+				}
+			}
+
+			records.Add(new BlotterRecordSummary
+			{
+				BlotterId = blotterId,
+				RespondentResidentId = respondentResidentId,
+				RespondentName = row["respondent_name"]?.ToString() ?? string.Empty,
+				IncidentType = row["incident_type"]?.ToString() ?? string.Empty,
+				IncidentDate = incidentDate,
+				IncidentTime = incidentTime,
+				IncidentLocation = dataTable.Columns.Contains("incident_location") ? row["incident_location"]?.ToString() ?? string.Empty : string.Empty,
+				Witnesses = dataTable.Columns.Contains("witness_names") ? row["witness_names"]?.ToString() ?? string.Empty : string.Empty,
+				ActionTaken = dataTable.Columns.Contains("action_taken") ? row["action_taken"]?.ToString() ?? string.Empty : string.Empty,
+				ResolutionDetails = dataTable.Columns.Contains("resolution_details") ? row["resolution_details"]?.ToString() ?? string.Empty : string.Empty,
+				IncidentDetails = row["incident_details"]?.ToString() ?? string.Empty,
+				Status = row["status"]?.ToString() ?? string.Empty,
+				StatusRaw = dataTable.Columns.Contains("status_raw") ? row["status_raw"]?.ToString() ?? string.Empty : string.Empty,
+				CreatedAt = createdAt
+			});
 		}
 
+		return records;
+	}
 
-		catch (Exception ex)
-
-
-		{
-
-
-			ControllerDialogs.Error(ex, "Unable to load blotter records.", "Error");
-
-
-		}
-		finally
-		{
-			EndModuleLoading();
-		}
-
-
+	private void ApplyBlotterRecords(List<BlotterRecordSummary> records)
+	{
+		_blotterRecords = records ?? new List<BlotterRecordSummary>();
+		ApplyRepeatRespondentCounts();
+		_blotterPageIndex = 0;
+		RenderBlotterCards();
+		UpdateBlotterEmptyState();
+		UpdateBlotterActionState();
+		UpdateResidentInsightPanel();
 	}
 
 	private void ApplyRepeatRespondentCounts()

@@ -35,13 +35,13 @@ public partial class Form1 : Form
 	}
 
 
-	private void button1_Click(object sender, EventArgs e)
+	private void LoginButton_Click(object? sender, EventArgs e)
 	{
 		_controller.HandleLogin();
 	}
 
 
-	private void button1_Click_1(object sender, EventArgs e)
+	private void RegisterLinkButton_Click(object? sender, EventArgs e)
 	{
 		_controller.HandleRegister();
 	}
@@ -102,19 +102,19 @@ public partial class Form1 : Form
 
 		txtPassword.PlaceholderText = "Enter your password";
 
-		UiTheme.StylePrimaryButtons(ss);
+		UiTheme.StylePrimaryButtons(loginButton);
 
-		ss.Text = "Log in";
+		loginButton.Text = "Log in";
 
 		label3.Text = "Don't have an account?";
 
 		label3.ForeColor = UiTheme.Slate500;
 
-		UiTheme.StyleGhostButton(button1);
+		UiTheme.StyleGhostButton(registerLinkButton);
 
-		button1.Text = "Register";
+		registerLinkButton.Text = "Register";
 
-		base.AcceptButton = ss;
+		base.AcceptButton = loginButton;
 
 		Font = UiTheme.BodyFont;
 

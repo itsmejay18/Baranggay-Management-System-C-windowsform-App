@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace baranggaysystem1
 {
@@ -43,7 +44,16 @@ namespace baranggaysystem1
             using Mutex singleInstanceMutex = new(true, SingleInstanceMutexName, out bool createdNew);
             if (!createdNew)
             {
-                TryActivateRunningInstance();
+                bool activated = TryActivateRunningInstance();
+                if (!activated)
+                {
+                    MessageBox.Show(
+                        "Barangay System is already running, but its window could not be activated.\n\n" +
+                        "Please close the existing process from Task Manager and start again.",
+                        "Already Running",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                }
                 return;
             }
 
@@ -80,59 +90,7 @@ namespace baranggaysystem1
                 };
                 if (!isUiTest)
                 {
-                    using var installer = new PackageInstallerForm();
-                    DialogResult setupResult = installer.ShowDialog();
-                    if (setupResult != DialogResult.OK)
-                    {
-                        return;
-                    }
-
-                    try
-                    {
-                        Database.SchemaGuard.EnsureDatabaseReady();
-
-                        var health = Database.SchemaGuard.RunStartupHealthChecks();
-                        string healthIssues = health.ToMultilineText(includeOk: false);
-                        if (health.HasCriticalIssues)
-                        {
-                            helper.AppLogger.LogError("Startup health checks failed.\n" + healthIssues);
-                            MessageBox.Show(
-                                "Startup health checks found critical issues.\n\n" +
-                                healthIssues +
-                                "\n\nPlease resolve these issues before using the app.",
-                                "Startup Health Check",
-                                MessageBoxButtons.OK,
-                                MessageBoxIcon.Error);
-                            return;
-                        }
-
-                        if (health.HasWarnings)
-                        {
-                            helper.AppLogger.LogWarning("Startup health checks completed with warnings.\n" + healthIssues);
-                        }
-                        else
-                        {
-                            helper.AppLogger.LogInfo("Startup health checks passed.");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        helper.AppLogger.LogError("Database setup failed during startup.", ex);
-                        string details = ex.Message;
-                        if (ex.InnerException != null && !string.IsNullOrWhiteSpace(ex.InnerException.Message))
-                        {
-                            details += "\n" + ex.InnerException.Message;
-                        }
-
-                        MessageBox.Show(
-                            "Database setup failed.\n\n" +
-                            details +
-                            "\n\nTip: verify your DB connection in Package Installer or set BARANGAY_DB_CONNECTION (use SslMode=Disabled).",
-                            "Database Error",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Error);
-                        return;
-                    }
+                    QueueDatabaseStartupInitialization();
                 }
 
                 if (isUiTest)
@@ -150,7 +108,7 @@ namespace baranggaysystem1
             }
         }
 
-        private static void TryActivateRunningInstance()
+        private static bool TryActivateRunningInstance()
         {
             try
             {
@@ -162,13 +120,13 @@ namespace baranggaysystem1
 
                 if (existingProcess == null)
                 {
-                    return;
+                    return false;
                 }
 
                 IntPtr windowHandle = FindWindowHandle(existingProcess);
                 if (windowHandle == IntPtr.Zero)
                 {
-                    return;
+                    return false;
                 }
 
                 ShowWindowAsync(windowHandle, IsIconic(windowHandle) ? SwRestore : SwShow);
@@ -176,11 +134,61 @@ namespace baranggaysystem1
                 {
                     FlashWindow(windowHandle, true);
                 }
+
+                return true;
             }
             catch
             {
                 // Ignore duplicate-launch activation errors.
+                return false;
             }
+        }
+
+        private static void QueueDatabaseStartupInitialization()
+        {
+            _ = Task.Run(() =>
+            {
+                bool offlineReady = false;
+                try
+                {
+                    // Initialize local SQLite first so offline fallback is always available.
+                    offlineReady = Database.OfflineDatabaseSupport.EnsureInitialised();
+
+                    Database.SchemaGuard.EnsureDatabaseReady();
+                    Database.OfflineDatabaseSupport.ActivateOnlineMode();
+                    int syncedChanges = Database.OfflineSyncService.TrySyncPendingChanges();
+                    if (syncedChanges > 0)
+                    {
+                        helper.AppLogger.LogInfo($"[OfflineSync] Replayed {syncedChanges} queued change(s) to online database.");
+                    }
+
+                    var health = Database.SchemaGuard.RunStartupHealthChecks();
+                    string healthIssues = health.ToMultilineText(includeOk: false);
+                    if (health.HasCriticalIssues)
+                    {
+                        helper.AppLogger.LogError("Startup health checks failed.\n" + healthIssues);
+                        return;
+                    }
+
+                    if (health.HasWarnings)
+                    {
+                        helper.AppLogger.LogWarning("Startup health checks completed with warnings.\n" + healthIssues);
+                    }
+                    else
+                    {
+                        helper.AppLogger.LogInfo("Startup health checks passed.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    helper.AppLogger.LogError("Database setup failed during startup.", ex);
+                    if (offlineReady || Database.OfflineDatabaseSupport.IsAvailable)
+                    {
+                        Database.OfflineDatabaseSupport.ActivateOfflineMode();
+                        helper.AppLogger.LogWarning("Falling back to offline mode.");
+                    }
+                }
+            });
         }
 
         private static DateTime SafeGetStartTime(Process process)

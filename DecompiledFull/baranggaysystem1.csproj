@@ -1,0 +1,136 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <AssemblyName>baranggaysystem1</AssemblyName>
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <OutputType>WinExe</OutputType>
+    <UseWPF>True</UseWPF>
+    <TargetFramework>net8.0</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup>
+    <LangVersion>14.0</LangVersion>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <RootNamespace />
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="views\dialogs\announcementwindow.baml" />
+    <None Remove="views\pages\settingspage.baml" />
+    <None Remove="views\pages\rolepermissionspage.baml" />
+    <None Remove="views\dialogs\projectwindow.baml" />
+    <None Remove="views\pages\paymentspage.baml" />
+    <None Remove="views\dialogs\globalsearchwindow.baml" />
+    <None Remove="views\pages\staffmanagementpage.baml" />
+    <None Remove="views\pages\homelandingpage.baml" />
+    <None Remove="themes\apptheme.baml" />
+    <None Remove="views\dialogs\householdcertificatewindow.baml" />
+    <None Remove="views\pages\officialspage.baml" />
+    <None Remove="views\dialogs\assetrecordwindow.baml" />
+    <None Remove="views\mainwindow.baml" />
+    <None Remove="views\dialogs\expenseentrywindow.baml" />
+    <None Remove="views\dialogs\staffdetailswindow.baml" />
+    <None Remove="views\pages\notificationoutboxpage.baml" />
+    <None Remove="views\dialogs\ellieassistantwindow.baml" />
+    <None Remove="views\pages\collectionspage.baml" />
+    <None Remove="views\dialogs\householdtransferhistorywindow.baml" />
+    <None Remove="views\pages\governanceregistrypage.baml" />
+    <None Remove="views\pages\clearancespage.baml" />
+    <None Remove="views\dialogs\ayudaprogramwindow.baml" />
+    <None Remove="views\pages\householdspage.baml" />
+    <None Remove="views\pages\systemlogspage.baml" />
+    <None Remove="views\pages\residentmodulepage.baml" />
+    <None Remove="views\dialogs\householdtransferwindow.baml" />
+    <None Remove="views\pages\blotterpage.baml" />
+    <None Remove="views\dialogs\blotterdetailswindow.baml" />
+    <None Remove="views\dialogs\inventoryitemwindow.baml" />
+    <None Remove="views\pages\tagscategoriespage.baml" />
+    <None Remove="views\dialogs\updateuserwindow.baml" />
+    <None Remove="views\dialogs\residentdetailswindow.baml" />
+    <None Remove="views\dialogs\residentblotterhistorywindow.baml" />
+    <None Remove="views\dialogs\paymentwindow.baml" />
+    <None Remove="views\dialogs\officialdetailswindow.baml" />
+    <None Remove="views\dialogs\householddetailswindow.baml" />
+    <None Remove="views\dialogs\certificationwindow.baml" />
+    <None Remove="views\dialogs\rolepermissionwindow.baml" />
+    <None Remove="views\pages\permitspage.baml" />
+    <None Remove="views\dialogs\householdeditorwindow.baml" />
+    <None Remove="views\pages\reportspage.baml" />
+    <None Remove="views\pages\deceasedregistrypage.baml" />
+    <None Remove="views\dialogs\householdmemberpickerwindow.baml" />
+    <None Remove="views\registerwindow.baml" />
+    <None Remove="views\dialogs\documentverificationwindow.baml" />
+    <None Remove="views\dialogs\passworddialog.baml" />
+    <None Remove="views\pages\ayudapage.baml" />
+    <None Remove="views\dialogs\residentclassificationwindow.baml" />
+    <None Remove="views\dialogs\packageinstallerwindow.baml" />
+    <None Remove="views\loginwindow.baml" />
+    <None Remove="app.baml" />
+    <None Remove="views\pages\dashboardpage.baml" />
+    <None Remove="views\dialogs\ayudareleasewindow.baml" />
+    <EmbeddedResource Include="views\dialogs\announcementwindow.baml" LogicalName="views/dialogs/announcementwindow.baml" />
+    <EmbeddedResource Include="views\pages\settingspage.baml" LogicalName="views/pages/settingspage.baml" />
+    <EmbeddedResource Include="views\pages\rolepermissionspage.baml" LogicalName="views/pages/rolepermissionspage.baml" />
+    <EmbeddedResource Include="views\dialogs\projectwindow.baml" LogicalName="views/dialogs/projectwindow.baml" />
+    <EmbeddedResource Include="views\pages\paymentspage.baml" LogicalName="views/pages/paymentspage.baml" />
+    <EmbeddedResource Include="views\dialogs\globalsearchwindow.baml" LogicalName="views/dialogs/globalsearchwindow.baml" />
+    <EmbeddedResource Include="views\pages\staffmanagementpage.baml" LogicalName="views/pages/staffmanagementpage.baml" />
+    <EmbeddedResource Include="views\pages\homelandingpage.baml" LogicalName="views/pages/homelandingpage.baml" />
+    <EmbeddedResource Include="themes\apptheme.baml" LogicalName="themes/apptheme.baml" />
+    <EmbeddedResource Include="views\dialogs\householdcertificatewindow.baml" LogicalName="views/dialogs/householdcertificatewindow.baml" />
+    <EmbeddedResource Include="views\pages\officialspage.baml" LogicalName="views/pages/officialspage.baml" />
+    <EmbeddedResource Include="views\dialogs\assetrecordwindow.baml" LogicalName="views/dialogs/assetrecordwindow.baml" />
+    <EmbeddedResource Include="views\mainwindow.baml" LogicalName="views/mainwindow.baml" />
+    <EmbeddedResource Include="views\dialogs\expenseentrywindow.baml" LogicalName="views/dialogs/expenseentrywindow.baml" />
+    <EmbeddedResource Include="views\dialogs\staffdetailswindow.baml" LogicalName="views/dialogs/staffdetailswindow.baml" />
+    <EmbeddedResource Include="views\pages\notificationoutboxpage.baml" LogicalName="views/pages/notificationoutboxpage.baml" />
+    <EmbeddedResource Include="views\dialogs\ellieassistantwindow.baml" LogicalName="views/dialogs/ellieassistantwindow.baml" />
+    <EmbeddedResource Include="views\pages\collectionspage.baml" LogicalName="views/pages/collectionspage.baml" />
+    <EmbeddedResource Include="views\dialogs\householdtransferhistorywindow.baml" LogicalName="views/dialogs/householdtransferhistorywindow.baml" />
+    <EmbeddedResource Include="views\pages\governanceregistrypage.baml" LogicalName="views/pages/governanceregistrypage.baml" />
+    <EmbeddedResource Include="views\pages\clearancespage.baml" LogicalName="views/pages/clearancespage.baml" />
+    <EmbeddedResource Include="views\dialogs\ayudaprogramwindow.baml" LogicalName="views/dialogs/ayudaprogramwindow.baml" />
+    <EmbeddedResource Include="views\pages\householdspage.baml" LogicalName="views/pages/householdspage.baml" />
+    <EmbeddedResource Include="views\pages\systemlogspage.baml" LogicalName="views/pages/systemlogspage.baml" />
+    <EmbeddedResource Include="views\pages\residentmodulepage.baml" LogicalName="views/pages/residentmodulepage.baml" />
+    <EmbeddedResource Include="views\dialogs\householdtransferwindow.baml" LogicalName="views/dialogs/householdtransferwindow.baml" />
+    <EmbeddedResource Include="views\pages\blotterpage.baml" LogicalName="views/pages/blotterpage.baml" />
+    <EmbeddedResource Include="views\dialogs\blotterdetailswindow.baml" LogicalName="views/dialogs/blotterdetailswindow.baml" />
+    <EmbeddedResource Include="views\dialogs\inventoryitemwindow.baml" LogicalName="views/dialogs/inventoryitemwindow.baml" />
+    <EmbeddedResource Include="views\pages\tagscategoriespage.baml" LogicalName="views/pages/tagscategoriespage.baml" />
+    <EmbeddedResource Include="views\dialogs\updateuserwindow.baml" LogicalName="views/dialogs/updateuserwindow.baml" />
+    <EmbeddedResource Include="views\dialogs\residentdetailswindow.baml" LogicalName="views/dialogs/residentdetailswindow.baml" />
+    <EmbeddedResource Include="views\dialogs\residentblotterhistorywindow.baml" LogicalName="views/dialogs/residentblotterhistorywindow.baml" />
+    <EmbeddedResource Include="views\dialogs\paymentwindow.baml" LogicalName="views/dialogs/paymentwindow.baml" />
+    <EmbeddedResource Include="views\dialogs\officialdetailswindow.baml" LogicalName="views/dialogs/officialdetailswindow.baml" />
+    <EmbeddedResource Include="views\dialogs\householddetailswindow.baml" LogicalName="views/dialogs/householddetailswindow.baml" />
+    <EmbeddedResource Include="views\dialogs\certificationwindow.baml" LogicalName="views/dialogs/certificationwindow.baml" />
+    <EmbeddedResource Include="views\dialogs\rolepermissionwindow.baml" LogicalName="views/dialogs/rolepermissionwindow.baml" />
+    <EmbeddedResource Include="views\pages\permitspage.baml" LogicalName="views/pages/permitspage.baml" />
+    <EmbeddedResource Include="views\dialogs\householdeditorwindow.baml" LogicalName="views/dialogs/householdeditorwindow.baml" />
+    <EmbeddedResource Include="views\pages\reportspage.baml" LogicalName="views/pages/reportspage.baml" />
+    <EmbeddedResource Include="views\pages\deceasedregistrypage.baml" LogicalName="views/pages/deceasedregistrypage.baml" />
+    <EmbeddedResource Include="views\dialogs\householdmemberpickerwindow.baml" LogicalName="views/dialogs/householdmemberpickerwindow.baml" />
+    <EmbeddedResource Include="views\registerwindow.baml" LogicalName="views/registerwindow.baml" />
+    <EmbeddedResource Include="views\dialogs\documentverificationwindow.baml" LogicalName="views/dialogs/documentverificationwindow.baml" />
+    <EmbeddedResource Include="views\dialogs\passworddialog.baml" LogicalName="views/dialogs/passworddialog.baml" />
+    <EmbeddedResource Include="views\pages\ayudapage.baml" LogicalName="views/pages/ayudapage.baml" />
+    <EmbeddedResource Include="views\dialogs\residentclassificationwindow.baml" LogicalName="views/dialogs/residentclassificationwindow.baml" />
+    <EmbeddedResource Include="views\dialogs\packageinstallerwindow.baml" LogicalName="views/dialogs/packageinstallerwindow.baml" />
+    <EmbeddedResource Include="views\loginwindow.baml" LogicalName="views/loginwindow.baml" />
+    <EmbeddedResource Include="app.baml" LogicalName="app.baml" />
+    <EmbeddedResource Include="views\pages\dashboardpage.baml" LogicalName="views/pages/dashboardpage.baml" />
+    <EmbeddedResource Include="views\dialogs\ayudareleasewindow.baml" LogicalName="views/dialogs/ayudareleasewindow.baml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="MySql.Data" />
+    <Reference Include="Microsoft.Data.Sqlite" />
+    <Reference Include="QuestPDF" />
+    <Reference Include="ClosedXML" />
+    <Reference Include="FontAwesome.Sharp" />
+    <Reference Include="QRCoder" />
+    <Reference Include="CommunityToolkit.Mvvm" />
+  </ItemGroup>
+</Project>

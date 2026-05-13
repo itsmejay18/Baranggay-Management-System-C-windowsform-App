@@ -7,8 +7,6 @@ namespace baranggaysystem1;
 
 public sealed class PackageInstallerForm : Form
 {
-    private RadioButton radioLocal = null!;
-    private RadioButton radioNetwork = null!;
     private TextBox txtServer = null!;
     private TextBox txtPort = null!;
     private TextBox txtDatabase = null!;
@@ -18,13 +16,11 @@ public sealed class PackageInstallerForm : Form
     private Button btnTestConnection = null!;
     private Button btnCancel = null!;
     private Panel headerPanel = null!;
-    private Panel modePanel = null!;
     private Panel connectionPanel = null!;
     private Panel statusPanel = null!;
     private Label lblHeaderTitle = null!;
     private Label lblHeaderSubtitle = null!;
     private Label lblHeaderTip = null!;
-    private Label lblModeTitle = null!;
     private Label lblConnectionTitle = null!;
     private Label lblStatusTitle = null!;
     private Label lblStatus = null!;
@@ -77,20 +73,15 @@ public sealed class PackageInstallerForm : Form
         var body = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
-            ColumnCount = 2,
+            ColumnCount = 1,
             Margin = new Padding(0)
         };
-        body.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 28F));
-        body.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 72F));
+        body.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
         body.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
 
-        modePanel = BuildModePanel();
-        modePanel.Margin = new Padding(0, 0, 12, 0);
-        body.Controls.Add(modePanel, 0, 0);
-
         connectionPanel = BuildConnectionPanel();
-        connectionPanel.Margin = new Padding(12, 0, 0, 0);
-        body.Controls.Add(connectionPanel, 1, 0);
+        connectionPanel.Margin = new Padding(0);
+        body.Controls.Add(connectionPanel, 0, 0);
 
         root.Controls.Add(body, 0, 1);
 
@@ -174,7 +165,7 @@ public sealed class PackageInstallerForm : Form
         lblHeaderSubtitle = new Label
         {
             AutoSize = true,
-            Text = "Use your online Hostinger connection, test it, and continue directly to the login screen.",
+            Text = "Enter your database connection details, test it, and continue to the login screen.",
             Margin = new Padding(0, 0, 0, 10),
             ForeColor = UiTheme.Slate300,
             BackColor = Color.Transparent
@@ -183,7 +174,7 @@ public sealed class PackageInstallerForm : Form
         lblHeaderTip = new Label
         {
             AutoSize = true,
-            Text = "Tip: for the current Hostinger setup, leave SSL unchecked unless you know the host requires it.",
+            Text = "Tip: enable SSL if your database host requires encrypted connections.",
             ForeColor = Color.FromArgb(223, 229, 235),
             BackColor = Color.Transparent
         };
@@ -191,73 +182,6 @@ public sealed class PackageInstallerForm : Form
         shell.Controls.Add(lblHeaderTitle, 0, 0);
         shell.Controls.Add(lblHeaderSubtitle, 0, 1);
         shell.Controls.Add(lblHeaderTip, 0, 2);
-        panel.Controls.Add(shell);
-        return panel;
-    }
-
-    private Panel BuildModePanel()
-    {
-        var panel = new Panel
-        {
-            Dock = DockStyle.Fill,
-            Padding = new Padding(18)
-        };
-
-        var shell = new TableLayoutPanel
-        {
-            Dock = DockStyle.Fill,
-            ColumnCount = 1,
-            RowCount = 5
-        };
-        shell.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        shell.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        shell.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        shell.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        shell.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-
-        lblModeTitle = new Label
-        {
-            Text = "Connection Type",
-            AutoSize = true,
-            Margin = new Padding(0, 0, 0, 8)
-        };
-
-        var lblSummary = new Label
-        {
-            AutoSize = true,
-            MaximumSize = new Size(220, 0),
-            Text = "Choose Network for Hostinger or Local if the database is running on this computer.",
-            Margin = new Padding(0, 0, 0, 14)
-        };
-
-        radioNetwork = new RadioButton
-        {
-            Text = "Network database",
-            AutoSize = true,
-            Margin = new Padding(0, 0, 0, 8)
-        };
-        radioLocal = new RadioButton
-        {
-            Text = "Local database",
-            AutoSize = true,
-            Margin = new Padding(0, 0, 0, 14)
-        };
-        radioLocal.CheckedChanged += (_, _) => ApplyModeDefaults();
-        radioNetwork.CheckedChanged += (_, _) => ApplyModeDefaults();
-
-        var lblModeHint = new Label
-        {
-            AutoSize = true,
-            MaximumSize = new Size(220, 0),
-            Text = "The saved connection profile is reused the next time the app opens.",
-            Margin = new Padding(0)
-        };
-
-        shell.Controls.Add(lblModeTitle, 0, 0);
-        shell.Controls.Add(lblSummary, 0, 1);
-        shell.Controls.Add(radioNetwork, 0, 2);
-        shell.Controls.Add(radioLocal, 0, 3);
-        shell.Controls.Add(lblModeHint, 0, 4);
         panel.Controls.Add(shell);
         return panel;
     }
@@ -299,7 +223,7 @@ public sealed class PackageInstallerForm : Form
         formGrid.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         formGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 150F));
 
-        txtServer = new TextBox { Dock = DockStyle.Fill, PlaceholderText = "srv1237.hstgr.io or localhost" };
+        txtServer = new TextBox { Dock = DockStyle.Fill, PlaceholderText = "db.example.com or localhost" };
         txtPort = new TextBox { Dock = DockStyle.Fill, PlaceholderText = "3306" };
         txtDatabase = new TextBox { Dock = DockStyle.Fill, PlaceholderText = "Database name" };
         txtDbUser = new TextBox { Dock = DockStyle.Fill, PlaceholderText = "Database username" };
@@ -409,7 +333,6 @@ public sealed class PackageInstallerForm : Form
 
         UiTheme.AttachGradient(headerPanel, UiTheme.Ink900, UiTheme.Ink700, 0f);
 
-        UiTheme.StyleSectionCard(modePanel, Color.White, enforceBorder: true, padding: new Padding(18));
         UiTheme.StyleSectionCard(connectionPanel, Color.White, enforceBorder: true, padding: new Padding(18));
         UiTheme.StyleSectionCard(statusPanel, UiTheme.Blend(Color.White, UiTheme.AccentBlue, 6), enforceBorder: true, padding: new Padding(18, 14, 18, 14));
 
@@ -425,7 +348,6 @@ public sealed class PackageInstallerForm : Form
         lblHeaderTip.Font = UiTheme.SmallFont;
         lblHeaderTip.ForeColor = Color.FromArgb(223, 229, 235);
 
-        UiTheme.StyleSectionHeader(lblModeTitle);
         UiTheme.StyleSectionHeader(lblConnectionTitle);
         UiTheme.StyleSectionHeader(lblStatusTitle);
 
@@ -434,8 +356,6 @@ public sealed class PackageInstallerForm : Form
         UiTheme.StandardizeButtonLayout(this);
         UiTheme.EnhanceAccessibility(this);
         UiTheme.SetTabOrder(
-            radioNetwork,
-            radioLocal,
             txtServer,
             txtPort,
             txtDatabase,
@@ -479,51 +399,12 @@ public sealed class PackageInstallerForm : Form
     private void LoadSavedProfile()
     {
         var profile = DbConnectionSettingsStore.LoadOrDefault();
-        radioLocal.Checked = !string.Equals(profile.Mode, "Network", StringComparison.OrdinalIgnoreCase);
-        radioNetwork.Checked = !radioLocal.Checked;
         txtServer.Text = profile.Server;
         txtPort.Text = profile.Port.ToString();
         txtDatabase.Text = profile.Database;
         txtDbUser.Text = profile.Username;
         txtDbPassword.Text = profile.Password;
         chkUseSsl.Checked = profile.UseSsl;
-    }
-
-    private void ApplyModeDefaults()
-    {
-        if (radioNetwork.Checked)
-        {
-            if (string.IsNullOrWhiteSpace(txtServer.Text) ||
-                IsLocalServer(txtServer.Text))
-            {
-                txtServer.Text = "srv1237.hstgr.io";
-            }
-
-            if (string.IsNullOrWhiteSpace(txtPort.Text))
-            {
-                txtPort.Text = "3306";
-            }
-        }
-        else if (radioLocal.Checked)
-        {
-            if (string.IsNullOrWhiteSpace(txtServer.Text) ||
-                string.Equals(txtServer.Text.Trim(), "srv1237.hstgr.io", StringComparison.OrdinalIgnoreCase))
-            {
-                txtServer.Text = "localhost";
-            }
-
-            if (string.IsNullOrWhiteSpace(txtPort.Text))
-            {
-                txtPort.Text = "3306";
-            }
-        }
-    }
-
-    private static bool IsLocalServer(string value)
-    {
-        string server = value.Trim();
-        return string.Equals(server, "localhost", StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(server, "127.0.0.1", StringComparison.OrdinalIgnoreCase);
     }
 
     private DatabaseConnectionProfile BuildProfileFromInputs()
@@ -555,7 +436,6 @@ public sealed class PackageInstallerForm : Form
 
         return new DatabaseConnectionProfile
         {
-            Mode = radioNetwork.Checked ? "Network" : "Local",
             Server = server,
             Port = port,
             Database = database,

@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 using System.ComponentModel;
 
+using System.Data;
+
 using System.Drawing;
 
 using System.IO;
@@ -34,6 +36,9 @@ internal partial class ResidentForm : Form
 	private ComboBox? cmbHousehold;
 	private bool _locationReady;
 	private bool _suppressLocationEvents;
+	private List<LookupItem>? _barangayCache;
+	private readonly Dictionary<int, List<LookupItem>> _purokCache = new Dictionary<int, List<LookupItem>>();
+	private readonly Dictionary<string, List<LookupItem>> _householdCache = new Dictionary<string, List<LookupItem>>();
 
 
 	public ResidentDto Resident => new ResidentDto
@@ -254,15 +259,14 @@ internal partial class ResidentForm : Form
 
 		try
 		{
-			using var conn = OpenLookupConnection();
-			var barangays = LoadLookupItems(conn, "SELECT barangay_id, name FROM barangay ORDER BY name");
+			var barangays = _barangayCache ??= LoadLookupItems("SELECT barangay_id, name FROM barangay ORDER BY name");
 			_suppressLocationEvents = true;
 			BindCombo(cmbBarangay, barangays, includeNone: false);
 			SelectComboById(cmbBarangay, SchemaDefaults.DefaultBarangayId);
 			int barangayId = GetSelectedLookupId(cmbBarangay) ?? SchemaDefaults.DefaultBarangayId;
-			ReloadPurokList(conn, barangayId, SchemaDefaults.DefaultPurokId);
+			ReloadPurokList(barangayId, SchemaDefaults.DefaultPurokId);
 			int? purokId = GetSelectedLookupId(cmbPurok);
-			ReloadHouseholdList(conn, barangayId, purokId, null);
+			ReloadHouseholdList(barangayId, purokId, null);
 		}
 		catch (Exception ex)
 		{
@@ -284,11 +288,10 @@ internal partial class ResidentForm : Form
 
 		try
 		{
-			using var conn = OpenLookupConnection();
 			int barangayId = GetSelectedLookupId(cmbBarangay) ?? SchemaDefaults.DefaultBarangayId;
-			ReloadPurokList(conn, barangayId, null);
+			ReloadPurokList(barangayId, null);
 			int? purokId = GetSelectedLookupId(cmbPurok);
-			ReloadHouseholdList(conn, barangayId, purokId, null);
+			ReloadHouseholdList(barangayId, purokId, null);
 		}
 		catch (Exception ex)
 		{
@@ -306,10 +309,9 @@ internal partial class ResidentForm : Form
 
 		try
 		{
-			using var conn = OpenLookupConnection();
 			int barangayId = GetSelectedLookupId(cmbBarangay) ?? SchemaDefaults.DefaultBarangayId;
 			int? purokId = GetSelectedLookupId(cmbPurok);
-			ReloadHouseholdList(conn, barangayId, purokId, null);
+			ReloadHouseholdList(barangayId, purokId, null);
 		}
 		catch (Exception ex)
 		{
@@ -318,29 +320,26 @@ internal partial class ResidentForm : Form
 	}
 
 
-	private static MySqlConnection OpenLookupConnection()
-	{
-		var conn = DBConnection.GetConnection();
-		conn.Open();
-		SchemaBootstrap.EnsureCoreDefaults(conn);
-		return conn;
-	}
-
-
-	private static List<LookupItem> LoadLookupItems(MySqlConnection conn, string sql, params MySqlParameter[] parameters)
+	private static List<LookupItem> LoadLookupItems(string sql, params MySqlParameter[] parameters)
 	{
 		var items = new List<LookupItem>();
-		using var cmd = new MySqlCommand(sql, conn);
-		if (parameters != null && parameters.Length > 0)
+		DataTable table = DbHelper.LoadTable(sql, cmd =>
 		{
-			cmd.Parameters.AddRange(parameters);
-		}
+			if (parameters != null && parameters.Length > 0)
+			{
+				cmd.Parameters.AddRange(parameters);
+			}
+		});
 
-		using var reader = cmd.ExecuteReader();
-		while (reader.Read())
+		foreach (DataRow row in table.Rows)
 		{
-			int id = reader.GetInt32(0);
-			string name = reader.IsDBNull(1) ? $"#{id}" : reader.GetString(1);
+			if (row[0] == DBNull.Value)
+			{
+				continue;
+			}
+
+			int id = Convert.ToInt32(row[0]);
+			string name = row[1] == DBNull.Value ? $"#{id}" : Convert.ToString(row[1]) ?? $"#{id}";
 			items.Add(new LookupItem(id, name));
 		}
 		return items;
@@ -359,22 +358,27 @@ internal partial class ResidentForm : Form
 	}
 
 
-	private void ReloadPurokList(MySqlConnection conn, int barangayId, int? selectedId)
+	private void ReloadPurokList(int barangayId, int? selectedId)
 	{
 		if (cmbPurok == null)
 		{
 			return;
 		}
 
-		var puroks = LoadLookupItems(conn,
-			"SELECT purok_id, name FROM purok_sitio WHERE barangay_id = @barangayId ORDER BY name",
-			new MySqlParameter("@barangayId", barangayId));
+		if (!_purokCache.TryGetValue(barangayId, out List<LookupItem>? puroks))
+		{
+			puroks = LoadLookupItems(
+				"SELECT purok_id, name FROM purok_sitio WHERE barangay_id = @barangayId ORDER BY name",
+				new MySqlParameter("@barangayId", barangayId));
+			_purokCache[barangayId] = puroks;
+		}
+
 		BindCombo(cmbPurok, puroks, includeNone: false);
 		SelectComboById(cmbPurok, selectedId ?? SchemaDefaults.DefaultPurokId);
 	}
 
 
-	private void ReloadHouseholdList(MySqlConnection conn, int barangayId, int? purokId, int? selectedId)
+	private void ReloadHouseholdList(int barangayId, int? purokId, int? selectedId)
 	{
 		if (cmbHousehold == null)
 		{
@@ -387,9 +391,15 @@ internal partial class ResidentForm : Form
                        WHERE barangay_id = @barangayId
                          AND (@purokId IS NULL OR purok_id = @purokId)
                        ORDER BY household_id";
-		var households = LoadLookupItems(conn, sql,
-			new MySqlParameter("@barangayId", barangayId),
-			new MySqlParameter("@purokId", (object?)purokId ?? DBNull.Value));
+		string cacheKey = $"{barangayId}:{(purokId.HasValue ? purokId.Value.ToString() : "null")}";
+		if (!_householdCache.TryGetValue(cacheKey, out List<LookupItem>? households))
+		{
+			households = LoadLookupItems(sql,
+				new MySqlParameter("@barangayId", barangayId),
+				new MySqlParameter("@purokId", (object?)purokId ?? DBNull.Value));
+			_householdCache[cacheKey] = households;
+		}
+
 		BindCombo(cmbHousehold, households, includeNone: true);
 		SelectComboById(cmbHousehold, selectedId);
 	}
@@ -514,13 +524,12 @@ internal partial class ResidentForm : Form
 		{
 			try
 			{
-				using var conn = OpenLookupConnection();
 				_suppressLocationEvents = true;
 				SelectComboById(cmbBarangay, resident.BarangayId ?? SchemaDefaults.DefaultBarangayId);
 				int barangayId = GetSelectedLookupId(cmbBarangay) ?? SchemaDefaults.DefaultBarangayId;
-				ReloadPurokList(conn, barangayId, resident.PurokId ?? SchemaDefaults.DefaultPurokId);
+				ReloadPurokList(barangayId, resident.PurokId ?? SchemaDefaults.DefaultPurokId);
 				int? purokId = GetSelectedLookupId(cmbPurok);
-				ReloadHouseholdList(conn, barangayId, purokId, resident.HouseholdId);
+				ReloadHouseholdList(barangayId, purokId, resident.HouseholdId);
 			}
 			finally
 			{

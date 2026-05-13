@@ -51,6 +51,11 @@ internal partial class BlotterForm : Form
     private ListView? _attachmentsList;
     private ErrorProvider? _reviewErrorProvider;
     private ToolTip? _reviewToolTip;
+    private ToolTip? _filingToolTip;
+    private Label? _lblFilingValidation;
+    private Label? _lblAiLoading;
+    private bool _filingValidationEventsWired;
+    private bool _filingLayoutBuilt;
     private bool _reviewValidationEventsWired;
     private bool _reviewLayoutBuilt;
 
@@ -124,6 +129,572 @@ internal partial class BlotterForm : Form
 
         cmbStatus.SelectedIndexChanged -= StatusSelectionChanged;
         cmbStatus.SelectedIndexChanged += StatusSelectionChanged;
+    }
+
+    private void BuildFilingLayout()
+    {
+        _filingLayoutBuilt = true;
+        SuspendLayout();
+        try
+        {
+            Controls.Clear();
+            Padding = new Padding(14);
+            BackColor = UiTheme.Slate50;
+
+            ConfigureFilingHeader();
+
+            leftPanel.Controls.Clear();
+            leftPanel.Dock = DockStyle.Fill;
+            leftPanel.Padding = Padding.Empty;
+            leftPanel.BackColor = UiTheme.Slate50;
+            leftPanel.AutoScroll = false;
+
+            rightPanel.Controls.Clear();
+            rightPanel.Dock = DockStyle.Fill;
+            rightPanel.Padding = Padding.Empty;
+            rightPanel.BackColor = UiTheme.Slate50;
+            rightPanel.AutoScroll = false;
+
+            TableLayoutPanel root = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                Margin = Padding.Empty,
+                Padding = Padding.Empty,
+                ColumnCount = 1,
+                RowCount = 2
+            };
+            root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            root.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+
+            Panel headerCard = new Panel
+            {
+                Dock = DockStyle.Fill,
+                Margin = new Padding(0, 0, 0, 10)
+            };
+            UiTheme.StyleSectionCard(headerCard, Color.White, enforceBorder: true, padding: new Padding(14, 12, 14, 12));
+            headerPanel.Dock = DockStyle.Fill;
+            headerCard.Controls.Add(headerPanel);
+
+            TableLayoutPanel bodyLayout = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                Margin = Padding.Empty,
+                Padding = Padding.Empty,
+                ColumnCount = 2,
+                RowCount = 1
+            };
+            bodyLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 62F));
+            bodyLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 38F));
+            bodyLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+
+            BuildFilingFormColumn();
+            BuildReviewAiPanel();
+
+            bodyLayout.Controls.Add(leftPanel, 0, 0);
+            bodyLayout.Controls.Add(rightPanel, 1, 0);
+            root.Controls.Add(headerCard, 0, 0);
+            root.Controls.Add(bodyLayout, 0, 1);
+
+            Controls.Add(root);
+        }
+        finally
+        {
+            ResumeLayout(performLayout: true);
+        }
+
+        WireFilingValidationEvents();
+        ConfigureFilingTooltips();
+        UpdateFilingSaveState();
+        UiTheme.EnhanceAccessibility(this);
+    }
+
+    private void ConfigureFilingHeader()
+    {
+        Text = "File Blotter";
+        lblHeader.Text = "File Blotter";
+        lblSubHeader.Text = "Record incident details using a clean two-column filing workspace.";
+        lblStatusBadge.Visible = true;
+        lblStatusBadge.Text = "Ongoing";
+        lblStatusBadge.BackColor = UiTheme.AccentBlue;
+        lblStatusBadge.ForeColor = Color.White;
+
+        headerPanel.FlowDirection = FlowDirection.TopDown;
+        headerPanel.WrapContents = false;
+        headerPanel.AutoSize = true;
+        headerPanel.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+        headerPanel.Margin = Padding.Empty;
+        headerPanel.Padding = Padding.Empty;
+
+        headerTitleRow.Margin = new Padding(0, 0, 0, 6);
+        headerTitleRow.WrapContents = false;
+    }
+
+    private void BuildFilingFormColumn()
+    {
+        TableLayoutPanel root = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            Margin = Padding.Empty,
+            Padding = new Padding(0, 0, 10, 0),
+            ColumnCount = 1,
+            RowCount = 5
+        };
+        root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 168F));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 196F));
+        root.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 24F));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 54F));
+
+        Panel respondentCard = BuildSectionCard("Respondent Information", BuildRespondentSectionContent());
+        respondentCard.Margin = new Padding(0, 0, 0, 10);
+
+        Panel incidentCard = BuildSectionCard("Incident Information", BuildIncidentSectionContent());
+        incidentCard.Margin = new Padding(0, 0, 0, 10);
+
+        Panel detailsCard = BuildSectionCard("Additional Details", BuildAdditionalDetailsContent());
+        detailsCard.Margin = new Padding(0, 0, 0, 10);
+
+        _lblFilingValidation = new Label
+        {
+            Dock = DockStyle.Fill,
+            Margin = Padding.Empty,
+            AutoEllipsis = true,
+            TextAlign = ContentAlignment.MiddleLeft,
+            Font = UiTheme.SmallFont,
+            ForeColor = UiTheme.Slate500,
+            Text = "Fields marked * are required."
+        };
+
+        buttonPanel.SuspendLayout();
+        try
+        {
+            buttonPanel.Controls.Clear();
+            buttonPanel.Dock = DockStyle.Fill;
+            buttonPanel.FlowDirection = FlowDirection.RightToLeft;
+            buttonPanel.WrapContents = false;
+            buttonPanel.AutoSize = false;
+            buttonPanel.Padding = Padding.Empty;
+            buttonPanel.Margin = Padding.Empty;
+
+            btnSave.Text = "Save";
+            btnSave.AutoSize = false;
+            btnSave.Size = new Size(132, 36);
+            btnSave.Margin = new Padding(0, 0, 8, 0);
+            ApplyPrimaryFilingButtonStyle(btnSave);
+
+            btnCancel.Text = "Cancel";
+            btnCancel.AutoSize = false;
+            btnCancel.Size = new Size(120, 36);
+            btnCancel.Margin = Padding.Empty;
+            btnCancel.DialogResult = DialogResult.Cancel;
+            UiTheme.StyleSecondaryButton(btnCancel);
+
+            buttonPanel.Controls.Add(btnSave);
+            buttonPanel.Controls.Add(btnCancel);
+        }
+        finally
+        {
+            buttonPanel.ResumeLayout(performLayout: true);
+        }
+
+        root.Controls.Add(respondentCard, 0, 0);
+        root.Controls.Add(incidentCard, 0, 1);
+        root.Controls.Add(detailsCard, 0, 2);
+        root.Controls.Add(_lblFilingValidation, 0, 3);
+        root.Controls.Add(buttonPanel, 0, 4);
+
+        leftPanel.Controls.Add(root);
+    }
+
+    private Control BuildRespondentSectionContent()
+    {
+        TableLayoutPanel content = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            Margin = Padding.Empty,
+            Padding = Padding.Empty,
+            ColumnCount = 1,
+            RowCount = 3
+        };
+        content.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        content.RowStyles.Add(new RowStyle(SizeType.Absolute, 30F));
+        content.RowStyles.Add(new RowStyle(SizeType.Absolute, 68F));
+        content.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+
+        respondentChoice.FlowDirection = FlowDirection.LeftToRight;
+        respondentChoice.WrapContents = false;
+        respondentChoice.Dock = DockStyle.Fill;
+        respondentChoice.Margin = Padding.Empty;
+        respondentChoice.Padding = Padding.Empty;
+
+        rbResident.Margin = Padding.Empty;
+        rbResident.AutoSize = true;
+        rbOther.Margin = new Padding(18, 0, 0, 0);
+        rbOther.AutoSize = true;
+
+        respondentFields.Dock = DockStyle.Fill;
+        respondentFields.Margin = new Padding(0, 8, 0, 0);
+        respondentFields.Padding = Padding.Empty;
+        respondentFields.ColumnCount = 1;
+        respondentFields.ColumnStyles.Clear();
+        respondentFields.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        respondentFields.RowCount = 2;
+        respondentFields.RowStyles.Clear();
+        respondentFields.RowStyles.Add(new RowStyle(SizeType.Absolute, 30F));
+        respondentFields.RowStyles.Add(new RowStyle(SizeType.Absolute, 30F));
+
+        cmbRespondent.Dock = DockStyle.Fill;
+        cmbRespondent.Margin = Padding.Empty;
+        cmbRespondent.DropDownStyle = ComboBoxStyle.DropDownList;
+        cmbRespondent.AccessibleName = "Resident respondent";
+
+        txtRespondentOther.Dock = DockStyle.Fill;
+        txtRespondentOther.Margin = new Padding(0, 6, 0, 0);
+        txtRespondentOther.PlaceholderText = "Enter full respondent name";
+        txtRespondentOther.AccessibleName = "Other respondent name";
+
+        Label helper = new Label
+        {
+            Dock = DockStyle.Fill,
+            Margin = new Padding(0, 8, 0, 0),
+            AutoEllipsis = true,
+            ForeColor = UiTheme.Slate500,
+            Font = UiTheme.SmallFont,
+            Text = "Select a resident or choose Other to input a non-resident respondent."
+        };
+
+        content.Controls.Add(respondentChoice, 0, 0);
+        content.Controls.Add(respondentFields, 0, 1);
+        content.Controls.Add(helper, 0, 2);
+
+        return content;
+    }
+
+    private Control BuildIncidentSectionContent()
+    {
+        TableLayoutPanel grid = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            Margin = Padding.Empty,
+            Padding = Padding.Empty,
+            ColumnCount = 4,
+            RowCount = 3
+        };
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 112F));
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 104F));
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+        grid.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
+        grid.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
+        grid.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
+
+        Label lblType = CreateInputLabel("Incident Type *");
+        Label lblDate = CreateInputLabel("Incident Date *");
+        Label lblTime = CreateInputLabel("Incident Time");
+        Label lblLocation = CreateInputLabel("Location");
+
+        txtIncidentType.Dock = DockStyle.Fill;
+        txtIncidentType.Margin = new Padding(0, 4, 10, 4);
+        txtIncidentType.PlaceholderText = "Enter incident type...";
+        txtIncidentType.MaxLength = 100;
+        txtIncidentType.AccessibleName = "Incident type";
+
+        dtpIncidentDate.Dock = DockStyle.Fill;
+        dtpIncidentDate.Margin = new Padding(0, 4, 10, 4);
+        dtpIncidentDate.Format = DateTimePickerFormat.Short;
+        dtpIncidentDate.AccessibleName = "Incident date";
+
+        dtpIncidentTime.Dock = DockStyle.Fill;
+        dtpIncidentTime.Margin = new Padding(0, 4, 10, 4);
+        dtpIncidentTime.Format = DateTimePickerFormat.Time;
+        dtpIncidentTime.ShowUpDown = true;
+        dtpIncidentTime.AccessibleName = "Incident time";
+
+        txtIncidentLocation.Dock = DockStyle.Fill;
+        txtIncidentLocation.Margin = new Padding(0, 4, 10, 4);
+        txtIncidentLocation.PlaceholderText = "Enter location...";
+        txtIncidentLocation.MaxLength = 120;
+        txtIncidentLocation.AccessibleName = "Incident location";
+
+        grid.Controls.Add(lblType, 0, 0);
+        grid.Controls.Add(txtIncidentType, 1, 0);
+        grid.SetColumnSpan(txtIncidentType, 3);
+
+        grid.Controls.Add(lblDate, 0, 1);
+        grid.Controls.Add(dtpIncidentDate, 1, 1);
+        grid.Controls.Add(lblTime, 2, 1);
+        grid.Controls.Add(dtpIncidentTime, 3, 1);
+
+        grid.Controls.Add(lblLocation, 0, 2);
+        grid.Controls.Add(txtIncidentLocation, 1, 2);
+        grid.SetColumnSpan(txtIncidentLocation, 3);
+
+        return grid;
+    }
+
+    private Control BuildAdditionalDetailsContent()
+    {
+        TableLayoutPanel grid = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            Margin = Padding.Empty,
+            Padding = Padding.Empty,
+            ColumnCount = 2,
+            RowCount = 3
+        };
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 122F));
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        grid.RowStyles.Add(new RowStyle(SizeType.Percent, 44F));
+        grid.RowStyles.Add(new RowStyle(SizeType.Percent, 30F));
+        grid.RowStyles.Add(new RowStyle(SizeType.Percent, 26F));
+
+        Label lblDetailsPrompt = CreateInputLabel("Details *");
+        Label lblWitnessPrompt = CreateInputLabel("Witnesses");
+        Label lblActionPrompt = CreateInputLabel("Action Taken");
+
+        txtIncidentDetails.Dock = DockStyle.Fill;
+        txtIncidentDetails.Multiline = true;
+        txtIncidentDetails.AcceptsReturn = true;
+        txtIncidentDetails.ScrollBars = ScrollBars.Vertical;
+        txtIncidentDetails.PlaceholderText = "Describe what happened...";
+        txtIncidentDetails.Margin = new Padding(0, 4, 0, 8);
+        txtIncidentDetails.AccessibleName = "Incident details";
+
+        txtWitnesses.Dock = DockStyle.Fill;
+        txtWitnesses.Multiline = true;
+        txtWitnesses.AcceptsReturn = true;
+        txtWitnesses.ScrollBars = ScrollBars.Vertical;
+        txtWitnesses.PlaceholderText = "Enter witness names and contacts...";
+        txtWitnesses.Margin = new Padding(0, 4, 0, 8);
+        txtWitnesses.AccessibleName = "Witnesses";
+        txtWitnesses.Visible = true;
+        txtWitnesses.Enabled = true;
+
+        txtActionTaken.Dock = DockStyle.Fill;
+        txtActionTaken.Multiline = true;
+        txtActionTaken.AcceptsReturn = true;
+        txtActionTaken.ScrollBars = ScrollBars.Vertical;
+        txtActionTaken.PlaceholderText = "Optional notes on initial action taken.";
+        txtActionTaken.Margin = new Padding(0, 4, 0, 0);
+        txtActionTaken.AccessibleName = "Action taken";
+        txtActionTaken.Visible = true;
+        txtActionTaken.Enabled = true;
+
+        lblStatus.Visible = false;
+        cmbStatus.Visible = false;
+        statusPanel.Visible = false;
+        lblResolution.Visible = false;
+        txtResolution.Visible = false;
+        if (cmbStatus.Items.Count > 0)
+        {
+            cmbStatus.SelectedIndex = 0;
+        }
+
+        grid.Controls.Add(lblDetailsPrompt, 0, 0);
+        grid.Controls.Add(txtIncidentDetails, 1, 0);
+        grid.Controls.Add(lblWitnessPrompt, 0, 1);
+        grid.Controls.Add(txtWitnesses, 1, 1);
+        grid.Controls.Add(lblActionPrompt, 0, 2);
+        grid.Controls.Add(txtActionTaken, 1, 2);
+
+        return grid;
+    }
+
+    private static Panel BuildSectionCard(string title, Control content)
+    {
+        Panel card = new Panel
+        {
+            Dock = DockStyle.Fill,
+            Margin = Padding.Empty
+        };
+        UiTheme.StyleSectionCard(card, UiTheme.Blend(Color.White, UiTheme.Slate50, 20), enforceBorder: true, padding: new Padding(14));
+
+        TableLayoutPanel shell = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            Margin = Padding.Empty,
+            Padding = Padding.Empty,
+            ColumnCount = 1,
+            RowCount = 2
+        };
+        shell.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        shell.RowStyles.Add(new RowStyle(SizeType.Absolute, 28F));
+        shell.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+
+        Label titleLabel = new Label
+        {
+            Dock = DockStyle.Fill,
+            Margin = Padding.Empty,
+            TextAlign = ContentAlignment.MiddleLeft,
+            Text = title,
+            Font = new Font("Segoe UI", 10.5F, FontStyle.Bold, GraphicsUnit.Point),
+            ForeColor = UiTheme.Slate900
+        };
+
+        content.Dock = DockStyle.Fill;
+        shell.Controls.Add(titleLabel, 0, 0);
+        shell.Controls.Add(content, 0, 1);
+        card.Controls.Add(shell);
+        return card;
+    }
+
+    private static Label CreateInputLabel(string text)
+    {
+        return new Label
+        {
+            AutoSize = true,
+            Anchor = AnchorStyles.Left,
+            Margin = new Padding(0, 0, 8, 0),
+            Text = text,
+            Font = UiTheme.LabelFont,
+            ForeColor = UiTheme.Slate700
+        };
+    }
+
+    private void ConfigureFilingTooltips()
+    {
+        _filingToolTip ??= new ToolTip
+        {
+            AutoPopDelay = 10000,
+            InitialDelay = 350,
+            ReshowDelay = 150,
+            ShowAlways = true
+        };
+
+        _filingToolTip.SetToolTip(cmbRespondent, "Select a resident respondent from the list.");
+        _filingToolTip.SetToolTip(txtRespondentOther, "Use this when respondent is not in resident records.");
+        _filingToolTip.SetToolTip(txtIncidentType, "Required. Example: Theft, Physical Injury, Disturbance.");
+        _filingToolTip.SetToolTip(dtpIncidentDate, "Required. Incident date cannot be in the future.");
+        _filingToolTip.SetToolTip(dtpIncidentTime, "Select the most accurate known incident time.");
+        _filingToolTip.SetToolTip(txtIncidentLocation, "Enter barangay location, sitio, purok, or landmark.");
+        _filingToolTip.SetToolTip(txtIncidentDetails, "Required. Write complete factual details.");
+        _filingToolTip.SetToolTip(txtWitnesses, "Optional. One witness per line.");
+        _filingToolTip.SetToolTip(btnSave, "Save blotter record.");
+        _filingToolTip.SetToolTip(btnCancel, "Cancel and close this form.");
+        _filingToolTip.SetToolTip(btnRunAiAnalysis, "Run AI assistant analysis for the selected blotter record.");
+    }
+
+    private void WireFilingValidationEvents()
+    {
+        if (_filingValidationEventsWired)
+        {
+            return;
+        }
+
+        _filingValidationEventsWired = true;
+        rbResident.CheckedChanged += FilingInputChanged;
+        rbOther.CheckedChanged += FilingInputChanged;
+        cmbRespondent.SelectedIndexChanged += FilingInputChanged;
+        txtRespondentOther.TextChanged += FilingInputChanged;
+        txtIncidentType.TextChanged += FilingInputChanged;
+        txtIncidentLocation.TextChanged += FilingInputChanged;
+        txtIncidentDetails.TextChanged += FilingInputChanged;
+        dtpIncidentDate.ValueChanged += FilingInputChanged;
+    }
+
+    private void FilingInputChanged(object? sender, EventArgs e)
+    {
+        UpdateFilingSaveState();
+    }
+
+    private void UpdateFilingSaveState()
+    {
+        if (_blotterIdForAnalysis.HasValue || _lblFilingValidation == null)
+        {
+            return;
+        }
+
+        bool valid = ValidateFilingInputs(out string message, applyErrors: true);
+        btnSave.Enabled = valid;
+        _lblFilingValidation.ForeColor = valid ? UiTheme.Slate500 : UiTheme.AccentRed;
+        _lblFilingValidation.Text = valid ? "Fields marked * are required." : message;
+    }
+
+    private bool ValidateFilingInputs(out string message, bool applyErrors)
+    {
+        EnsureReviewValidationUi();
+
+        _reviewErrorProvider?.SetError(cmbRespondent, string.Empty);
+        _reviewErrorProvider?.SetError(txtRespondentOther, string.Empty);
+        _reviewErrorProvider?.SetError(txtIncidentType, string.Empty);
+        _reviewErrorProvider?.SetError(dtpIncidentDate, string.Empty);
+        _reviewErrorProvider?.SetError(txtIncidentLocation, string.Empty);
+        _reviewErrorProvider?.SetError(txtIncidentDetails, string.Empty);
+
+        string respondent = GetRespondentName();
+        if (string.IsNullOrWhiteSpace(respondent))
+        {
+            message = rbResident.Checked
+                ? "Select a resident respondent before saving."
+                : "Enter respondent name before saving.";
+            if (applyErrors)
+            {
+                _reviewErrorProvider?.SetError(rbResident.Checked ? cmbRespondent : txtRespondentOther, message);
+            }
+
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(txtIncidentType.Text))
+        {
+            message = "Incident type is required.";
+            if (applyErrors)
+            {
+                _reviewErrorProvider?.SetError(txtIncidentType, message);
+            }
+
+            return false;
+        }
+
+        if (dtpIncidentDate.Value.Date > DateTime.Today)
+        {
+            message = "Incident date cannot be in the future.";
+            if (applyErrors)
+            {
+                _reviewErrorProvider?.SetError(dtpIncidentDate, message);
+            }
+
+            return false;
+        }
+
+        if (txtIncidentLocation.Text.Trim().Length > 120)
+        {
+            message = "Location should be 120 characters or less.";
+            if (applyErrors)
+            {
+                _reviewErrorProvider?.SetError(txtIncidentLocation, message);
+            }
+
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(txtIncidentDetails.Text))
+        {
+            message = "Incident details are required.";
+            if (applyErrors)
+            {
+                _reviewErrorProvider?.SetError(txtIncidentDetails, message);
+            }
+
+            return false;
+        }
+
+        message = string.Empty;
+        return true;
+    }
+
+    private static void ApplyPrimaryFilingButtonStyle(Button button)
+    {
+        button.BackColor = Color.FromArgb(37, 99, 235);
+        button.ForeColor = Color.White;
+        button.FlatStyle = FlatStyle.Flat;
+        button.FlatAppearance.BorderSize = 0;
+        button.Font = UiTheme.ButtonFont;
+        button.UseVisualStyleBackColor = false;
+        button.Cursor = Cursors.Hand;
+        button.Padding = UiTheme.StandardButtonPadding;
     }
 
     private void EnsureReviewLayoutBuilt()
@@ -989,156 +1560,252 @@ internal partial class BlotterForm : Form
         rightPanel.Controls.Clear();
         rightPanel.Padding = new Padding(12, 0, 0, 0);
 
+        Panel container = new Panel
+        {
+            Dock = DockStyle.Fill,
+            Margin = Padding.Empty,
+            Padding = new Padding(12)
+        };
+        UiTheme.StyleSectionCard(container, Color.White, enforceBorder: true, padding: new Padding(12));
+
         TableLayoutPanel root = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
             Margin = Padding.Empty,
-            Padding = new Padding(12),
+            Padding = Padding.Empty,
             ColumnCount = 1,
             RowCount = 2,
             BackColor = Color.White
         };
         root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 82F));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 88F));
         root.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
 
-        GroupBox header = new GroupBox
-        {
-            Text = "AI Blotter Case Assistant",
-            Dock = DockStyle.Fill,
-            Padding = new Padding(10),
-            Font = UiTheme.LabelFont
-        };
-        TableLayoutPanel headerLayout = new TableLayoutPanel
+        TableLayoutPanel header = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
+            Margin = Padding.Empty,
+            Padding = Padding.Empty,
             ColumnCount = 2,
             RowCount = 1
         };
-        headerLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-        headerLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        headerLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+        header.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        header.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        header.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
 
         TableLayoutPanel headerInfo = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
+            Margin = Padding.Empty,
+            Padding = Padding.Empty,
             ColumnCount = 1,
-            RowCount = 2
+            RowCount = 4
         };
         headerInfo.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        headerInfo.RowStyles.Add(new RowStyle(SizeType.Absolute, 24F));
         headerInfo.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
         headerInfo.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+        headerInfo.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+
+        Label lblAiTitle = new Label
+        {
+            Text = "AI Assistant",
+            Dock = DockStyle.Fill,
+            Margin = Padding.Empty,
+            TextAlign = ContentAlignment.MiddleLeft,
+            Font = new Font("Segoe UI", 10.5F, FontStyle.Bold, GraphicsUnit.Point),
+            ForeColor = UiTheme.Slate900
+        };
+
         Label lblModel = new Label
         {
             Text = $"Model: {_aiService.ModelName}",
             Dock = DockStyle.Fill,
+            Margin = Padding.Empty,
             TextAlign = ContentAlignment.MiddleLeft,
+            Font = UiTheme.SmallFont,
             ForeColor = UiTheme.Slate700
         };
+
         lblAiMeta.Dock = DockStyle.Fill;
         lblAiMeta.Margin = Padding.Empty;
         lblAiMeta.TextAlign = ContentAlignment.MiddleLeft;
-        headerInfo.Controls.Add(lblModel, 0, 0);
-        headerInfo.Controls.Add(lblAiMeta, 0, 1);
+        lblAiMeta.Font = UiTheme.SmallFont;
+        lblAiMeta.ForeColor = UiTheme.Slate500;
+
+        _lblAiLoading ??= new Label
+        {
+            Dock = DockStyle.Fill,
+            Margin = Padding.Empty,
+            TextAlign = ContentAlignment.MiddleLeft,
+            Font = UiTheme.SmallFont,
+            ForeColor = UiTheme.AccentBlue,
+            Visible = false
+        };
+        _lblAiLoading.Text = "Running AI analysis...";
+
+        headerInfo.Controls.Add(lblAiTitle, 0, 0);
+        headerInfo.Controls.Add(lblModel, 0, 1);
+        headerInfo.Controls.Add(lblAiMeta, 0, 2);
+        headerInfo.Controls.Add(_lblAiLoading, 0, 3);
 
         btnRunAiAnalysis.Width = 120;
-        btnRunAiAnalysis.Height = 32;
+        btnRunAiAnalysis.Height = 34;
         btnRunAiAnalysis.AutoSize = false;
         btnRunAiAnalysis.Text = "Run AI";
+        btnRunAiAnalysis.Margin = new Padding(10, 0, 0, 0);
+        UiTheme.StyleSecondaryButton(btnRunAiAnalysis);
 
-        headerLayout.Controls.Add(headerInfo, 0, 0);
-        headerLayout.Controls.Add(btnRunAiAnalysis, 1, 0);
-        header.Controls.Add(headerLayout);
+        header.Controls.Add(headerInfo, 0, 0);
+        header.Controls.Add(btnRunAiAnalysis, 1, 0);
+
+        Panel scrollHost = new Panel
+        {
+            Dock = DockStyle.Fill,
+            AutoScroll = true,
+            Margin = Padding.Empty,
+            Padding = Padding.Empty
+        };
 
         TableLayoutPanel content = new TableLayoutPanel
         {
-            Dock = DockStyle.Fill,
-            ColumnCount = 2,
-            RowCount = 1,
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            ColumnCount = 1,
+            RowCount = 5,
             Margin = Padding.Empty,
             Padding = Padding.Empty
         };
         content.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-        content.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 250F));
-        content.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+        content.RowStyles.Add(new RowStyle(SizeType.Absolute, 168F));
+        content.RowStyles.Add(new RowStyle(SizeType.Absolute, 230F));
+        content.RowStyles.Add(new RowStyle(SizeType.Absolute, 160F));
+        content.RowStyles.Add(new RowStyle(SizeType.Absolute, 222F));
+        content.RowStyles.Add(new RowStyle(SizeType.Absolute, 146F));
 
-        TableLayoutPanel left = new TableLayoutPanel
-        {
-            Dock = DockStyle.Fill,
-            ColumnCount = 1,
-            RowCount = 3,
-            Margin = Padding.Empty,
-            Padding = Padding.Empty
-        };
-        left.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-        left.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-        left.RowStyles.Add(new RowStyle(SizeType.Absolute, 160F));
-        left.RowStyles.Add(new RowStyle(SizeType.Absolute, 170F));
-
-        GroupBox grpSummary = new GroupBox { Text = "Summary", Dock = DockStyle.Fill, Padding = new Padding(10), Font = UiTheme.LabelFont };
         txtAiSummary.Dock = DockStyle.Fill;
         txtAiSummary.Multiline = true;
         txtAiSummary.ReadOnly = true;
         txtAiSummary.ScrollBars = ScrollBars.Vertical;
-        grpSummary.Controls.Add(txtAiSummary);
+        txtAiSummary.Margin = Padding.Empty;
+        txtAiSummary.BorderStyle = BorderStyle.FixedSingle;
 
-        GroupBox grpKeyPoints = new GroupBox { Text = "Key Points", Dock = DockStyle.Fill, Padding = new Padding(10), Font = UiTheme.LabelFont };
         lstAiKeyPoints.Dock = DockStyle.Fill;
-        grpKeyPoints.Controls.Add(lstAiKeyPoints);
+        lstAiKeyPoints.Margin = Padding.Empty;
+        lstAiKeyPoints.IntegralHeight = false;
 
-        GroupBox grpNextAction = new GroupBox { Text = "Recommended Action", Dock = DockStyle.Fill, Padding = new Padding(10), Font = UiTheme.LabelFont };
         txtAiNextAction.Dock = DockStyle.Fill;
         txtAiNextAction.Multiline = true;
         txtAiNextAction.ReadOnly = true;
         txtAiNextAction.ScrollBars = ScrollBars.Vertical;
-        grpNextAction.Controls.Add(txtAiNextAction);
+        txtAiNextAction.Margin = Padding.Empty;
+        txtAiNextAction.BorderStyle = BorderStyle.FixedSingle;
 
-        left.Controls.Add(grpSummary, 0, 0);
-        left.Controls.Add(grpKeyPoints, 0, 1);
-        left.Controls.Add(grpNextAction, 0, 2);
+        content.Controls.Add(BuildAiCard("Summary", txtAiSummary, 168), 0, 0);
+        content.Controls.Add(BuildAiCard("Risk Analysis", BuildAiRiskContent(), 230), 0, 1);
+        content.Controls.Add(BuildAiCard("Key Points", lstAiKeyPoints, 160), 0, 2);
+        content.Controls.Add(BuildAiCard("Entities", BuildAiEntitiesContent(), 222), 0, 3);
+        content.Controls.Add(BuildAiCard("Recommended Action", txtAiNextAction, 146), 0, 4);
 
-        TableLayoutPanel right = new TableLayoutPanel
+        scrollHost.Controls.Add(content);
+        root.Controls.Add(header, 0, 0);
+        root.Controls.Add(scrollHost, 0, 1);
+        container.Controls.Add(root);
+        rightPanel.Controls.Add(container);
+
+        UpdateAiRiskVisuals(lblAiRiskLevelValue.Text, progressRiskScore.Value);
+    }
+
+    private static Panel BuildAiCard(string title, Control content, int height)
+    {
+        Panel card = new Panel
         {
             Dock = DockStyle.Fill,
+            Margin = new Padding(0, 0, 0, 10),
+            Height = height,
+            MinimumSize = new Size(0, Math.Max(96, height))
+        };
+        UiTheme.StyleSectionCard(card, UiTheme.Blend(Color.White, UiTheme.Slate50, 12), enforceBorder: true, padding: new Padding(12));
+
+        TableLayoutPanel shell = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            Margin = Padding.Empty,
+            Padding = Padding.Empty,
             ColumnCount = 1,
             RowCount = 2
         };
-        right.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-        right.RowStyles.Add(new RowStyle(SizeType.Percent, 58F));
-        right.RowStyles.Add(new RowStyle(SizeType.Percent, 42F));
+        shell.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        shell.RowStyles.Add(new RowStyle(SizeType.Absolute, 26F));
+        shell.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
 
-        GroupBox grpRisk = new GroupBox { Text = "Risk", Dock = DockStyle.Fill, Padding = new Padding(10), Font = UiTheme.LabelFont };
+        Label heading = new Label
+        {
+            Dock = DockStyle.Fill,
+            Margin = Padding.Empty,
+            TextAlign = ContentAlignment.MiddleLeft,
+            Text = title,
+            Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point),
+            ForeColor = UiTheme.Slate900
+        };
+
+        content.Dock = DockStyle.Fill;
+        shell.Controls.Add(heading, 0, 0);
+        shell.Controls.Add(content, 0, 1);
+        card.Controls.Add(shell);
+        return card;
+    }
+
+    private Control BuildAiRiskContent()
+    {
         TableLayoutPanel risk = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
+            Margin = Padding.Empty,
+            Padding = Padding.Empty,
             ColumnCount = 2,
-            RowCount = 5
+            RowCount = 6
         };
-        risk.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 92F));
+        risk.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 96F));
         risk.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
         risk.RowStyles.Add(new RowStyle(SizeType.Absolute, 24F));
         risk.RowStyles.Add(new RowStyle(SizeType.Absolute, 24F));
         risk.RowStyles.Add(new RowStyle(SizeType.Absolute, 24F));
         risk.RowStyles.Add(new RowStyle(SizeType.Absolute, 28F));
+        risk.RowStyles.Add(new RowStyle(SizeType.Absolute, 22F));
         risk.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
 
         lblAiCategory.Text = "Category";
         lblAiConfidence.Text = "Confidence";
-        lblAiRiskLevel.Text = "Risk Level";
-        lblAiRiskScore.Text = "Risk Score";
-        lblAiCategory.Dock = DockStyle.Fill;
-        lblAiConfidence.Dock = DockStyle.Fill;
-        lblAiRiskLevel.Dock = DockStyle.Fill;
-        lblAiRiskScore.Dock = DockStyle.Fill;
-        lblAiCategory.TextAlign = ContentAlignment.MiddleLeft;
-        lblAiConfidence.TextAlign = ContentAlignment.MiddleLeft;
-        lblAiRiskLevel.TextAlign = ContentAlignment.MiddleLeft;
-        lblAiRiskScore.TextAlign = ContentAlignment.MiddleLeft;
-        lblAiCategoryValue.Dock = DockStyle.Fill;
-        lblAiConfidenceValue.Dock = DockStyle.Fill;
-        lblAiRiskLevelValue.Dock = DockStyle.Fill;
+        lblAiRiskLevel.Text = "Risk level";
+        lblAiRiskScore.Text = "Risk score";
 
-        FlowLayoutPanel score = new FlowLayoutPanel
+        foreach (Label label in new[] { lblAiCategory, lblAiConfidence, lblAiRiskLevel, lblAiRiskScore })
+        {
+            label.Dock = DockStyle.Fill;
+            label.Margin = Padding.Empty;
+            label.TextAlign = ContentAlignment.MiddleLeft;
+            label.ForeColor = UiTheme.Slate700;
+            label.Font = UiTheme.SmallFont;
+        }
+
+        lblAiCategoryValue.Dock = DockStyle.Fill;
+        lblAiCategoryValue.Margin = Padding.Empty;
+        lblAiCategoryValue.TextAlign = ContentAlignment.MiddleLeft;
+        lblAiCategoryValue.ForeColor = UiTheme.Slate900;
+
+        lblAiConfidenceValue.Dock = DockStyle.Fill;
+        lblAiConfidenceValue.Margin = Padding.Empty;
+        lblAiConfidenceValue.TextAlign = ContentAlignment.MiddleLeft;
+        lblAiConfidenceValue.ForeColor = UiTheme.Slate900;
+
+        lblAiRiskLevelValue.Dock = DockStyle.Fill;
+        lblAiRiskLevelValue.Margin = Padding.Empty;
+        lblAiRiskLevelValue.TextAlign = ContentAlignment.MiddleLeft;
+        lblAiRiskLevelValue.Font = UiTheme.LabelFont;
+
+        FlowLayoutPanel scorePanel = new FlowLayoutPanel
         {
             Dock = DockStyle.Fill,
             FlowDirection = FlowDirection.LeftToRight,
@@ -1146,15 +1813,25 @@ internal partial class BlotterForm : Form
             Margin = Padding.Empty,
             Padding = Padding.Empty
         };
-        progressRiskScore.Width = 120;
+        progressRiskScore.Width = 130;
         progressRiskScore.Height = 14;
+        progressRiskScore.Margin = new Padding(0, 5, 0, 0);
         lblAiRiskScoreValue.Margin = new Padding(8, 0, 0, 0);
-        score.Controls.Add(progressRiskScore);
-        score.Controls.Add(lblAiRiskScoreValue);
+        lblAiRiskScoreValue.AutoSize = true;
+        lblAiRiskScoreValue.TextAlign = ContentAlignment.MiddleLeft;
+        scorePanel.Controls.Add(progressRiskScore);
+        scorePanel.Controls.Add(lblAiRiskScoreValue);
+
+        lblAiRiskReasonsTitle.Text = "Risk reasons";
+        lblAiRiskReasonsTitle.Dock = DockStyle.Fill;
+        lblAiRiskReasonsTitle.Margin = Padding.Empty;
+        lblAiRiskReasonsTitle.TextAlign = ContentAlignment.MiddleLeft;
+        lblAiRiskReasonsTitle.Font = UiTheme.SmallFont;
+        lblAiRiskReasonsTitle.ForeColor = UiTheme.Slate700;
 
         lstAiRiskReasons.Dock = DockStyle.Fill;
-        Panel riskReasonsHost = new Panel { Dock = DockStyle.Fill, Padding = Padding.Empty, Margin = Padding.Empty };
-        riskReasonsHost.Controls.Add(lstAiRiskReasons);
+        lstAiRiskReasons.Margin = Padding.Empty;
+        lstAiRiskReasons.IntegralHeight = false;
 
         risk.Controls.Add(lblAiCategory, 0, 0);
         risk.Controls.Add(lblAiCategoryValue, 1, 0);
@@ -1163,15 +1840,22 @@ internal partial class BlotterForm : Form
         risk.Controls.Add(lblAiRiskLevel, 0, 2);
         risk.Controls.Add(lblAiRiskLevelValue, 1, 2);
         risk.Controls.Add(lblAiRiskScore, 0, 3);
-        risk.Controls.Add(score, 1, 3);
-        risk.Controls.Add(riskReasonsHost, 0, 4);
-        risk.SetColumnSpan(riskReasonsHost, 2);
-        grpRisk.Controls.Add(risk);
+        risk.Controls.Add(scorePanel, 1, 3);
+        risk.Controls.Add(lblAiRiskReasonsTitle, 0, 4);
+        risk.Controls.Add(lstAiRiskReasons, 0, 5);
+        risk.SetColumnSpan(lblAiRiskReasonsTitle, 2);
+        risk.SetColumnSpan(lstAiRiskReasons, 2);
 
-        GroupBox grpEntities = new GroupBox { Text = "Entities", Dock = DockStyle.Fill, Padding = new Padding(10), Font = UiTheme.LabelFont };
+        return risk;
+    }
+
+    private Control BuildAiEntitiesContent()
+    {
         TableLayoutPanel entities = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
+            Margin = Padding.Empty,
+            Padding = Padding.Empty,
             ColumnCount = 2,
             RowCount = 2
         };
@@ -1180,35 +1864,52 @@ internal partial class BlotterForm : Form
         entities.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
         entities.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
 
-        entities.Controls.Add(BuildEntityGroup("People", lstAiPeople), 0, 0);
-        entities.Controls.Add(BuildEntityGroup("Places", lstAiPlaces), 1, 0);
-        entities.Controls.Add(BuildEntityGroup("Dates/Times", lstAiDatesTimes), 0, 1);
-        entities.Controls.Add(BuildEntityGroup("Items", lstAiItems), 1, 1);
-        grpEntities.Controls.Add(entities);
-
-        right.Controls.Add(grpRisk, 0, 0);
-        right.Controls.Add(grpEntities, 0, 1);
-
-        content.Controls.Add(left, 0, 0);
-        content.Controls.Add(right, 1, 0);
-
-        root.Controls.Add(header, 0, 0);
-        root.Controls.Add(content, 0, 1);
-        rightPanel.Controls.Add(root);
+        entities.Controls.Add(BuildEntityCard("People", lstAiPeople), 0, 0);
+        entities.Controls.Add(BuildEntityCard("Places", lstAiPlaces), 1, 0);
+        entities.Controls.Add(BuildEntityCard("Dates / Times", lstAiDatesTimes), 0, 1);
+        entities.Controls.Add(BuildEntityCard("Items", lstAiItems), 1, 1);
+        return entities;
     }
 
-    private static GroupBox BuildEntityGroup(string title, ListBox source)
+    private static Panel BuildEntityCard(string title, ListBox source)
     {
-        GroupBox group = new GroupBox
+        source.Dock = DockStyle.Fill;
+        source.Margin = Padding.Empty;
+        source.IntegralHeight = false;
+
+        Panel card = new Panel
+        {
+            Dock = DockStyle.Fill,
+            Margin = new Padding(0, 0, 8, 8)
+        };
+        UiTheme.StyleSectionCard(card, Color.White, enforceBorder: true, padding: new Padding(8));
+
+        TableLayoutPanel layout = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            Margin = Padding.Empty,
+            Padding = Padding.Empty,
+            ColumnCount = 1,
+            RowCount = 2
+        };
+        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+        layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+
+        Label lblTitle = new Label
         {
             Text = title,
             Dock = DockStyle.Fill,
-            Padding = new Padding(6),
-            Font = UiTheme.SmallFont
+            Margin = Padding.Empty,
+            TextAlign = ContentAlignment.MiddleLeft,
+            Font = UiTheme.SmallFont,
+            ForeColor = UiTheme.Slate700
         };
-        source.Dock = DockStyle.Fill;
-        group.Controls.Add(source);
-        return group;
+
+        layout.Controls.Add(lblTitle, 0, 0);
+        layout.Controls.Add(source, 0, 1);
+        card.Controls.Add(layout);
+        return card;
     }
 
     private void ToggleAiPanel_Click(object? sender, EventArgs e)
@@ -1559,6 +2260,11 @@ internal partial class BlotterForm : Form
     {
         btnRunAiAnalysis.Enabled = !busy && _blotterIdForAnalysis.HasValue;
         btnRunAiAnalysis.Text = busy ? "Running..." : "Run AI";
+        if (_lblAiLoading != null)
+        {
+            _lblAiLoading.Visible = busy;
+            _lblAiLoading.Text = busy ? "Running AI analysis..." : string.Empty;
+        }
         UseWaitCursor = busy;
     }
 
@@ -1580,6 +2286,7 @@ internal partial class BlotterForm : Form
         PopulateListBox(lstAiItems, analysis.Entities.Items, "No items extracted.");
 
         lblAiMeta.Text = $"Last AI run: {analysis.ProcessedAt:yyyy-MM-dd HH:mm:ss} | Model: {analysis.Model}";
+        UpdateAiRiskVisuals(analysis.RiskLevel, analysis.RiskScore);
     }
 
     private static void PopulateListBox(ListBox listBox, IReadOnlyCollection<string> values, string fallback)
@@ -1632,6 +2339,7 @@ internal partial class BlotterForm : Form
         lblAiConfidenceValue.Text = "-";
         lblAiRiskLevelValue.Text = "-";
         lblAiRiskScoreValue.Text = "0";
+        UpdateAiRiskVisuals("-", 0);
 
         if (_blotterIdForAnalysis.HasValue)
         {
@@ -1653,6 +2361,11 @@ internal partial class BlotterForm : Form
         if (reviewMode)
         {
             EnsureReviewLayoutBuilt();
+            _filingLayoutBuilt = false;
+        }
+        else if (!_filingLayoutBuilt)
+        {
+            BuildFilingLayout();
         }
 
         if (_btnScheduleMediation != null && _flpCaseActions != null && !_flpCaseActions.Controls.Contains(_btnScheduleMediation))
@@ -1714,6 +2427,32 @@ internal partial class BlotterForm : Form
         MinimizeBox = false;
         ClientSize = FilingClientSize;
         MinimumSize = FilingMinimumSize;
+    }
+
+    private void UpdateAiRiskVisuals(string riskLevel, int riskScore)
+    {
+        string level = (riskLevel ?? string.Empty).Trim();
+        Color levelColor = UiTheme.Slate700;
+        Color scoreColor = UiTheme.Slate700;
+
+        if (level.Equals("High", StringComparison.OrdinalIgnoreCase) || riskScore >= 70)
+        {
+            levelColor = UiTheme.AccentRed;
+            scoreColor = UiTheme.AccentRed;
+        }
+        else if (level.Equals("Medium", StringComparison.OrdinalIgnoreCase) || riskScore >= 40)
+        {
+            levelColor = UiTheme.AccentOrange;
+            scoreColor = UiTheme.AccentOrange;
+        }
+        else if (level.Equals("Low", StringComparison.OrdinalIgnoreCase) || riskScore > 0)
+        {
+            levelColor = UiTheme.AccentGreen;
+            scoreColor = UiTheme.AccentGreen;
+        }
+
+        lblAiRiskLevelValue.ForeColor = levelColor;
+        lblAiRiskScoreValue.ForeColor = scoreColor;
     }
 
     internal void ReloadTimeline()
@@ -2003,7 +2742,7 @@ internal partial class BlotterForm : Form
     private void ApplyTheme()
     {
         BackColor = UiTheme.Slate50;
-        Font = UiTheme.BodyFont;
+        Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
         FormBorderStyle = FormBorderStyle.FixedDialog;
         StartPosition = FormStartPosition.CenterParent;
         MaximizeBox = false;
@@ -2087,8 +2826,37 @@ internal partial class BlotterForm : Form
         lblAiConfidenceValue.Font = UiTheme.BodyFont;
         lblAiRiskLevelValue.Font = UiTheme.BodyFont;
         lblAiRiskScoreValue.Font = UiTheme.BodyFont;
+        ApplySegoeTypography(this);
         UiTheme.StandardizeButtonLayout(this);
         UiTheme.EnhanceAccessibility(this);
+    }
+
+    private static void ApplySegoeTypography(Control root)
+    {
+        foreach (Control control in root.Controls)
+        {
+            if (control is Label)
+            {
+                control.Font = new Font("Segoe UI", 9.5F, control.Font.Style, GraphicsUnit.Point);
+            }
+            else if (control is TextBox or ComboBox or ListBox or DateTimePicker)
+            {
+                control.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
+            }
+            else if (control is Button)
+            {
+                control.Font = new Font("Segoe UI", 10F, FontStyle.Bold, GraphicsUnit.Point);
+            }
+            else if (control is GroupBox)
+            {
+                control.Font = new Font("Segoe UI", 10F, FontStyle.Bold, GraphicsUnit.Point);
+            }
+
+            if (control.HasChildren)
+            {
+                ApplySegoeTypography(control);
+            }
+        }
     }
 
     private void PopulateComplainant()

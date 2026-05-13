@@ -1,0 +1,427 @@
+<UserControl x:Class="baranggaysystem1.Views.Pages.ReportsPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:fa="clr-namespace:FontAwesome.Sharp;assembly=FontAwesome.Sharp" Background="{StaticResource PageBgBrush}" xmlns:pages="clr-namespace:baranggaysystem1.Views.Pages;assembly=baranggaysystem1">
+  <FrameworkElement.Resources>
+    <ResourceDictionary>
+      <Style x:Key="ReportsSurfaceCardStyle" TargetType="{x:Type Border}">
+        <Setter Property="Background" Value="#FFFFFFFF" />
+        <Setter Property="BorderBrush" Value="{StaticResource Slate100Brush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Border.CornerRadius" Value="16" />
+        <Setter Property="UIElement.Effect">
+          <Setter.Value>
+            <DropShadowEffect BlurRadius="18" ShadowDepth="2" Opacity="0.06" Direction="270" />
+          </Setter.Value>
+        </Setter>
+      </Style>
+      <Style x:Key="ReportsMetricCardStyle" TargetType="{x:Type Border}" BasedOn="{StaticResource ReportsSurfaceCardStyle}">
+        <Setter Property="Border.Padding" Value="12,10" />
+      </Style>
+      <Style x:Key="ReportsChipStyle" TargetType="{x:Type Border}">
+        <Setter Property="Background" Value="#F8FAFC" />
+        <Setter Property="BorderBrush" Value="{StaticResource Slate100Brush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Border.CornerRadius" Value="999" />
+        <Setter Property="Border.Padding" Value="7,2" />
+        <Setter Property="Margin" Value="0,3,5,0" />
+      </Style>
+      <Style x:Key="ReportsChipTextStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource SmallTextStyle}">
+        <Setter Property="Foreground" Value="{StaticResource Slate700Brush}" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="FontSize" Value="10" />
+      </Style>
+      <Style x:Key="ReportsMetricLabelStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource SmallTextStyle}">
+        <Setter Property="Foreground" Value="{StaticResource Slate500Brush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontSize" Value="9" />
+      </Style>
+      <Style x:Key="ReportsMetricValueStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource HeadingTextStyle}">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
+      </Style>
+      <Style x:Key="ReportsCompactButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource SecondaryButtonStyle}">
+        <Setter Property="Height" Value="30" />
+        <Setter Property="Padding" Value="10,0" />
+        <Setter Property="FontSize" Value="10.5" />
+        <Setter Property="MinWidth" Value="96" />
+      </Style>
+      <Style x:Key="ReportsCompactPrimaryButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource PrimaryButtonStyle}">
+        <Setter Property="Height" Value="30" />
+        <Setter Property="Padding" Value="10,0" />
+        <Setter Property="FontSize" Value="10.5" />
+        <Setter Property="MinWidth" Value="112" />
+      </Style>
+      <Style x:Key="ReportsCompactLabelStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource SmallTextStyle}">
+        <Setter Property="FontSize" Value="9.5" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="{StaticResource Slate600Brush}" />
+        <Setter Property="Margin" Value="0,0,0,3" />
+      </Style>
+      <Style x:Key="ReportsDataGridHeaderStyle" TargetType="{x:Type DataGridColumnHeader}" BasedOn="{StaticResource StyledDataGridColumnHeaderStyle}">
+        <Setter Property="Background" Value="#0F172A" />
+        <Setter Property="Foreground" Value="#FFFFFFFF" />
+        <Setter Property="Height" Value="42" />
+        <Setter Property="Padding" Value="14,0" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+      </Style>
+      <Style x:Key="ReportsDataGridRowStyle" TargetType="{x:Type DataGridRow}" BasedOn="{StaticResource StyledDataGridRowStyle}">
+        <Setter Property="Background" Value="#FFFFFFFF" />
+        <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Style.Triggers>
+          <Trigger Property="DataGridRow.AlternationIndex" Value="1">
+            <Setter Property="Background" Value="#FFFCFDFE" />
+          </Trigger>
+          <Trigger Property="UIElement.IsMouseOver" Value="True">
+            <Setter Property="Background" Value="#FFF8FAFC" />
+          </Trigger>
+          <Trigger Property="DataGridRow.IsSelected" Value="True">
+            <Setter Property="Background" Value="#FFEFF6FF" />
+            <Setter Property="Foreground" Value="#FF1D4ED8" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+          </Trigger>
+        </Style.Triggers>
+      </Style>
+      <Style x:Key="ReportsDataGridCellStyle" TargetType="{x:Type DataGridCell}">
+        <Setter Property="Background" Value="#00FFFFFF" />
+        <Setter Property="BorderBrush" Value="{StaticResource Slate100Brush}" />
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+        <Setter Property="Padding" Value="10,8" />
+      </Style>
+      <Style x:Key="ReportsSnapshotLabelStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource SmallTextStyle}">
+        <Setter Property="Foreground" Value="{StaticResource Slate500Brush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+      </Style>
+      <Style x:Key="ReportsSnapshotValueStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource SmallTextStyle}">
+        <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="FontSize" Value="11.5" />
+      </Style>
+    </ResourceDictionary>
+  </FrameworkElement.Resources>
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+    <Border Grid.Row="0" Style="{StaticResource PageHeaderStyle}" Padding="16,10,16,10">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="0" Orientation="Horizontal">
+          <Border Width="44" Height="44" CornerRadius="12" Background="#EFF6FF" Margin="0,0,14,0">
+            <fa:IconBlock Icon="ChartBar" Foreground="#2563EB" FontSize="19" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Border>
+          <StackPanel VerticalAlignment="Center">
+            <TextBlock Text="Module Reports" Style="{StaticResource HeadingTextStyle}" />
+            <TextBlock Name="recordCountLabel" Text="Generate live resident, certificate, blotter, and hotspot summaries." Style="{StaticResource SubtitleTextStyle}" Margin="0,1,0,0" FontWeight="SemiBold" />
+            <WrapPanel Margin="0,6,0,0">
+              <Border Style="{StaticResource ReportsChipStyle}">
+                <StackPanel Orientation="Horizontal">
+                  <fa:IconBlock Icon="Clock" FontSize="10" Foreground="#2563EB" Margin="0,0,5,0" VerticalAlignment="Center" />
+                  <TextBlock Name="rangeChip" Text="Range not loaded" Style="{StaticResource ReportsChipTextStyle}" />
+                </StackPanel>
+              </Border>
+              <Border Style="{StaticResource ReportsChipStyle}">
+                <StackPanel Orientation="Horizontal">
+                  <fa:IconBlock Icon="LayerGroup" FontSize="10" Foreground="#047857" Margin="0,0,5,0" VerticalAlignment="Center" />
+                  <TextBlock Name="scopeChip" Text="All operational data" Style="{StaticResource ReportsChipTextStyle}" />
+                </StackPanel>
+              </Border>
+              <Border Style="{StaticResource ReportsChipStyle}">
+                <StackPanel Orientation="Horizontal">
+                  <fa:IconBlock Icon="Stream" FontSize="10" Foreground="#D97706" Margin="0,0,5,0" VerticalAlignment="Center" />
+                  <TextBlock Name="lastRefreshChip" Text="Snapshot not loaded" Style="{StaticResource ReportsChipTextStyle}" />
+                </StackPanel>
+              </Border>
+            </WrapPanel>
+          </StackPanel>
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
+          <Button Name="btnExportPdf" Style="{StaticResource ReportsCompactButtonStyle}" Margin="0,0,8,0" Click="BtnExportPdf_Click">
+            <StackPanel Orientation="Horizontal">
+              <fa:IconBlock Icon="FileExport" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center" />
+              <TextBlock Text="Export PDF" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Button Name="btnExportExcel" Style="{StaticResource ReportsCompactPrimaryButtonStyle}" Margin="0,0,8,0" Click="BtnExportExcel_Click">
+            <StackPanel Orientation="Horizontal">
+              <fa:IconBlock Icon="FileExport" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center" />
+              <TextBlock Text="Export Excel" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Button Name="btnRefresh" Style="{StaticResource ReportsCompactButtonStyle}" Click="BtnRefresh_Click">
+            <StackPanel Orientation="Horizontal">
+              <fa:IconBlock Icon="SyncAlt" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center" />
+              <TextBlock Text="Refresh Snapshot" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
+      </Grid>
+    </Border>
+    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+      <StackPanel Margin="12,10,12,16">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+          <Border Grid.Column="0" Style="{StaticResource ReportsMetricCardStyle}" Margin="0,0,10,0">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="46" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <Border Width="36" Height="36" CornerRadius="12" Background="#DCFCE7">
+                <fa:IconBlock Icon="Users" Foreground="#16A34A" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="New Residents" Style="{StaticResource ReportsMetricLabelStyle}" />
+                <TextBlock Name="newResidentsValue" Text="0" Style="{StaticResource ReportsMetricValueStyle}" />
+              </StackPanel>
+            </Grid>
+          </Border>
+          <Border Grid.Column="1" Style="{StaticResource ReportsMetricCardStyle}" Margin="0,0,10,0">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="46" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <Border Width="36" Height="36" CornerRadius="12" Background="#FEF3C7">
+                <fa:IconBlock Icon="Stamp" Foreground="#D97706" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Certificate Requests" Style="{StaticResource ReportsMetricLabelStyle}" />
+                <TextBlock Name="certificateRequestsValue" Text="0" Style="{StaticResource ReportsMetricValueStyle}" />
+              </StackPanel>
+            </Grid>
+          </Border>
+          <Border Grid.Column="2" Style="{StaticResource ReportsMetricCardStyle}" Margin="0,0,10,0">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="46" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <Border Width="36" Height="36" CornerRadius="12" Background="#DBEAFE">
+                <fa:IconBlock Icon="ClipboardCheck" Foreground="#2563EB" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Certificates Released" Style="{StaticResource ReportsMetricLabelStyle}" />
+                <TextBlock Name="certificatesReleasedValue" Text="0" Style="{StaticResource ReportsMetricValueStyle}" />
+              </StackPanel>
+            </Grid>
+          </Border>
+          <Border Grid.Column="3" Style="{StaticResource ReportsMetricCardStyle}">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="46" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <Border Width="36" Height="36" CornerRadius="12" Background="#FEE2E2">
+                <fa:IconBlock Icon="Gavel" Foreground="#DC2626" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Blotters Filed" Style="{StaticResource ReportsMetricLabelStyle}" />
+                <TextBlock Name="blottersFiledValue" Text="0" Style="{StaticResource ReportsMetricValueStyle}" />
+              </StackPanel>
+            </Grid>
+          </Border>
+        </Grid>
+        <Border Style="{StaticResource ToolbarBorderStyle}" Padding="14,12" Margin="0,12,0,0">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="132" />
+              <ColumnDefinition Width="132" />
+              <ColumnDefinition Width="170" />
+              <ColumnDefinition Width="190" />
+              <ColumnDefinition Width="170" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0">
+              <TextBlock Text="From" Style="{StaticResource ReportsCompactLabelStyle}" />
+              <DatePicker Name="fromDatePicker" Height="36" SelectedDateChanged="FilterDateChanged" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Margin="10,0,0,0">
+              <TextBlock Text="To" Style="{StaticResource ReportsCompactLabelStyle}" />
+              <DatePicker Name="toDatePicker" Height="36" SelectedDateChanged="FilterDateChanged" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Margin="10,0,0,0">
+              <TextBlock Text="Purok" Style="{StaticResource ReportsCompactLabelStyle}" />
+              <ComboBox Name="purokFilterCombo" Height="36" Style="{StaticResource StyledComboBoxStyle}" SelectionChanged="FilterCombo_SelectionChanged" />
+            </StackPanel>
+            <StackPanel Grid.Column="3" Margin="10,0,0,0">
+              <TextBlock Text="Certificate Status" Style="{StaticResource ReportsCompactLabelStyle}" />
+              <ComboBox Name="certificateStatusCombo" Height="36" Style="{StaticResource StyledComboBoxStyle}" SelectionChanged="FilterCombo_SelectionChanged" />
+            </StackPanel>
+            <StackPanel Grid.Column="4" Margin="10,0,0,0">
+              <TextBlock Text="Blotter Status" Style="{StaticResource ReportsCompactLabelStyle}" />
+              <ComboBox Name="blotterStatusCombo" Height="36" Style="{StaticResource StyledComboBoxStyle}" SelectionChanged="FilterCombo_SelectionChanged" />
+            </StackPanel>
+            <Button Name="btnClearFilters" Grid.Column="5" Style="{StaticResource ReportsCompactButtonStyle}" Margin="12,20,0,0" Click="BtnClearFilters_Click">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="TimesCircle" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center" />
+                <TextBlock Text="Reset Filters" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <Border Grid.Row="1" Grid.ColumnSpan="6" Margin="0,12,0,0" Padding="12,8" Background="#FFF7ED" BorderBrush="#FCD34D" BorderThickness="1" CornerRadius="14">
+              <TextBlock Name="filterSummaryLabel" Text="Filters are ready." Style="{StaticResource SmallTextStyle}" Foreground="#C2410C" />
+            </Border>
+          </Grid>
+        </Border>
+        <Grid Margin="0,12,0,0">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1.75*" />
+            <ColumnDefinition Width="1*" />
+          </Grid.ColumnDefinitions>
+          <Border Grid.Column="0" Style="{StaticResource ReportsSurfaceCardStyle}" Padding="16,14,16,16" Margin="0,0,12,0">
+            <Grid>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+              </Grid.RowDefinitions>
+              <StackPanel>
+                <TextBlock Text="Monthly Trends" Style="{StaticResource SectionHeaderTextStyle}" />
+                <TextBlock Name="trendsMetaLabel" Text="Resident registrations, certificate activity, and blotter filings across the selected range." Style="{StaticResource SmallTextStyle}" Margin="0,2,0,0" />
+              </StackPanel>
+              <DataGrid Name="trendsGrid" Grid.Row="1" Margin="0,14,0,0" Height="280" AutoGenerateColumns="False" IsReadOnly="True" AlternationCount="2" HeadersVisibility="Column" Style="{StaticResource StyledDataGridStyle}" ColumnHeaderStyle="{StaticResource ReportsDataGridHeaderStyle}" RowStyle="{StaticResource ReportsDataGridRowStyle}" CellStyle="{StaticResource ReportsDataGridCellStyle}">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="Month" Width="1.8*" Binding="{Binding MonthLabel}" />
+                  <DataGridTextColumn Header="Residents" Width="*" Binding="{Binding Residents, StringFormat={}{0:N0}}" />
+                  <DataGridTextColumn Header="Certificates" Width="*" Binding="{Binding Certificates, StringFormat={}{0:N0}}" />
+                  <DataGridTextColumn Header="Blotter" Width="*" Binding="{Binding Blotters, StringFormat={}{0:N0}}" />
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
+          </Border>
+          <StackPanel Grid.Column="1">
+            <Border Style="{StaticResource ReportsSurfaceCardStyle}" Padding="16,14,16,16">
+              <StackPanel>
+                <TextBlock Text="Operational Snapshot" Style="{StaticResource SectionHeaderTextStyle}" />
+                <TextBlock Name="snapshotMetaLabel" Text="Live totals pulled from the current dataset." Style="{StaticResource SmallTextStyle}" Margin="0,2,0,0" />
+                <Grid Margin="0,14,0,0">
+                  <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                  </Grid.RowDefinitions>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Grid.Row="0" Text="Total Residents" Style="{StaticResource ReportsSnapshotLabelStyle}" />
+                  <TextBlock Name="totalResidentsValue" Grid.Row="0" Grid.Column="1" Text="0" Style="{StaticResource ReportsSnapshotValueStyle}" />
+                  <TextBlock Grid.Row="1" Text="Pending Certificates" Style="{StaticResource ReportsSnapshotLabelStyle}" Margin="0,10,0,0" />
+                  <TextBlock Name="pendingCertificatesValue" Grid.Row="1" Grid.Column="1" Text="0" Style="{StaticResource ReportsSnapshotValueStyle}" Margin="0,10,0,0" />
+                  <TextBlock Grid.Row="2" Text="Active Blotters" Style="{StaticResource ReportsSnapshotLabelStyle}" Margin="0,10,0,0" />
+                  <TextBlock Name="activeBlottersValue" Grid.Row="2" Grid.Column="1" Text="0" Style="{StaticResource ReportsSnapshotValueStyle}" Margin="0,10,0,0" />
+                  <TextBlock Grid.Row="3" Text="Top Hotspot" Style="{StaticResource ReportsSnapshotLabelStyle}" Margin="0,10,0,0" />
+                  <TextBlock Name="topHotspotValue" Grid.Row="3" Grid.Column="1" Text="No incidents" Style="{StaticResource ReportsSnapshotValueStyle}" Margin="0,10,0,0" />
+                </Grid>
+                <TextBlock Name="topHotspotMetaLabel" Text="No purok incident concentration detected in the current filter." Style="{StaticResource SmallTextStyle}" Margin="0,12,0,0" TextWrapping="Wrap" />
+              </StackPanel>
+            </Border>
+            <Border Style="{StaticResource ReportsSurfaceCardStyle}" Padding="16,14,16,16" Margin="0,12,0,0">
+              <StackPanel>
+                <TextBlock Text="Service Time Metrics" Style="{StaticResource SectionHeaderTextStyle}" />
+                <TextBlock Name="serviceTimesMetaLabel" Text="Average completion cycles for approvals and releases." Style="{StaticResource SmallTextStyle}" Margin="0,2,0,0" />
+                <Grid Margin="0,14,0,0">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                  </Grid.ColumnDefinitions>
+                  <Border Grid.Column="0" Background="#F8FAFC" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="1" CornerRadius="12" Padding="12,10" Margin="0,0,8,0">
+                    <StackPanel>
+                      <TextBlock Text="Request to Approval" Style="{StaticResource ReportsMetricLabelStyle}" />
+                      <TextBlock Name="approvalCycleValue" Text="-" Style="{StaticResource ReportsMetricValueStyle}" Margin="0,2,0,0" />
+                      <TextBlock Name="approvalCycleMetaLabel" Text="0 samples" Style="{StaticResource SmallTextStyle}" Margin="0,3,0,0" />
+                    </StackPanel>
+                  </Border>
+                  <Border Grid.Column="1" Background="#F8FAFC" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="1" CornerRadius="12" Padding="12,10" Margin="8,0,0,0">
+                    <StackPanel>
+                      <TextBlock Text="Approval to Release" Style="{StaticResource ReportsMetricLabelStyle}" />
+                      <TextBlock Name="releaseCycleValue" Text="-" Style="{StaticResource ReportsMetricValueStyle}" Margin="0,2,0,0" />
+                      <TextBlock Name="releaseCycleMetaLabel" Text="0 samples" Style="{StaticResource SmallTextStyle}" Margin="0,3,0,0" />
+                    </StackPanel>
+                  </Border>
+                </Grid>
+              </StackPanel>
+            </Border>
+            <Border Style="{StaticResource ReportsSurfaceCardStyle}" Padding="16,14,16,16" Margin="0,12,0,0">
+              <Grid>
+                <Grid.RowDefinitions>
+                  <RowDefinition Height="Auto" />
+                  <RowDefinition Height="Auto" />
+                  <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <StackPanel>
+                  <TextBlock Text="Hotspot Watchlist" Style="{StaticResource SectionHeaderTextStyle}" />
+                  <TextBlock Name="hotspotMetaLabel" Text="Puroks with incident activity in the selected range." Style="{StaticResource SmallTextStyle}" Margin="0,2,0,0" />
+                </StackPanel>
+                <DataGrid Name="hotspotGrid" Grid.Row="1" Margin="0,14,0,0" Height="220" AutoGenerateColumns="False" IsReadOnly="True" AlternationCount="2" HeadersVisibility="Column" Style="{StaticResource StyledDataGridStyle}" ColumnHeaderStyle="{StaticResource ReportsDataGridHeaderStyle}" RowStyle="{StaticResource ReportsDataGridRowStyle}" CellStyle="{StaticResource ReportsDataGridCellStyle}">
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="Purok" Width="1.4*" Binding="{Binding PurokName}" />
+                    <DataGridTextColumn Header="Incidents" Width="0.8*" Binding="{Binding IncidentCount, StringFormat={}{0:N0}}" />
+                    <DataGridTextColumn Header="Coordinates" Width="1.5*" Binding="{Binding Coordinates}" />
+                  </DataGrid.Columns>
+                </DataGrid>
+                <TextBlock Name="hotspotEmptyLabel" Grid.Row="2" Text="No hotspot incidents were recorded in the current filter." Style="{StaticResource SmallTextStyle}" Margin="0,10,0,0" Visibility="Collapsed" />
+              </Grid>
+            </Border>
+          </StackPanel>
+        </Grid>
+        <Border Style="{StaticResource ReportsSurfaceCardStyle}" Padding="16,14,16,16" Margin="0,12,0,0">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <StackPanel>
+                <TextBlock Text="Staff Performance" Style="{StaticResource SectionHeaderTextStyle}" />
+                <TextBlock Name="staffMetaLabel" Text="Approvals, releases, and blotter resolution activity by user." Style="{StaticResource SmallTextStyle}" Margin="0,2,0,0" />
+              </StackPanel>
+              <TextBlock Name="staffCountLabel" Grid.Column="1" Text="0 staff rows" Style="{StaticResource SmallTextStyle}" FontWeight="Bold" VerticalAlignment="Center" />
+            </Grid>
+            <DataGrid Name="staffGrid" Grid.Row="1" Margin="0,14,0,0" Height="340" AutoGenerateColumns="False" IsReadOnly="True" AlternationCount="2" HeadersVisibility="Column" Style="{StaticResource StyledDataGridStyle}" ColumnHeaderStyle="{StaticResource ReportsDataGridHeaderStyle}" RowStyle="{StaticResource ReportsDataGridRowStyle}" CellStyle="{StaticResource ReportsDataGridCellStyle}">
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="User" Width="2.1*" Binding="{Binding User}" />
+                <DataGridTextColumn Header="Done" Width="0.8*" Binding="{Binding Completed, StringFormat={}{0:N0}}" />
+                <DataGridTextColumn Header="Overdue" Width="0.8*" Binding="{Binding Overdue, StringFormat={}{0:N0}}" />
+                <DataGridTextColumn Header="Approvals" Width="0.9*" Binding="{Binding Approvals, StringFormat={}{0:N0}}" />
+                <DataGridTextColumn Header="Releases" Width="0.9*" Binding="{Binding Releases, StringFormat={}{0:N0}}" />
+                <DataGridTextColumn Header="Resolutions" Width="0.95*" Binding="{Binding Resolutions, StringFormat={}{0:N0}}" />
+                <DataGridTextColumn Header="Avg Approval" Width="1.1*" Binding="{Binding ApprovalDuration}" />
+                <DataGridTextColumn Header="Avg Release" Width="1.1*" Binding="{Binding ReleaseDuration}" />
+                <DataGridTextColumn Header="Avg Resolution" Width="1.1*" Binding="{Binding ResolutionDuration}" />
+              </DataGrid.Columns>
+            </DataGrid>
+            <TextBlock Name="staffEmptyLabel" Grid.Row="2" Text="No staff activity was recorded in the selected range." Style="{StaticResource SmallTextStyle}" Margin="0,10,0,0" Visibility="Collapsed" />
+          </Grid>
+        </Border>
+        <Border Margin="8,8,8,0" Background="#00FFFFFF">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Name="footerCountLabel" Text="No report snapshot loaded." Style="{StaticResource SmallTextStyle}" VerticalAlignment="Center" />
+            <TextBlock Name="footerStatusLabel" Grid.Column="1" Text="Awaiting refresh" Style="{StaticResource SmallTextStyle}" VerticalAlignment="Center" Opacity="0.72" />
+          </Grid>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

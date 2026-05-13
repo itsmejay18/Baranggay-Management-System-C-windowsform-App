@@ -1,0 +1,27 @@
+File size: 97794361 bytes (93.26 MB)
+
+=== Trying Assembly.LoadFrom ===
+Failed: BadImageFormatException: Bad IL format. The format of the file 'C:\Users\ADMIN\Desktop\files\dvo\Baranggay-Management-System-C-windowsform-App\BarangayManagementSystem.exe' is invalid.
+
+=== Searching for bundle markers ===
+Searching for signature: 8B-12-06-B0-02-4E-E7-D0
+Searching for signature: D0-E7-4E-02-B0-06-12-8B
+
+=== Checking PE CLR Header ===
+Optional header magic: 0x020B (PE32+)
+CLR Directory RVA: 0x00000000, Size: 0
+NO CLR DIRECTORY - This is a native executable (NativeAOT or native host)
+
+=== Deep search for .NET bundle header ===
+
+=== Last 64 bytes of file ===
+  05D438F9: 5F-73-71-6C-69-74-65-33-2E-64-6C-6C-B7-B4-D2-05
+  05D43909: 00-00-00-00-05-08-01-00-00-00-00-00-00-00-00-00
+  05D43919: 00-00-00-00-03-1A-62-61-72-61-6E-67-67-61-79-73
+  05D43929: 79-73-74-65-6D-31-2E-64-65-70-73-2E-6A-73-6F-6E
+
+=== Searching for bundle_marker or dotnet strings near end ===
+  Found 'baranggaysystem1.dll' at offset 97695812 (0x05D2B844)
+  Found 'baranggaysystem1.deps.json' at offset 97794335 (0x05D4391F)
+
+Done.

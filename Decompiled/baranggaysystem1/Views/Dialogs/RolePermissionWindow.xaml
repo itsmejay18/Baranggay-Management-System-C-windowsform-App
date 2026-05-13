@@ -1,0 +1,62 @@
+<Window x:Class="baranggaysystem1.Views.Dialogs.RolePermissionWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:fa="clr-namespace:FontAwesome.Sharp;assembly=FontAwesome.Sharp" Title="Role Permissions" Width="760" Height="780" MinWidth="680" MinHeight="680" WindowStartupLocation="CenterOwner" Style="{StaticResource BaseWindowStyle}" ShowInTaskbar="False" ResizeMode="CanResize" Background="{StaticResource Slate50Brush}" xmlns:dialogs="clr-namespace:baranggaysystem1.Views.Dialogs;assembly=baranggaysystem1">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+    <Border Grid.Row="0" Background="#991B1B" Padding="24,20">
+      <StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+          <fa:IconBlock Icon="UserShield" Foreground="#FECACA" FontSize="20" Margin="0,0,12,0" VerticalAlignment="Center" />
+          <TextBlock Name="eyebrowText" Text="ACCESS CONTROL" Foreground="#FFFFFFFF" FontSize="14" FontWeight="Black" VerticalAlignment="Center" />
+        </StackPanel>
+        <TextBlock Name="headerTitleText" Text="Configure role permissions" Foreground="#FFFFFFFF" FontSize="24" FontWeight="Bold" FontFamily="{StaticResource CenturyGothic}" TextWrapping="Wrap" />
+        <TextBlock Name="headerSubtitleText" Text="Choose what staff assigned to this role can open, create, update, or release." Foreground="#FEE2E2" FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap" />
+      </StackPanel>
+    </Border>
+    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,20">
+      <StackPanel>
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1.1*" />
+            <ColumnDefinition Width="1.5*" />
+          </Grid.ColumnDefinitions>
+          <StackPanel Grid.Column="0" Margin="0,0,10,0">
+            <TextBlock Text="Role Name" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+            <TextBox Name="txtRoleName" Style="{StaticResource StyledTextBoxStyle}" Height="40" MaxLength="80" />
+          </StackPanel>
+          <StackPanel Grid.Column="1" Margin="10,0,0,0">
+            <TextBlock Text="Description" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+            <TextBox Name="txtDescription" Style="{StaticResource StyledTextBoxStyle}" Height="40" MaxLength="255" />
+          </StackPanel>
+        </Grid>
+        <TextBlock Name="roleMetaText" Style="{StaticResource SmallTextStyle}" Margin="0,10,0,0" />
+        <Border Name="coreRoleNotice" Visibility="Collapsed" Margin="0,16,0,0" Padding="14" Background="#FEF2F2" CornerRadius="8" BorderBrush="#FECACA" BorderThickness="1">
+          <DockPanel>
+            <fa:IconBlock Icon="InfoCircle" Foreground="#DC2626" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Top" />
+            <TextBlock Name="coreRoleNoticeText" Text="This is a core role. Its name is locked, but its permission grants can still be reviewed and updated." Foreground="#991B1B" FontSize="12" TextWrapping="Wrap" />
+          </DockPanel>
+        </Border>
+        <Grid Margin="0,20,0,12">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+          <TextBlock Text="Permission Grants" Style="{StaticResource LabelTextStyle}" VerticalAlignment="Center" />
+          <StackPanel Grid.Column="1" Orientation="Horizontal">
+            <Button Name="btnAllowAll" Content="Allow All" Style="{StaticResource SecondaryButtonStyle}" Height="34" MinWidth="94" Margin="0,0,8,0" Click="BtnAllowAll_Click" />
+            <Button Name="btnClearAll" Content="Clear" Style="{StaticResource SecondaryButtonStyle}" Height="34" MinWidth="78" Click="BtnClearAll_Click" />
+          </StackPanel>
+        </Grid>
+        <StackPanel Name="permissionsPanel" />
+      </StackPanel>
+    </ScrollViewer>
+    <Border Grid.Row="2" Background="#FFFFFFFF" BorderBrush="{StaticResource Slate200Brush}" BorderThickness="0,1,0,0" Padding="24,16">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+        <Button Content="Cancel" Style="{StaticResource SecondaryButtonStyle}" Width="100" Height="40" Margin="0,0,12,0" IsCancel="True" />
+        <Button Name="btnConfirm" Content="Save Changes" Style="{StaticResource PrimaryButtonStyle}" Width="150" Height="40" IsDefault="True" Click="BtnConfirm_Click" />
+      </StackPanel>
+    </Border>
+  </Grid>
+</Window>

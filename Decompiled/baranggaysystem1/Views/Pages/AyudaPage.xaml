@@ -1,0 +1,451 @@
+<UserControl x:Class="baranggaysystem1.Views.Pages.AyudaPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:fa="clr-namespace:FontAwesome.Sharp;assembly=FontAwesome.Sharp" Background="{StaticResource PageBgBrush}" xmlns:pages="clr-namespace:baranggaysystem1.Views.Pages;assembly=baranggaysystem1">
+  <FrameworkElement.Resources>
+    <ResourceDictionary>
+      <Style x:Key="AyudaStatCardStyle" TargetType="{x:Type Border}">
+        <Setter Property="Background" Value="#FFFFFFFF" />
+        <Setter Property="BorderBrush" Value="{StaticResource Slate100Brush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Border.CornerRadius" Value="12" />
+        <Setter Property="Border.Padding" Value="12,8" />
+        <Setter Property="Margin" Value="0,0,8,8" />
+        <Setter Property="MinWidth" Value="126" />
+        <Setter Property="UIElement.Effect">
+          <Setter.Value>
+            <DropShadowEffect BlurRadius="10" ShadowDepth="1" Opacity="0.04" Direction="270" />
+          </Setter.Value>
+        </Setter>
+      </Style>
+      <Style x:Key="AyudaStatLabelStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource SmallTextStyle}">
+        <Setter Property="Foreground" Value="{StaticResource Slate500Brush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="Margin" Value="0,0,0,2" />
+      </Style>
+      <Style x:Key="AyudaStatValueStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource HeadingTextStyle}">
+        <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
+        <Setter Property="FontSize" Value="14" />
+      </Style>
+      <Style x:Key="AyudaSurfaceCardStyle" TargetType="{x:Type Border}">
+        <Setter Property="Background" Value="#FFFFFFFF" />
+        <Setter Property="BorderBrush" Value="{StaticResource Slate100Brush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Border.CornerRadius" Value="16" />
+        <Setter Property="UIElement.Effect">
+          <Setter.Value>
+            <DropShadowEffect BlurRadius="18" ShadowDepth="2" Opacity="0.06" Direction="270" />
+          </Setter.Value>
+        </Setter>
+      </Style>
+      <Style x:Key="AyudaSearchShellStyle" TargetType="{x:Type Border}">
+        <Setter Property="Background" Value="#FFFFFFFF" />
+        <Setter Property="BorderBrush" Value="{StaticResource Slate200Brush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Border.CornerRadius" Value="10" />
+        <Setter Property="Height" Value="34" />
+      </Style>
+      <Style x:Key="AyudaMetaBadgeStyle" TargetType="{x:Type Border}">
+        <Setter Property="Background" Value="{StaticResource Slate50Brush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Slate100Brush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Border.CornerRadius" Value="999" />
+        <Setter Property="Border.Padding" Value="10,4" />
+        <Setter Property="Margin" Value="0,0,8,0" />
+      </Style>
+      <Style x:Key="AyudaDataGridRowStyle" TargetType="{x:Type DataGridRow}" BasedOn="{StaticResource StyledDataGridRowStyle}">
+        <Setter Property="Background" Value="#FFFFFFFF" />
+        <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Style.Triggers>
+          <Trigger Property="DataGridRow.AlternationIndex" Value="1">
+            <Setter Property="Background" Value="#FFFBFD" />
+          </Trigger>
+          <Trigger Property="UIElement.IsMouseOver" Value="True">
+            <Setter Property="Background" Value="#FFF8FAFC" />
+          </Trigger>
+          <Trigger Property="DataGridRow.IsSelected" Value="True">
+            <Setter Property="Background" Value="#FFEFF6FF" />
+            <Setter Property="Foreground" Value="#FF1D4ED8" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+          </Trigger>
+        </Style.Triggers>
+      </Style>
+      <Style x:Key="AyudaDataGridCellStyle" TargetType="{x:Type DataGridCell}">
+        <Setter Property="Background" Value="#00FFFFFF" />
+        <Setter Property="BorderBrush" Value="{StaticResource Slate100Brush}" />
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+        <Setter Property="Padding" Value="14,0" />
+        <Setter Property="FrameworkElement.FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+      </Style>
+      <Style x:Key="AyudaStatusBadgeBorderStyle" TargetType="{x:Type Border}">
+        <Setter Property="Background" Value="#FFF8FAFC" />
+        <Setter Property="BorderBrush" Value="#FFE2E8F0" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Border.CornerRadius" Value="999" />
+        <Setter Property="Border.Padding" Value="10,4" />
+        <Style.Triggers>
+          <Trigger Property="FrameworkElement.Tag" Value="ACTIVE">
+            <Setter Property="Background" Value="#FFDCFCE7" />
+            <Setter Property="BorderBrush" Value="#FF86EFAC" />
+          </Trigger>
+          <Trigger Property="FrameworkElement.Tag" Value="PAUSED">
+            <Setter Property="Background" Value="#FFFEF3C7" />
+            <Setter Property="BorderBrush" Value="#FFFCD34D" />
+          </Trigger>
+          <Trigger Property="FrameworkElement.Tag" Value="CLOSED">
+            <Setter Property="Background" Value="#FFF1F5F9" />
+            <Setter Property="BorderBrush" Value="#FFCBD5E1" />
+          </Trigger>
+          <Trigger Property="FrameworkElement.Tag" Value="RELEASED">
+            <Setter Property="Background" Value="#FFDCFCE7" />
+            <Setter Property="BorderBrush" Value="#FF86EFAC" />
+          </Trigger>
+          <Trigger Property="FrameworkElement.Tag" Value="CANCELLED">
+            <Setter Property="Background" Value="#FFFEE2E2" />
+            <Setter Property="BorderBrush" Value="#FFFCA5A5" />
+          </Trigger>
+        </Style.Triggers>
+      </Style>
+      <Style x:Key="AyudaStatusBadgeTextStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource SmallTextStyle}">
+        <Setter Property="Foreground" Value="{StaticResource Slate700Brush}" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Style.Triggers>
+          <Trigger Property="FrameworkElement.Tag" Value="ACTIVE">
+            <Setter Property="Foreground" Value="#FF15803D" />
+          </Trigger>
+          <Trigger Property="FrameworkElement.Tag" Value="PAUSED">
+            <Setter Property="Foreground" Value="#FFB45309" />
+          </Trigger>
+          <Trigger Property="FrameworkElement.Tag" Value="CLOSED">
+            <Setter Property="Foreground" Value="#FF475569" />
+          </Trigger>
+          <Trigger Property="FrameworkElement.Tag" Value="RELEASED">
+            <Setter Property="Foreground" Value="#FF15803D" />
+          </Trigger>
+          <Trigger Property="FrameworkElement.Tag" Value="CANCELLED">
+            <Setter Property="Foreground" Value="#FFB91C1C" />
+          </Trigger>
+        </Style.Triggers>
+      </Style>
+    </ResourceDictionary>
+  </FrameworkElement.Resources>
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+    <Border Grid.Row="0" Style="{StaticResource PageHeaderStyle}" Padding="22,12,22,10">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="0" Orientation="Horizontal">
+          <Border Width="40" Height="40" CornerRadius="12" Background="#FFDCFCE7" Margin="0,0,14,0">
+            <fa:IconBlock Icon="HandsHelping" Foreground="#15803D" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Border>
+          <StackPanel VerticalAlignment="Center">
+            <TextBlock Text="Ayuda &amp; Barangay Assistance" FontSize="15" FontWeight="Bold" Foreground="{StaticResource Slate900Brush}" FontFamily="{StaticResource CenturyGothic}" />
+            <TextBlock Name="recordCountLabel" Text="Manage barangay aid budgets and resident assistance releases." Style="{StaticResource SubtitleTextStyle}" Margin="0,2,0,0" FontWeight="SemiBold" />
+            <WrapPanel Margin="0,10,0,0" VerticalAlignment="Center">
+              <Border Style="{StaticResource AyudaStatCardStyle}">
+                <StackPanel>
+                  <TextBlock Text="Allocated Budget" Style="{StaticResource AyudaStatLabelStyle}" />
+                  <TextBlock Name="totalBudgetMetric" Text="PHP 0.00" Style="{StaticResource AyudaStatValueStyle}" />
+                </StackPanel>
+              </Border>
+              <Border Style="{StaticResource AyudaStatCardStyle}">
+                <StackPanel>
+                  <TextBlock Text="Released Funds" Style="{StaticResource AyudaStatLabelStyle}" />
+                  <TextBlock Name="spentBudgetMetric" Text="PHP 0.00" Style="{StaticResource AyudaStatValueStyle}" />
+                </StackPanel>
+              </Border>
+              <Border Style="{StaticResource AyudaStatCardStyle}">
+                <StackPanel>
+                  <TextBlock Text="Remaining Budget" Style="{StaticResource AyudaStatLabelStyle}" />
+                  <TextBlock Name="remainingBudgetMetric" Text="PHP 0.00" Style="{StaticResource AyudaStatValueStyle}" />
+                </StackPanel>
+              </Border>
+              <Border Style="{StaticResource AyudaStatCardStyle}" Margin="0,0,0,8">
+                <StackPanel>
+                  <TextBlock Text="Beneficiaries" Style="{StaticResource AyudaStatLabelStyle}" />
+                  <TextBlock Name="beneficiaryMetric" Text="0" Style="{StaticResource AyudaStatValueStyle}" />
+                </StackPanel>
+              </Border>
+            </WrapPanel>
+          </StackPanel>
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
+          <Button Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,8,0" MinWidth="124" Height="32" Padding="10,0" Click="BtnAddProgram_Click">
+            <StackPanel Orientation="Horizontal">
+              <fa:IconBlock Icon="Wallet" FontSize="10" Margin="0,0,6,0" VerticalAlignment="Center" />
+              <TextBlock Text="New Budget" VerticalAlignment="Center" FontSize="11" />
+            </StackPanel>
+          </Button>
+          <Button Style="{StaticResource PrimaryButtonStyle}" MinWidth="124" Height="32" Padding="10,0" Click="BtnReleaseAyuda_Click">
+            <StackPanel Orientation="Horizontal">
+              <fa:IconBlock Icon="HandHoldingUsd" FontSize="10" Margin="0,0,6,0" VerticalAlignment="Center" />
+              <TextBlock Text="Release Ayuda" VerticalAlignment="Center" Foreground="#FFFFFFFF" FontSize="11" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
+      </Grid>
+    </Border>
+    <Border Grid.Row="1" Style="{StaticResource ToolbarBorderStyle}" Padding="22,8">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="280" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Border Grid.Column="0" Style="{StaticResource AyudaSearchShellStyle}">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="40" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <fa:IconBlock Grid.Column="0" Icon="Search" FontSize="11" Foreground="{StaticResource Slate400Brush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            <Grid Column="1">
+              <TextBox Name="searchBox" Margin="0,0,12,0" Background="#00FFFFFF" BorderThickness="0" VerticalContentAlignment="Center" FontSize="11" TextChanged="SearchBox_TextChanged" />
+              <TextBlock Text="Search program, resident, category, or reference" Margin="0,0,12,0" VerticalAlignment="Center" FontSize="11" Foreground="{StaticResource Slate400Brush}" IsHitTestVisible="False">
+                <FrameworkElement.Style>
+                  <Style TargetType="{x:Type TextBlock}">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                      <DataTrigger Value="" Binding="{Binding Text, ElementName=searchBox}">
+                        <Setter Property="Visibility" Value="Visible" />
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </FrameworkElement.Style>
+              </TextBlock>
+            </Grid>
+          </Grid>
+        </Border>
+        <ComboBox Name="programFilter" Grid.Column="1" Width="190" Height="34" Margin="10,0,0,0" Style="{StaticResource StyledComboBoxStyle}" SelectionChanged="Filter_SelectionChanged" />
+        <ComboBox Name="statusFilter" Grid.Column="2" Width="148" Height="34" Margin="8,0,0,0" Style="{StaticResource StyledComboBoxStyle}" SelectionChanged="Filter_SelectionChanged" />
+        <Button Grid.Column="4" Style="{StaticResource SecondaryButtonStyle}" Height="32" MinWidth="0" Padding="10,0" Click="BtnRefresh_Click">
+          <StackPanel Orientation="Horizontal">
+            <fa:IconBlock Icon="SyncAlt" FontSize="10" Margin="0,0,6,0" VerticalAlignment="Center" />
+            <TextBlock Text="Refresh Ayuda" VerticalAlignment="Center" FontSize="11" />
+          </StackPanel>
+        </Button>
+      </Grid>
+    </Border>
+    <Grid Row="2" Margin="20,16,20,0">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="1.15*" />
+        <ColumnDefinition Width="16" />
+        <ColumnDefinition Width="1.55*" />
+      </Grid.ColumnDefinitions>
+      <Border Grid.Column="0" Style="{StaticResource AyudaSurfaceCardStyle}" ClipToBounds="True">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+          </Grid.RowDefinitions>
+          <Border Grid.Row="0" Background="#FFFCFDFE" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="0,0,0,1" Padding="18,14">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <StackPanel>
+                <TextBlock Text="Budget Programs" Style="{StaticResource SectionHeaderTextStyle}" />
+                <TextBlock Name="programMetaLabel" Text="Create assistance programs and track how much budget is left." Style="{StaticResource SmallTextStyle}" Margin="0,4,0,0" />
+              </StackPanel>
+              <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <Border Style="{StaticResource AyudaMetaBadgeStyle}">
+                  <TextBlock Name="programTableVisibleLabel" Text="0 visible" Style="{StaticResource SmallTextStyle}" FontWeight="Bold" />
+                </Border>
+                <Border Style="{StaticResource AyudaMetaBadgeStyle}" Margin="0">
+                  <TextBlock Name="programTableSelectionLabel" Text="No selection" Style="{StaticResource SmallTextStyle}" FontWeight="Bold" />
+                </Border>
+              </StackPanel>
+            </Grid>
+          </Border>
+          <Grid Row="1">
+            <DataGrid Name="programGrid" Margin="10,8,10,10" Style="{StaticResource StyledDataGridStyle}" ColumnHeaderStyle="{StaticResource StyledDataGridColumnHeaderStyle}" RowStyle="{StaticResource AyudaDataGridRowStyle}" CellStyle="{StaticResource AyudaDataGridCellStyle}" AutoGenerateColumns="False" IsReadOnly="True" AlternationCount="2" RowHeight="82" HeadersVisibility="Column" CanUserAddRows="False" SelectionChanged="ProgramGrid_SelectionChanged">
+              <DataGrid.Columns>
+                <DataGridTemplateColumn Header="Program" Width="1.55*">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <StackPanel Margin="0,8">
+                        <TextBlock Foreground="{StaticResource Slate900Brush}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Text="{Binding [program_name]}" />
+                        <TextBlock Style="{StaticResource SmallTextStyle}" Margin="0,6,0,0" Foreground="{StaticResource Slate500Brush}" Text="{Binding [category]}" />
+                      </StackPanel>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Budget" Width="1.3*">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <StackPanel Margin="0,8">
+                        <TextBlock Foreground="{StaticResource Slate900Brush}" FontWeight="Bold" Text="{Binding [allocated_budget_display]}" />
+                        <TextBlock Style="{StaticResource SmallTextStyle}" Margin="0,6,0,0" Foreground="{StaticResource Slate500Brush}" TextWrapping="Wrap" Text="{Binding [budget_meta]}" />
+                      </StackPanel>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Status" Width="1.05*">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <StackPanel Margin="0,8">
+                        <Border Style="{StaticResource AyudaStatusBadgeBorderStyle}" HorizontalAlignment="Left" Tag="{Binding [status]}">
+                          <TextBlock Style="{StaticResource AyudaStatusBadgeTextStyle}" Text="{Binding [status_display]}" Tag="{Binding [status]}" />
+                        </Border>
+                        <TextBlock Style="{StaticResource SmallTextStyle}" Margin="0,6,0,0" Foreground="{StaticResource Slate500Brush}" TextWrapping="Wrap" Text="{Binding [schedule_display]}" />
+                      </StackPanel>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+              </DataGrid.Columns>
+            </DataGrid>
+            <StackPanel Name="programEmptyState" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="Collapsed">
+              <fa:IconBlock Icon="Wallet" FontSize="44" Foreground="{StaticResource Slate300Brush}" HorizontalAlignment="Center" Margin="0,0,0,12" />
+              <TextBlock Name="programEmptyLabel" Text="No ayuda programs found." Style="{StaticResource SubtitleTextStyle}" HorizontalAlignment="Center" />
+              <TextBlock Text="Create a budget program to start releasing assistance." Style="{StaticResource SmallTextStyle}" HorizontalAlignment="Center" Margin="0,4,0,0" />
+            </StackPanel>
+          </Grid>
+        </Grid>
+      </Border>
+      <Border Grid.Column="2" Style="{StaticResource AyudaSurfaceCardStyle}" ClipToBounds="True">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+          </Grid.RowDefinitions>
+          <Border Grid.Row="0" Background="#FFFCFDFE" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="0,0,0,1" Padding="18,14">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <StackPanel>
+                <TextBlock Text="Release Ledger" Style="{StaticResource SectionHeaderTextStyle}" />
+                <TextBlock Name="releaseMetaLabel" Text="Track beneficiaries, batch references, and generated ayuda release reports." Style="{StaticResource SmallTextStyle}" Margin="0,4,0,0" />
+              </StackPanel>
+              <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <Border Style="{StaticResource AyudaMetaBadgeStyle}">
+                  <TextBlock Name="releaseTableVisibleLabel" Text="0 visible" Style="{StaticResource SmallTextStyle}" FontWeight="Bold" />
+                </Border>
+                <Border Style="{StaticResource AyudaMetaBadgeStyle}" Margin="0">
+                  <TextBlock Name="releaseTableSelectionLabel" Text="No selection" Style="{StaticResource SmallTextStyle}" FontWeight="Bold" />
+                </Border>
+              </StackPanel>
+            </Grid>
+          </Border>
+          <Grid Row="1">
+            <DataGrid Name="releaseGrid" Margin="10,8,10,10" Style="{StaticResource StyledDataGridStyle}" ColumnHeaderStyle="{StaticResource StyledDataGridColumnHeaderStyle}" RowStyle="{StaticResource AyudaDataGridRowStyle}" CellStyle="{StaticResource AyudaDataGridCellStyle}" AutoGenerateColumns="False" IsReadOnly="True" AlternationCount="2" RowHeight="78" HeadersVisibility="Column" CanUserAddRows="False" SelectionChanged="ReleaseGrid_SelectionChanged">
+              <DataGrid.Columns>
+                <DataGridTemplateColumn Header="Reference" Width="1.1*">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <StackPanel Margin="0,8">
+                        <TextBlock Foreground="{StaticResource Slate900Brush}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Text="{Binding [reference_no]}" />
+                        <TextBlock Style="{StaticResource SmallTextStyle}" Margin="0,6,0,0" Foreground="{StaticResource Slate500Brush}" Text="{Binding [reference_meta]}" />
+                      </StackPanel>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Resident" Width="1.25*">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <StackPanel Margin="0,8">
+                        <TextBlock Foreground="{StaticResource Slate900Brush}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Text="{Binding [resident_name]}" />
+                        <TextBlock Style="{StaticResource SmallTextStyle}" Margin="0,6,0,0" Foreground="{StaticResource Slate500Brush}" Text="{Binding [resident_meta]}" />
+                      </StackPanel>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Program" Width="1.25*">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <StackPanel Margin="0,8">
+                        <TextBlock Foreground="{StaticResource Slate900Brush}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Text="{Binding [program_name]}" />
+                        <TextBlock Style="{StaticResource SmallTextStyle}" Margin="0,6,0,0" Foreground="{StaticResource Slate500Brush}" Text="{Binding [category]}" />
+                      </StackPanel>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Amount" Width="0.9*">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <StackPanel Margin="0,8">
+                        <TextBlock Foreground="{StaticResource Slate900Brush}" FontWeight="Bold" Text="{Binding [amount_display]}" />
+                        <TextBlock Style="{StaticResource SmallTextStyle}" Margin="0,6,0,0" Foreground="{StaticResource Slate500Brush}" TextWrapping="Wrap" Text="{Binding [notes_display]}" />
+                      </StackPanel>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Status" Width="0.95*">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <Border Style="{StaticResource AyudaStatusBadgeBorderStyle}" HorizontalAlignment="Left" Margin="0,8,0,8" Tag="{Binding [release_status]}">
+                        <TextBlock Style="{StaticResource AyudaStatusBadgeTextStyle}" Text="{Binding [release_status_display]}" Tag="{Binding [release_status]}" />
+                      </Border>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+              </DataGrid.Columns>
+            </DataGrid>
+            <StackPanel Name="releaseEmptyState" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="Collapsed">
+              <fa:IconBlock Icon="HandsHelping" FontSize="44" Foreground="{StaticResource Slate300Brush}" HorizontalAlignment="Center" Margin="0,0,0,12" />
+              <TextBlock Name="releaseEmptyLabel" Text="No ayuda releases found." Style="{StaticResource SubtitleTextStyle}" HorizontalAlignment="Center" />
+              <TextBlock Text="Create a budget program, stage beneficiaries, then post an ayuda batch release." Style="{StaticResource SmallTextStyle}" HorizontalAlignment="Center" Margin="0,4,0,0" />
+            </StackPanel>
+          </Grid>
+        </Grid>
+      </Border>
+    </Grid>
+    <Border Grid.Row="3" Margin="20,12,20,16" Padding="16,12" Style="{StaticResource AyudaSurfaceCardStyle}">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <StackPanel>
+          <TextBlock Name="footerCountLabel" Text="No ayuda records loaded." Style="{StaticResource SmallTextStyle}" FontWeight="SemiBold" />
+          <TextBlock Text="Tip: select a budget program first, then use Release Ayuda to stage multiple beneficiaries and generate one batch report." Style="{StaticResource SmallTextStyle}" Margin="0,3,0,0" />
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+          <Button Style="{StaticResource SecondaryButtonStyle}" Height="30" MinWidth="0" Padding="10,0" Margin="0,0,8,0" Click="BtnEditProgram_Click">
+            <StackPanel Orientation="Horizontal">
+              <fa:IconBlock Icon="Edit" FontSize="10" Margin="0,0,6,0" VerticalAlignment="Center" />
+              <TextBlock Text="Edit Budget" VerticalAlignment="Center" FontSize="11" />
+            </StackPanel>
+          </Button>
+          <Button Style="{StaticResource SecondaryButtonStyle}" Height="30" MinWidth="0" Padding="10,0" Margin="0,0,8,0" Click="BtnDeleteProgram_Click">
+            <StackPanel Orientation="Horizontal">
+              <fa:IconBlock Icon="TrashAlt" FontSize="10" Margin="0,0,6,0" VerticalAlignment="Center" />
+              <TextBlock Text="Delete Budget" VerticalAlignment="Center" FontSize="11" />
+            </StackPanel>
+          </Button>
+          <Button Style="{StaticResource SecondaryButtonStyle}" Height="30" MinWidth="0" Padding="10,0" Margin="0,0,8,0" Click="BtnEditRelease_Click">
+            <StackPanel Orientation="Horizontal">
+              <fa:IconBlock Icon="Edit" FontSize="10" Margin="0,0,6,0" VerticalAlignment="Center" />
+              <TextBlock Text="Edit Release" VerticalAlignment="Center" FontSize="11" />
+            </StackPanel>
+          </Button>
+          <Button Style="{StaticResource SecondaryButtonStyle}" Height="30" MinWidth="0" Padding="10,0" Margin="0,0,8,0" Click="BtnDeleteRelease_Click">
+            <StackPanel Orientation="Horizontal">
+              <fa:IconBlock Icon="TrashAlt" FontSize="10" Margin="0,0,6,0" VerticalAlignment="Center" />
+              <TextBlock Text="Delete Release" VerticalAlignment="Center" FontSize="11" />
+            </StackPanel>
+          </Button>
+          <Button Style="{StaticResource SecondaryButtonStyle}" Height="30" MinWidth="0" Padding="10,0" Margin="0,0,10,0" Click="BtnOpenReport_Click">
+            <StackPanel Orientation="Horizontal">
+              <fa:IconBlock Icon="FilePdf" FontSize="10" Margin="0,0,6,0" VerticalAlignment="Center" />
+              <TextBlock Text="Open Report" VerticalAlignment="Center" FontSize="11" />
+            </StackPanel>
+          </Button>
+          <TextBlock Name="selectedProgramFooterLabel" Text="No budget selected" Style="{StaticResource SmallTextStyle}" Opacity="0.75" />
+        </StackPanel>
+      </Grid>
+    </Border>
+  </Grid>
+</UserControl>

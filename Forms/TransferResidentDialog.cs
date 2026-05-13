@@ -283,7 +283,7 @@ internal sealed class TransferResidentDialog : Form
 
         try
         {
-            _residentHouseholdService.TransferResident(_residentId, targetHouseholdId.Value, _barangayId, reason);
+            _residentHouseholdService.TransferResident(_residentId, _currentHouseholdId ?? 0, targetHouseholdId.Value, reason);
             TransferCompleted = true;
             DialogResult = DialogResult.OK;
             Close();

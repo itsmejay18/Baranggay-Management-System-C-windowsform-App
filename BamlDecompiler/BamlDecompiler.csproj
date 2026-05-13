@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="ICSharpCode.Decompiler" Version="10.0.1.8346" />
+    <PackageReference Include="ICSharpCode.BamlDecompiler" Version="10.0.1.8346" />
+  </ItemGroup>
+</Project>

@@ -1,926 +1,538 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Linq;
 using baranggaysystem1.Database;
 using baranggaysystem1.helper;
-using MySql.Data.MySqlClient;
 
 namespace baranggaysystem1;
 
-internal sealed class HouseholdListFilters
+/// <summary>
+/// Repository for household data access operations.
+/// </summary>
+public sealed class HouseholdRepository
 {
-    public int BarangayId { get; init; }
-    public string SearchText { get; init; } = string.Empty;
-    public int? PurokId { get; init; }
-    public bool WithSeniors { get; init; }
-    public bool WithPwd { get; init; }
-    public bool With4Ps { get; init; }
-    public bool EmptyHouseholdOnly { get; init; }
-    public bool HasActiveCasesOnly { get; init; }
-    public int PageNumber { get; init; } = 1;
-    public int PageSize { get; init; } = 25;
-}
-
-internal sealed class HouseholdListItem
-{
-    public int HouseholdId { get; init; }
-    public string HouseNo { get; init; } = string.Empty;
-    public string Street { get; init; } = string.Empty;
-    public string Subdivision { get; init; } = string.Empty;
-    public int PurokId { get; init; }
-    public string PurokName { get; init; } = string.Empty;
-    public int MemberCount { get; init; }
-    public int SeniorCount { get; init; }
-    public int PwdCount { get; init; }
-    public int FourPsCount { get; init; }
-    public int VoterCount { get; init; }
-    public int ActiveCaseCount { get; init; }
-    public DateTime? UpdatedAt { get; init; }
-}
-
-internal sealed class HouseholdPageResult
-{
-    public IReadOnlyList<HouseholdListItem> Items { get; init; } = Array.Empty<HouseholdListItem>();
-    public int TotalRows { get; init; }
-    public int PageNumber { get; init; }
-    public int PageSize { get; init; }
-    public int TotalPages => PageSize <= 0 ? 0 : (int)Math.Ceiling(TotalRows / (double)PageSize);
-}
-
-internal sealed class HouseholdDetailsDto
-{
-    public int HouseholdId { get; init; }
-    public int BarangayId { get; init; }
-    public int PurokId { get; init; }
-    public string PurokName { get; init; } = string.Empty;
-    public string HouseNo { get; init; } = string.Empty;
-    public string Street { get; init; } = string.Empty;
-    public string Subdivision { get; init; } = string.Empty;
-    public string AddressNote { get; init; } = string.Empty;
-    public decimal? Latitude { get; init; }
-    public decimal? Longitude { get; init; }
-    public int MemberCount { get; init; }
-    public int SeniorCount { get; init; }
-    public int PwdCount { get; init; }
-    public int FourPsCount { get; init; }
-    public int VoterCount { get; init; }
-    public int ActiveCaseCount { get; init; }
-    public DateTime? UpdatedAt { get; init; }
-    public string FullAddress => HouseholdRepository.BuildAddressLabel(HouseNo, Street, Subdivision, PurokName);
-}
-
-internal sealed class HouseholdEditRecord
-{
-    public int HouseholdId { get; init; }
-    public int BarangayId { get; init; }
-    public int PurokId { get; init; }
-    public string HouseNo { get; init; } = string.Empty;
-    public string Street { get; init; } = string.Empty;
-    public string Subdivision { get; init; } = string.Empty;
-    public string AddressNote { get; init; } = string.Empty;
-    public decimal? Latitude { get; init; }
-    public decimal? Longitude { get; init; }
-}
-
-internal sealed class HouseholdMemberRecord
-{
-    public int ResidentId { get; init; }
-    public string FullName { get; init; } = string.Empty;
-    public int? Age { get; init; }
-    public string Sex { get; init; } = string.Empty;
-    public string CivilStatus { get; init; } = string.Empty;
-    public string ContactNo { get; init; } = string.Empty;
-    public string Status { get; init; } = string.Empty;
-    public bool HasPhoto { get; init; }
-}
-
-internal sealed class HouseholdTransferHistoryItem
-{
-    public long TransferId { get; init; }
-    public int ResidentId { get; init; }
-    public string ResidentName { get; init; } = string.Empty;
-    public string OldAddress { get; init; } = string.Empty;
-    public string NewAddress { get; init; } = string.Empty;
-    public string Reason { get; init; } = string.Empty;
-    public string TransferredBy { get; init; } = string.Empty;
-    public DateTime? TransferredAt { get; init; }
-}
-
-internal sealed class ResidentPickerItem
-{
-    public int ResidentId { get; init; }
-    public string FullName { get; init; } = string.Empty;
-    public string ContactNo { get; init; } = string.Empty;
-    public string CurrentAddress { get; init; } = string.Empty;
-    public int? CurrentHouseholdId { get; init; }
-    public int? CurrentPurokId { get; init; }
-}
-
-internal sealed class HouseholdSaveRequest
-{
-    public int BarangayId { get; init; }
-    public int PurokId { get; init; }
-    public string HouseNo { get; init; } = string.Empty;
-    public string Street { get; init; } = string.Empty;
-    public string Subdivision { get; init; } = string.Empty;
-    public string AddressNote { get; init; } = string.Empty;
-    public decimal? Latitude { get; init; }
-    public decimal? Longitude { get; init; }
-}
-
-internal sealed class ResidentLocationSnapshot
-{
-    public int? PurokId { get; init; }
-    public int? HouseholdId { get; init; }
-    public string AddressLabel { get; init; } = string.Empty;
-}
-
-internal sealed class HouseholdRepository
-{
-    private const int MaxPageSize = 200;
-
-    private const string MemberStatsJoin = @"
-LEFT JOIN (
-    SELECT r.household_id,
-           COUNT(*) AS total_members,
-           SUM(CASE WHEN IFNULL(r.is_senior,0) = 1 THEN 1 ELSE 0 END) AS seniors,
-           SUM(CASE WHEN IFNULL(r.is_pwd,0) = 1 THEN 1 ELSE 0 END) AS pwd_members,
-           SUM(CASE WHEN IFNULL(r.is_4ps_beneficiary,0) = 1 THEN 1 ELSE 0 END) AS four_ps_members,
-           SUM(CASE WHEN IFNULL(r.is_registered_voter,0) = 1 THEN 1 ELSE 0 END) AS voters
-    FROM resident r
-    WHERE IFNULL(r.is_deleted,0) = 0
-      AND (r.status IS NULL OR UPPER(r.status) = 'ACTIVE')
-    GROUP BY r.household_id
-) ms ON ms.household_id = h.household_id";
-
-    private const string ActiveCaseJoin = @"
-LEFT JOIN (
-    SELECT rr.household_id,
-           COUNT(DISTINCT cr.case_id) AS active_cases
-    FROM resident rr
-    INNER JOIN case_record cr ON cr.complainant_id = rr.resident_id
-    WHERE IFNULL(rr.is_deleted,0) = 0
-      AND UPPER(cr.status) IN ('OPEN', 'ONGOING')
-    GROUP BY rr.household_id
-) cs ON cs.household_id = h.household_id";
-
-    private const string ListWhereClause = @"
-WHERE h.barangay_id = @barangayId
-  AND (@purokId IS NULL OR h.purok_id = @purokId)
-  AND (@searchText = '' OR
-       COALESCE(h.house_no, '') LIKE @searchLike OR
-       COALESCE(h.street, '') LIKE @searchLike OR
-       COALESCE(h.subdivision, '') LIKE @searchLike OR
-       EXISTS (
-           SELECT 1
-           FROM resident rs
-           WHERE rs.household_id = h.household_id
-             AND IFNULL(rs.is_deleted,0) = 0
-             AND (rs.status IS NULL OR UPPER(rs.status) = 'ACTIVE')
-             AND CONCAT_WS(' ', rs.first_name, rs.middle_name, rs.last_name) LIKE @searchLike
-       ))
-  AND (@withSeniors = 0 OR COALESCE(ms.seniors, 0) > 0)
-  AND (@withPwd = 0 OR COALESCE(ms.pwd_members, 0) > 0)
-  AND (@with4Ps = 0 OR COALESCE(ms.four_ps_members, 0) > 0)
-  AND (@emptyOnly = 0 OR COALESCE(ms.total_members, 0) = 0)
-  AND (@hasActiveCases = 0 OR COALESCE(cs.active_cases, 0) > 0)";
-
-    public HouseholdPageResult Search(HouseholdListFilters filters)
+    public static int ResolveBarangayId(int? sessionBarangayId)
     {
-        HouseholdListFilters safeFilters = NormalizeFilters(filters);
-        var items = new List<HouseholdListItem>();
-        int totalRows;
-
-        using var conn = DBConnection.GetConnection();
-        conn.Open();
-
-        using (var countCmd = new MySqlCommand(
-                   @"SELECT COUNT(*)
-                     FROM household h
-                     LEFT JOIN purok_sitio p ON p.purok_id = h.purok_id
-                     " + MemberStatsJoin + ActiveCaseJoin + ListWhereClause, conn))
-        {
-            AddListParameters(countCmd, safeFilters);
-            totalRows = Convert.ToInt32(countCmd.ExecuteScalar() ?? 0);
-        }
-
-        using (var cmd = new MySqlCommand(
-                   @"SELECT h.household_id,
-                            h.house_no,
-                            h.street,
-                            h.subdivision,
-                            h.purok_id,
-                            COALESCE(p.name, '') AS purok_name,
-                            COALESCE(ms.total_members, 0) AS members,
-                            COALESCE(ms.seniors, 0) AS seniors,
-                            COALESCE(ms.pwd_members, 0) AS pwd_members,
-                            COALESCE(ms.four_ps_members, 0) AS four_ps_members,
-                            COALESCE(ms.voters, 0) AS voters,
-                            COALESCE(cs.active_cases, 0) AS active_cases,
-                            h.updated_at
-                     FROM household h
-                     LEFT JOIN purok_sitio p ON p.purok_id = h.purok_id
-                     " + MemberStatsJoin + ActiveCaseJoin + ListWhereClause + @"
-                     ORDER BY h.updated_at DESC, h.household_id DESC
-                     LIMIT @take OFFSET @skip", conn))
-        {
-            AddListParameters(cmd, safeFilters);
-            cmd.Parameters.AddWithValue("@take", safeFilters.PageSize);
-            cmd.Parameters.AddWithValue("@skip", (safeFilters.PageNumber - 1) * safeFilters.PageSize);
-
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
-            {
-                items.Add(new HouseholdListItem
-                {
-                    HouseholdId = Convert.ToInt32(reader["household_id"]),
-                    HouseNo = Convert.ToString(reader["house_no"]) ?? string.Empty,
-                    Street = Convert.ToString(reader["street"]) ?? string.Empty,
-                    Subdivision = Convert.ToString(reader["subdivision"]) ?? string.Empty,
-                    PurokId = Convert.ToInt32(reader["purok_id"]),
-                    PurokName = Convert.ToString(reader["purok_name"]) ?? string.Empty,
-                    MemberCount = Convert.ToInt32(reader["members"]),
-                    SeniorCount = Convert.ToInt32(reader["seniors"]),
-                    PwdCount = Convert.ToInt32(reader["pwd_members"]),
-                    FourPsCount = Convert.ToInt32(reader["four_ps_members"]),
-                    VoterCount = Convert.ToInt32(reader["voters"]),
-                    ActiveCaseCount = Convert.ToInt32(reader["active_cases"]),
-                    UpdatedAt = reader["updated_at"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["updated_at"])
-                });
-            }
-        }
-
-        return new HouseholdPageResult
-        {
-            Items = items,
-            TotalRows = totalRows,
-            PageNumber = safeFilters.PageNumber,
-            PageSize = safeFilters.PageSize
-        };
+        return sessionBarangayId ?? 1;
     }
 
-    public HouseholdDetailsDto? GetDetails(int householdId, int barangayId)
+    /// <summary>
+    /// Gets a paginated list of households with optional filters.
+    /// </summary>
+    public (IReadOnlyList<HouseholdListItem> Items, int TotalCount) GetHouseholds(
+        int barangayId,
+        int page,
+        int pageSize,
+        string? search = null,
+        int? purokId = null,
+        bool? withSeniors = null,
+        bool? withPwd = null,
+        bool? with4Ps = null,
+        bool? emptyOnly = null,
+        bool? activeCases = null)
     {
-        if (householdId <= 0)
+        var filters = new HouseholdListFilters
         {
-            return null;
-        }
+            BarangayId = barangayId,
+            Search = search,
+            PurokId = purokId,
+            WithSeniors = withSeniors,
+            WithPwd = withPwd,
+            With4Ps = with4Ps,
+            EmptyOnly = emptyOnly,
+            ActiveCases = activeCases,
+            PageNumber = page,
+            PageSize = pageSize
+        };
+        var result = Search(filters);
+        return (result.Items, result.TotalCount);
+    }
 
-        using var conn = DBConnection.GetConnection();
-        conn.Open();
-        using var cmd = new MySqlCommand(
-            @"SELECT h.household_id,
-                     h.barangay_id,
-                     h.purok_id,
-                     COALESCE(p.name, '') AS purok_name,
-                     h.house_no,
-                     h.street,
-                     h.subdivision,
-                     h.address_note,
-                     h.latitude,
-                     h.longitude,
-                     COALESCE(ms.total_members, 0) AS members,
-                     COALESCE(ms.seniors, 0) AS seniors,
-                     COALESCE(ms.pwd_members, 0) AS pwd_members,
-                     COALESCE(ms.four_ps_members, 0) AS four_ps_members,
-                     COALESCE(ms.voters, 0) AS voters,
-                     COALESCE(cs.active_cases, 0) AS active_cases,
-                     h.updated_at
+    /// <summary>
+    /// Gets detailed information about a specific household.
+    /// </summary>
+    public HouseholdDetailsDto? GetHouseholdDetails(int householdId, int barangayId)
+    {
+        var table = DbHelper.LoadTable(
+            @"SELECT h.household_id, h.purok_id, h.house_no, h.street, h.subdivision,
+                     COALESCE(p.purok_name, '') AS purok_name,
+                     h.latitude, h.longitude, h.updated_at,
+                     (SELECT COUNT(*) FROM resident r WHERE r.household_id = h.household_id AND IFNULL(r.is_deleted,0)=0) AS member_count,
+                     (SELECT COUNT(*) FROM resident r WHERE r.household_id = h.household_id AND IFNULL(r.is_deleted,0)=0 AND r.is_senior_citizen = 1) AS senior_count,
+                     (SELECT COUNT(*) FROM resident r WHERE r.household_id = h.household_id AND IFNULL(r.is_deleted,0)=0 AND r.is_pwd = 1) AS pwd_count,
+                     (SELECT COUNT(*) FROM resident r WHERE r.household_id = h.household_id AND IFNULL(r.is_deleted,0)=0 AND r.is_4ps = 1) AS four_ps_count,
+                     (SELECT COUNT(*) FROM resident r WHERE r.household_id = h.household_id AND IFNULL(r.is_deleted,0)=0 AND r.is_registered_voter = 1) AS voter_count,
+                     (SELECT COUNT(*) FROM case_record cr
+                      INNER JOIN resident r ON r.resident_id = cr.complainant_id
+                      WHERE r.household_id = h.household_id AND cr.status IN ('OPEN','ONGOING')) AS active_case_count
               FROM household h
-              LEFT JOIN purok_sitio p ON p.purok_id = h.purok_id
-              " + MemberStatsJoin + ActiveCaseJoin + @"
-              WHERE h.household_id = @householdId
-                AND h.barangay_id = @barangayId
-              LIMIT 1", conn);
-        cmd.Parameters.AddWithValue("@householdId", householdId);
-        cmd.Parameters.AddWithValue("@barangayId", barangayId);
+              LEFT JOIN purok p ON p.purok_id = h.purok_id
+              WHERE h.household_id = @id AND h.barangay_id = @barangayId",
+            cmd =>
+            {
+                cmd.Parameters.AddWithValue("@id", householdId);
+                cmd.Parameters.AddWithValue("@barangayId", barangayId);
+            });
 
-        using var reader = cmd.ExecuteReader();
-        if (!reader.Read())
-        {
-            return null;
-        }
+        if (table.Rows.Count == 0) return null;
+
+        var row = table.Rows[0];
+        string houseNo = row["house_no"]?.ToString() ?? string.Empty;
+        string street = row["street"]?.ToString() ?? string.Empty;
+        string subdivision = row["subdivision"]?.ToString() ?? string.Empty;
+        string fullAddress = string.Join(", ", new[] { houseNo, street, subdivision }.Where(s => !string.IsNullOrWhiteSpace(s)));
 
         return new HouseholdDetailsDto
         {
-            HouseholdId = Convert.ToInt32(reader["household_id"]),
-            BarangayId = Convert.ToInt32(reader["barangay_id"]),
-            PurokId = Convert.ToInt32(reader["purok_id"]),
-            PurokName = Convert.ToString(reader["purok_name"]) ?? string.Empty,
-            HouseNo = Convert.ToString(reader["house_no"]) ?? string.Empty,
-            Street = Convert.ToString(reader["street"]) ?? string.Empty,
-            Subdivision = Convert.ToString(reader["subdivision"]) ?? string.Empty,
-            AddressNote = Convert.ToString(reader["address_note"]) ?? string.Empty,
-            Latitude = reader["latitude"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["latitude"]),
-            Longitude = reader["longitude"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["longitude"]),
-            MemberCount = Convert.ToInt32(reader["members"]),
-            SeniorCount = Convert.ToInt32(reader["seniors"]),
-            PwdCount = Convert.ToInt32(reader["pwd_members"]),
-            FourPsCount = Convert.ToInt32(reader["four_ps_members"]),
-            VoterCount = Convert.ToInt32(reader["voters"]),
-            ActiveCaseCount = Convert.ToInt32(reader["active_cases"]),
-            UpdatedAt = reader["updated_at"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["updated_at"])
+            HouseholdId = Convert.ToInt32(row["household_id"]),
+            PurokId = row["purok_id"] != DBNull.Value ? Convert.ToInt32(row["purok_id"]) : null,
+            HouseNo = houseNo,
+            Street = street,
+            Subdivision = subdivision,
+            PurokName = row["purok_name"]?.ToString() ?? string.Empty,
+            FullAddress = fullAddress,
+            Latitude = row["latitude"] != DBNull.Value ? Convert.ToDouble(row["latitude"]) : null,
+            Longitude = row["longitude"] != DBNull.Value ? Convert.ToDouble(row["longitude"]) : null,
+            UpdatedAt = row["updated_at"] != DBNull.Value ? Convert.ToDateTime(row["updated_at"]) : null,
+            MemberCount = Convert.ToInt32(row["member_count"]),
+            SeniorCount = Convert.ToInt32(row["senior_count"]),
+            PwdCount = Convert.ToInt32(row["pwd_count"]),
+            FourPsCount = Convert.ToInt32(row["four_ps_count"]),
+            VoterCount = Convert.ToInt32(row["voter_count"]),
+            ActiveCaseCount = Convert.ToInt32(row["active_case_count"])
         };
     }
 
+    /// <summary>Alias for GetHouseholdDetails.</summary>
+    public HouseholdDetailsDto? GetDetails(int householdId, int barangayId) => GetHouseholdDetails(householdId, barangayId);
+
+    /// <summary>Creates a new household record.</summary>
+    public int CreateHousehold(string houseNo, string street, string subdivision, int? purokId, int barangayId)
+    {
+        DbHelper.ExecuteNonQuery(
+            @"INSERT INTO household (house_no, street, subdivision, purok_id, barangay_id, updated_at)
+              VALUES (@houseNo, @street, @subdivision, @purokId, @barangayId, NOW())",
+            cmd =>
+            {
+                cmd.Parameters.AddWithValue("@houseNo", houseNo);
+                cmd.Parameters.AddWithValue("@street", street);
+                cmd.Parameters.AddWithValue("@subdivision", subdivision);
+                cmd.Parameters.AddWithValue("@purokId", purokId.HasValue ? purokId.Value : DBNull.Value);
+                cmd.Parameters.AddWithValue("@barangayId", barangayId);
+            });
+        return DbHelper.ExecuteScalar<int>("SELECT LAST_INSERT_ID()");
+    }
+
+    /// <summary>Updates an existing household record.</summary>
+    public void UpdateHousehold(int householdId, string houseNo, string street, string subdivision, int? purokId)
+    {
+        DbHelper.ExecuteNonQuery(
+            @"UPDATE household SET house_no = @houseNo, street = @street, subdivision = @subdivision,
+                  purok_id = @purokId, updated_at = NOW() WHERE household_id = @id",
+            cmd =>
+            {
+                cmd.Parameters.AddWithValue("@id", householdId);
+                cmd.Parameters.AddWithValue("@houseNo", houseNo);
+                cmd.Parameters.AddWithValue("@street", street);
+                cmd.Parameters.AddWithValue("@subdivision", subdivision);
+                cmd.Parameters.AddWithValue("@purokId", purokId.HasValue ? purokId.Value : DBNull.Value);
+            });
+    }
+
+    /// <summary>Gets the list of puroks for a barangay.</summary>
+    internal List<LookupItem> GetPurokOptions(int barangayId)
+    {
+        var table = DbHelper.LoadTable(
+            "SELECT purok_id, purok_name FROM purok WHERE barangay_id = @barangayId ORDER BY purok_name",
+            cmd => cmd.Parameters.AddWithValue("@barangayId", barangayId));
+        var items = new List<LookupItem>();
+        foreach (DataRow row in table.Rows)
+            items.Add(new LookupItem(Convert.ToInt32(row["purok_id"]), row["purok_name"]?.ToString() ?? string.Empty));
+        return items;
+    }
+
+    /// <summary>Paginated search using filters object (single-arg overload used by callers).</summary>
+    public HouseholdPageResult Search(HouseholdListFilters filters)
+    {
+        return Search(filters, filters.PageNumber, filters.PageSize, filters.BarangayId);
+    }
+
+    /// <summary>Paginated search for households with filters.</summary>
+    public HouseholdPageResult Search(HouseholdListFilters filters, int page, int pageSize, int barangayId)
+    {
+        var conditions = new List<string> { "h.barangay_id = @barangayId" };
+        var parameters = new Dictionary<string, object> { { "@barangayId", barangayId } };
+
+        if (!string.IsNullOrWhiteSpace(filters.Search))
+        {
+            conditions.Add("(h.house_no LIKE @search OR h.street LIKE @search OR h.subdivision LIKE @search)");
+            parameters["@search"] = $"%{filters.Search.Trim()}%";
+        }
+        if (filters.PurokId.HasValue)
+        {
+            conditions.Add("h.purok_id = @purokId");
+            parameters["@purokId"] = filters.PurokId.Value;
+        }
+        if (filters.EmptyOnly == true)
+            conditions.Add("(SELECT COUNT(*) FROM resident r WHERE r.household_id = h.household_id AND IFNULL(r.is_deleted,0)=0) = 0");
+        if (filters.WithSeniors == true)
+            conditions.Add("(SELECT COUNT(*) FROM resident r WHERE r.household_id = h.household_id AND IFNULL(r.is_deleted,0)=0 AND r.is_senior_citizen = 1) > 0");
+        if (filters.WithPwd == true)
+            conditions.Add("(SELECT COUNT(*) FROM resident r WHERE r.household_id = h.household_id AND IFNULL(r.is_deleted,0)=0 AND r.is_pwd = 1) > 0");
+        if (filters.With4Ps == true)
+            conditions.Add("(SELECT COUNT(*) FROM resident r WHERE r.household_id = h.household_id AND IFNULL(r.is_deleted,0)=0 AND r.is_4ps = 1) > 0");
+        if (filters.ActiveCases == true)
+            conditions.Add("(SELECT COUNT(*) FROM case_record cr INNER JOIN resident r ON r.resident_id = cr.complainant_id WHERE r.household_id = h.household_id AND cr.status IN ('OPEN','ONGOING')) > 0");
+
+        string whereClause = string.Join(" AND ", conditions);
+        int totalCount = DbHelper.ExecuteScalar<int>($"SELECT COUNT(*) FROM household h WHERE {whereClause}",
+            cmd => { foreach (var p in parameters) cmd.Parameters.AddWithValue(p.Key, p.Value); });
+
+        string query = $@"SELECT h.household_id, h.house_no, h.street, h.subdivision,
+                   COALESCE(p.purok_name, '') AS purok_name,
+                   (SELECT COUNT(*) FROM resident r WHERE r.household_id = h.household_id AND IFNULL(r.is_deleted,0)=0) AS member_count,
+                   (SELECT COUNT(*) FROM resident r WHERE r.household_id = h.household_id AND IFNULL(r.is_deleted,0)=0 AND r.is_senior_citizen = 1) AS senior_count,
+                   (SELECT COUNT(*) FROM resident r WHERE r.household_id = h.household_id AND IFNULL(r.is_deleted,0)=0 AND r.is_pwd = 1) AS pwd_count,
+                   (SELECT COUNT(*) FROM resident r WHERE r.household_id = h.household_id AND IFNULL(r.is_deleted,0)=0 AND r.is_4ps = 1) AS four_ps_count,
+                   (SELECT COUNT(*) FROM resident r WHERE r.household_id = h.household_id AND IFNULL(r.is_deleted,0)=0 AND r.is_registered_voter = 1) AS voter_count,
+                   (SELECT COUNT(*) FROM case_record cr INNER JOIN resident r ON r.resident_id = cr.complainant_id WHERE r.household_id = h.household_id AND cr.status IN ('OPEN','ONGOING')) AS active_case_count,
+                   h.updated_at
+            FROM household h LEFT JOIN purok p ON p.purok_id = h.purok_id
+            WHERE {whereClause} ORDER BY h.updated_at DESC LIMIT {pageSize} OFFSET {(page - 1) * pageSize}";
+
+        var table = DbHelper.LoadTable(query, cmd => { foreach (var p in parameters) cmd.Parameters.AddWithValue(p.Key, p.Value); });
+        var items = new List<HouseholdListItem>();
+        foreach (DataRow row in table.Rows)
+        {
+            items.Add(new HouseholdListItem
+            {
+                HouseholdId = Convert.ToInt32(row["household_id"]),
+                HouseNo = row["house_no"]?.ToString() ?? string.Empty,
+                Street = row["street"]?.ToString() ?? string.Empty,
+                Subdivision = row["subdivision"]?.ToString() ?? string.Empty,
+                PurokName = row["purok_name"]?.ToString() ?? string.Empty,
+                MemberCount = Convert.ToInt32(row["member_count"]),
+                SeniorCount = Convert.ToInt32(row["senior_count"]),
+                PwdCount = Convert.ToInt32(row["pwd_count"]),
+                FourPsCount = Convert.ToInt32(row["four_ps_count"]),
+                VoterCount = Convert.ToInt32(row["voter_count"]),
+                ActiveCaseCount = Convert.ToInt32(row["active_case_count"]),
+                UpdatedAt = row["updated_at"] != DBNull.Value ? Convert.ToDateTime(row["updated_at"]) : null
+            });
+        }
+        return new HouseholdPageResult { Items = items, TotalCount = totalCount, Page = page, PageSize = pageSize };
+    }
+
+    /// <summary>Gets a household record for editing (2-arg overload).</summary>
     public HouseholdEditRecord? GetForEdit(int householdId, int barangayId)
     {
-        if (householdId <= 0)
-        {
-            return null;
-        }
+        return GetForEdit(householdId);
+    }
 
-        using var conn = DBConnection.GetConnection();
-        conn.Open();
-        using var cmd = new MySqlCommand(
-            @"SELECT household_id, barangay_id, purok_id, house_no, street, subdivision, address_note, latitude, longitude
-              FROM household
-              WHERE household_id = @householdId
-                AND barangay_id = @barangayId
-              LIMIT 1", conn);
-        cmd.Parameters.AddWithValue("@householdId", householdId);
-        cmd.Parameters.AddWithValue("@barangayId", barangayId);
-        using var reader = cmd.ExecuteReader();
-        if (!reader.Read())
-        {
-            return null;
-        }
-
+    /// <summary>Gets a household record for editing.</summary>
+    public HouseholdEditRecord? GetForEdit(int householdId)
+    {
+        var table = DbHelper.LoadTable(
+            "SELECT household_id, purok_id, house_no, street, subdivision, address_note, latitude, longitude FROM household WHERE household_id = @id",
+            cmd => cmd.Parameters.AddWithValue("@id", householdId));
+        if (table.Rows.Count == 0) return null;
+        var row = table.Rows[0];
         return new HouseholdEditRecord
         {
-            HouseholdId = Convert.ToInt32(reader["household_id"]),
-            BarangayId = Convert.ToInt32(reader["barangay_id"]),
-            PurokId = Convert.ToInt32(reader["purok_id"]),
-            HouseNo = Convert.ToString(reader["house_no"]) ?? string.Empty,
-            Street = Convert.ToString(reader["street"]) ?? string.Empty,
-            Subdivision = Convert.ToString(reader["subdivision"]) ?? string.Empty,
-            AddressNote = Convert.ToString(reader["address_note"]) ?? string.Empty,
-            Latitude = reader["latitude"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["latitude"]),
-            Longitude = reader["longitude"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["longitude"])
+            HouseholdId = Convert.ToInt32(row["household_id"]),
+            PurokId = row["purok_id"] != DBNull.Value ? Convert.ToInt32(row["purok_id"]) : null,
+            HouseNo = row["house_no"]?.ToString() ?? string.Empty,
+            Street = row["street"]?.ToString() ?? string.Empty,
+            Subdivision = row["subdivision"]?.ToString() ?? string.Empty,
+            AddressNote = row["address_note"] != DBNull.Value ? row["address_note"]?.ToString() : null,
+            Latitude = row["latitude"] != DBNull.Value ? Convert.ToDouble(row["latitude"]) : null,
+            Longitude = row["longitude"] != DBNull.Value ? Convert.ToDouble(row["longitude"]) : null
         };
     }
 
-    public IReadOnlyList<LookupItem> GetPurokOptions(int barangayId)
+    /// <summary>Gets the members of a household (2-arg overload).</summary>
+    public List<HouseholdMemberRecord> GetMembers(int householdId, int barangayId)
     {
-        int targetBarangayId = ResolveBarangayId(barangayId);
-        var options = new List<LookupItem>();
-
-        using var conn = DBConnection.GetConnection();
-        conn.Open();
-        using var cmd = new MySqlCommand(
-            @"SELECT purok_id, name
-              FROM purok_sitio
-              WHERE barangay_id = @barangayId
-              ORDER BY name", conn);
-        cmd.Parameters.AddWithValue("@barangayId", targetBarangayId);
-        using var reader = cmd.ExecuteReader();
-        while (reader.Read())
-        {
-            options.Add(new LookupItem(
-                Convert.ToInt32(reader["purok_id"]),
-                Convert.ToString(reader["name"]) ?? string.Empty));
-        }
-
-        return options;
+        return GetMembers(householdId);
     }
 
-    public IReadOnlyList<LookupItem> GetHouseholdsForPurok(int barangayId, int? purokId, int? excludeHouseholdId = null)
+    /// <summary>Gets the members of a household.</summary>
+    public List<HouseholdMemberRecord> GetMembers(int householdId)
     {
-        int targetBarangayId = ResolveBarangayId(barangayId);
-        var options = new List<LookupItem>();
+        var table = DbHelper.LoadTable(
+            @"SELECT r.resident_id, CONCAT(r.first_name, ' ', r.last_name) AS full_name,
+                     r.relationship, r.is_household_head, r.status,
+                     (r.photo IS NOT NULL AND LENGTH(r.photo) > 0) AS has_photo,
+                     TIMESTAMPDIFF(YEAR, r.date_of_birth, CURDATE()) AS age,
+                     r.gender AS sex, r.civil_status, r.contact_number AS contact_no
+              FROM resident r
+              WHERE r.household_id = @householdId AND IFNULL(r.is_deleted, 0) = 0
+              ORDER BY r.is_household_head DESC, r.last_name, r.first_name",
+            cmd => cmd.Parameters.AddWithValue("@householdId", householdId));
 
-        using var conn = DBConnection.GetConnection();
-        conn.Open();
-        using var cmd = new MySqlCommand(
-            @"SELECT h.household_id,
-                     h.house_no,
-                     h.street,
-                     h.subdivision,
-                     COALESCE(p.name, '') AS purok_name
-              FROM household h
-              LEFT JOIN purok_sitio p ON p.purok_id = h.purok_id
-              WHERE h.barangay_id = @barangayId
-                AND (@purokId IS NULL OR h.purok_id = @purokId)
-                AND (@excludeHouseholdId IS NULL OR h.household_id <> @excludeHouseholdId)
-              ORDER BY COALESCE(h.street, ''), COALESCE(h.house_no, ''), h.household_id", conn);
-        cmd.Parameters.AddWithValue("@barangayId", targetBarangayId);
-        cmd.Parameters.AddWithValue("@purokId", (object?)purokId ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@excludeHouseholdId", (object?)excludeHouseholdId ?? DBNull.Value);
-
-        using var reader = cmd.ExecuteReader();
-        while (reader.Read())
+        var items = new List<HouseholdMemberRecord>();
+        foreach (DataRow row in table.Rows)
         {
-            int householdId = Convert.ToInt32(reader["household_id"]);
-            string houseNo = Convert.ToString(reader["house_no"]) ?? string.Empty;
-            string street = Convert.ToString(reader["street"]) ?? string.Empty;
-            string subdivision = Convert.ToString(reader["subdivision"]) ?? string.Empty;
-            string purokName = Convert.ToString(reader["purok_name"]) ?? string.Empty;
-            string label = BuildAddressLabel(houseNo, street, subdivision, purokName);
-            if (string.IsNullOrWhiteSpace(label))
+            items.Add(new HouseholdMemberRecord
             {
-                label = $"Household #{householdId}";
-            }
-
-            options.Add(new LookupItem(householdId, label));
+                ResidentId = Convert.ToInt32(row["resident_id"]),
+                FullName = row["full_name"]?.ToString() ?? string.Empty,
+                Relationship = row["relationship"] != DBNull.Value ? row["relationship"]?.ToString() : null,
+                IsHead = row["is_household_head"] != DBNull.Value && Convert.ToBoolean(row["is_household_head"]),
+                Status = row["status"] != DBNull.Value ? row["status"]?.ToString() : null,
+                HasPhoto = row["has_photo"] != DBNull.Value && Convert.ToBoolean(row["has_photo"]),
+                Age = row["age"] != DBNull.Value ? Convert.ToInt32(row["age"]) : null,
+                Sex = row["sex"] != DBNull.Value ? row["sex"]?.ToString() : null,
+                CivilStatus = row["civil_status"] != DBNull.Value ? row["civil_status"]?.ToString() : null,
+                ContactNo = row["contact_no"] != DBNull.Value ? row["contact_no"]?.ToString() : null
+            });
         }
-
-        return options;
+        return items;
     }
 
-    public int Create(HouseholdSaveRequest request)
+    /// <summary>Gets the transfer history for a household (2-arg overload).</summary>
+    public IReadOnlyList<HouseholdTransferHistoryItem> GetTransferHistory(int householdId, int barangayId)
     {
-        if (request == null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
-
-        int barangayId = ResolveBarangayId(request.BarangayId);
-        using var conn = DBConnection.GetConnection();
-        conn.Open();
-        using var tx = conn.BeginTransaction();
-
-        using var cmd = new MySqlCommand(
-            @"INSERT INTO household
-                (barangay_id, purok_id, house_no, street, subdivision, address_note, latitude, longitude, created_at, updated_at)
-              VALUES
-                (@barangayId, @purokId, @houseNo, @street, @subdivision, @addressNote, @latitude, @longitude, NOW(), NOW())",
-            conn,
-            tx);
-        cmd.Parameters.AddWithValue("@barangayId", barangayId);
-        cmd.Parameters.AddWithValue("@purokId", request.PurokId);
-        cmd.Parameters.AddWithValue("@houseNo", ToDbValue(request.HouseNo));
-        cmd.Parameters.AddWithValue("@street", ToDbValue(request.Street));
-        cmd.Parameters.AddWithValue("@subdivision", ToDbValue(request.Subdivision));
-        cmd.Parameters.AddWithValue("@addressNote", ToDbValue(request.AddressNote));
-        cmd.Parameters.AddWithValue("@latitude", request.Latitude.HasValue ? request.Latitude.Value : (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("@longitude", request.Longitude.HasValue ? request.Longitude.Value : (object)DBNull.Value);
-        cmd.ExecuteNonQuery();
-
-        int householdId = (int)cmd.LastInsertedId;
-        object? afterSnapshot = ReadHouseholdAuditSnapshot(conn, tx, householdId);
-        AuditTrailService.LogTransactional(
-            conn,
-            tx,
-            "Households",
-            "household",
-            householdId,
-            "CREATE",
-            null,
-            afterSnapshot,
-            "Household created.");
-
-        tx.Commit();
-        return householdId;
+        return GetTransferHistory(householdId);
     }
 
+    /// <summary>Gets the transfer history for a household.</summary>
+    public List<HouseholdTransferHistoryItem> GetTransferHistory(int householdId)
+    {
+        var table = DbHelper.LoadTable(
+            @"SELECT hh.resident_id, CONCAT(r.first_name, ' ', r.last_name) AS resident_name,
+                     hh.from_household_id, hh.to_household_id, hh.reason, hh.transferred_at,
+                     CONCAT(COALESCE(hf.house_no,''), ' ', COALESCE(hf.street,'')) AS old_address,
+                     CONCAT(COALESCE(ht.house_no,''), ' ', COALESCE(ht.street,'')) AS new_address,
+                     COALESCE(u.username, '') AS transferred_by
+              FROM household_history hh
+              INNER JOIN resident r ON r.resident_id = hh.resident_id
+              LEFT JOIN household hf ON hf.household_id = hh.from_household_id
+              LEFT JOIN household ht ON ht.household_id = hh.to_household_id
+              LEFT JOIN users u ON u.user_id = hh.transferred_by_user_id
+              WHERE hh.from_household_id = @id OR hh.to_household_id = @id
+              ORDER BY hh.transferred_at DESC",
+            cmd => cmd.Parameters.AddWithValue("@id", householdId));
+
+        var items = new List<HouseholdTransferHistoryItem>();
+        foreach (DataRow row in table.Rows)
+        {
+            items.Add(new HouseholdTransferHistoryItem
+            {
+                ResidentId = Convert.ToInt32(row["resident_id"]),
+                ResidentName = row["resident_name"]?.ToString() ?? string.Empty,
+                FromHouseholdId = row["from_household_id"] != DBNull.Value ? Convert.ToInt32(row["from_household_id"]) : null,
+                ToHouseholdId = row["to_household_id"] != DBNull.Value ? Convert.ToInt32(row["to_household_id"]) : null,
+                OldAddress = row["old_address"] != DBNull.Value ? row["old_address"]?.ToString()?.Trim() : null,
+                NewAddress = row["new_address"] != DBNull.Value ? row["new_address"]?.ToString()?.Trim() : null,
+                Reason = row["reason"] != DBNull.Value ? row["reason"]?.ToString() : null,
+                TransferredAt = row["transferred_at"] != DBNull.Value ? Convert.ToDateTime(row["transferred_at"]) : null,
+                TransferredBy = row["transferred_by"] != DBNull.Value ? row["transferred_by"]?.ToString() : null
+            });
+        }
+        return items;
+    }
+
+    /// <summary>Gets residents for the household picker (3-arg overload with search).</summary>
+    public IReadOnlyList<ResidentPickerItem> GetResidentsForHouseholdPicker(int barangayId, int? excludeHouseholdId, string? search)
+    {
+        string sql = @"SELECT r.resident_id, CONCAT(r.first_name, ' ', r.last_name) AS full_name,
+                              COALESCE(p.purok_name, '') AS purok, r.status,
+                              r.contact_number AS contact_no,
+                              CONCAT(COALESCE(h.house_no,''), ' ', COALESCE(h.street,'')) AS current_address
+                       FROM resident r
+                       LEFT JOIN purok p ON p.purok_id = r.purok_id
+                       LEFT JOIN household h ON h.household_id = r.household_id
+                       WHERE r.barangay_id = @barangayId AND IFNULL(r.is_deleted, 0) = 0";
+
+        if (excludeHouseholdId.HasValue)
+            sql += " AND (r.household_id IS NULL OR r.household_id != @excludeId)";
+        if (!string.IsNullOrWhiteSpace(search))
+            sql += " AND CONCAT(r.first_name, ' ', r.last_name) LIKE @search";
+        sql += " ORDER BY r.last_name, r.first_name LIMIT 100";
+
+        var table = DbHelper.LoadTable(sql, cmd =>
+        {
+            cmd.Parameters.AddWithValue("@barangayId", barangayId);
+            if (excludeHouseholdId.HasValue)
+                cmd.Parameters.AddWithValue("@excludeId", excludeHouseholdId.Value);
+            if (!string.IsNullOrWhiteSpace(search))
+                cmd.Parameters.AddWithValue("@search", $"%{search.Trim()}%");
+        });
+
+        var items = new List<ResidentPickerItem>();
+        foreach (DataRow row in table.Rows)
+        {
+            items.Add(new ResidentPickerItem
+            {
+                ResidentId = Convert.ToInt32(row["resident_id"]),
+                FullName = row["full_name"]?.ToString() ?? string.Empty,
+                Purok = row["purok"] != DBNull.Value ? row["purok"]?.ToString() : null,
+                Status = row["status"] != DBNull.Value ? row["status"]?.ToString() : null,
+                ContactNo = row["contact_no"] != DBNull.Value ? row["contact_no"]?.ToString() : null,
+                CurrentAddress = row["current_address"] != DBNull.Value ? row["current_address"]?.ToString()?.Trim() : null
+            });
+        }
+        return items;
+    }
+
+    /// <summary>Gets residents for the household picker (2-arg overload).</summary>
+    public List<ResidentPickerItem> GetResidentsForHouseholdPicker(int barangayId, int? excludeHouseholdId = null)
+    {
+        return new List<ResidentPickerItem>(GetResidentsForHouseholdPicker(barangayId, excludeHouseholdId, null));
+    }
+
+    /// <summary>Gets households for a purok (3-arg overload: barangayId, purokId, excludeHouseholdId).</summary>
+    internal IReadOnlyList<LookupItem> GetHouseholdsForPurok(int barangayId, int? purokId, int? excludeHouseholdId)
+    {
+        string sql = @"SELECT household_id, CONCAT(house_no, ' ', street) AS label
+              FROM household WHERE barangay_id = @barangayId";
+        if (purokId.HasValue)
+            sql += " AND purok_id = @purokId";
+        if (excludeHouseholdId.HasValue)
+            sql += " AND household_id != @excludeId";
+        sql += " ORDER BY house_no";
+
+        var table = DbHelper.LoadTable(sql, cmd =>
+        {
+            cmd.Parameters.AddWithValue("@barangayId", barangayId);
+            if (purokId.HasValue)
+                cmd.Parameters.AddWithValue("@purokId", purokId.Value);
+            if (excludeHouseholdId.HasValue)
+                cmd.Parameters.AddWithValue("@excludeId", excludeHouseholdId.Value);
+        });
+
+        var items = new List<LookupItem>();
+        foreach (DataRow row in table.Rows)
+            items.Add(new LookupItem(Convert.ToInt32(row["household_id"]), row["label"]?.ToString() ?? string.Empty));
+        return items;
+    }
+
+    /// <summary>Gets households in a specific purok (2-arg overload).</summary>
+    internal List<LookupItem> GetHouseholdsForPurok(int purokId, int barangayId)
+    {
+        return new List<LookupItem>(GetHouseholdsForPurok(barangayId, purokId, null));
+    }
+
+    /// <summary>Updates a household from a save request (2-arg: householdId + request).</summary>
     public void Update(int householdId, HouseholdSaveRequest request)
     {
-        if (request == null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
-
-        int barangayId = ResolveBarangayId(request.BarangayId);
-
-        using var conn = DBConnection.GetConnection();
-        conn.Open();
-        using var tx = conn.BeginTransaction();
-
-        object? beforeSnapshot = ReadHouseholdAuditSnapshot(conn, tx, householdId);
-
-        using var cmd = new MySqlCommand(
-            @"UPDATE household
-              SET purok_id = @purokId,
-                  house_no = @houseNo,
-                  street = @street,
-                  subdivision = @subdivision,
-                  address_note = @addressNote,
-                  latitude = @latitude,
-                  longitude = @longitude,
-                  updated_at = NOW()
-              WHERE household_id = @householdId
-                AND barangay_id = @barangayId",
-            conn,
-            tx);
-        cmd.Parameters.AddWithValue("@purokId", request.PurokId);
-        cmd.Parameters.AddWithValue("@houseNo", ToDbValue(request.HouseNo));
-        cmd.Parameters.AddWithValue("@street", ToDbValue(request.Street));
-        cmd.Parameters.AddWithValue("@subdivision", ToDbValue(request.Subdivision));
-        cmd.Parameters.AddWithValue("@addressNote", ToDbValue(request.AddressNote));
-        cmd.Parameters.AddWithValue("@latitude", request.Latitude.HasValue ? request.Latitude.Value : (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("@longitude", request.Longitude.HasValue ? request.Longitude.Value : (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("@householdId", householdId);
-        cmd.Parameters.AddWithValue("@barangayId", barangayId);
-
-        int rows = cmd.ExecuteNonQuery();
-        if (rows <= 0)
-        {
-            throw new InvalidOperationException("Household not found or no longer belongs to this barangay.");
-        }
-
-        object? afterSnapshot = ReadHouseholdAuditSnapshot(conn, tx, householdId);
-        AuditTrailService.LogTransactional(
-            conn,
-            tx,
-            "Households",
-            "household",
-            householdId,
-            "UPDATE",
-            beforeSnapshot,
-            afterSnapshot,
-            "Household updated.");
-
-        tx.Commit();
+        request.HouseholdId = householdId;
+        Update(request);
     }
 
+    /// <summary>Updates a household from a save request.</summary>
+    public void Update(HouseholdSaveRequest request)
+    {
+        if (request.HouseholdId.HasValue)
+        {
+            DbHelper.ExecuteNonQuery(
+                @"UPDATE household SET house_no = @houseNo, street = @street, subdivision = @subdivision,
+                      purok_id = @purokId, address_note = @addressNote, latitude = @lat, longitude = @lng, updated_at = NOW()
+                  WHERE household_id = @id",
+                cmd =>
+                {
+                    cmd.Parameters.AddWithValue("@id", request.HouseholdId.Value);
+                    cmd.Parameters.AddWithValue("@houseNo", request.HouseNo);
+                    cmd.Parameters.AddWithValue("@street", request.Street);
+                    cmd.Parameters.AddWithValue("@subdivision", request.Subdivision);
+                    cmd.Parameters.AddWithValue("@purokId", request.PurokId.HasValue ? request.PurokId.Value : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@addressNote", request.AddressNote ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@lat", request.Latitude.HasValue ? (object)(double)request.Latitude.Value : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@lng", request.Longitude.HasValue ? (object)(double)request.Longitude.Value : DBNull.Value);
+                });
+        }
+        else
+        {
+            Create(request);
+        }
+    }
+
+    /// <summary>Creates a new household from a save request.</summary>
+    public int Create(HouseholdSaveRequest request)
+    {
+        DbHelper.ExecuteNonQuery(
+            @"INSERT INTO household (house_no, street, subdivision, purok_id, address_note, latitude, longitude, barangay_id, updated_at)
+              VALUES (@houseNo, @street, @subdivision, @purokId, @addressNote, @lat, @lng, @barangayId, NOW())",
+            cmd =>
+            {
+                cmd.Parameters.AddWithValue("@houseNo", request.HouseNo);
+                cmd.Parameters.AddWithValue("@street", request.Street);
+                cmd.Parameters.AddWithValue("@subdivision", request.Subdivision);
+                cmd.Parameters.AddWithValue("@purokId", request.PurokId.HasValue ? request.PurokId.Value : DBNull.Value);
+                cmd.Parameters.AddWithValue("@addressNote", request.AddressNote ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@lat", request.Latitude.HasValue ? (object)(double)request.Latitude.Value : DBNull.Value);
+                cmd.Parameters.AddWithValue("@lng", request.Longitude.HasValue ? (object)(double)request.Longitude.Value : DBNull.Value);
+                cmd.Parameters.AddWithValue("@barangayId", request.BarangayId);
+            });
+        return DbHelper.ExecuteScalar<int>("SELECT LAST_INSERT_ID()");
+    }
+
+    /// <summary>Checks if a duplicate address exists (5-arg overload: barangayId, purokId, houseNo, street, excludeId).</summary>
+    public bool ExistsDuplicateAddress(int barangayId, int purokId, string houseNo, string street, int? excludeId)
+    {
+        string sql = @"SELECT COUNT(*) FROM household
+                       WHERE house_no = @houseNo AND street = @street AND barangay_id = @barangayId AND purok_id = @purokId";
+        if (excludeId.HasValue)
+            sql += " AND household_id != @excludeId";
+
+        int count = DbHelper.ExecuteScalar<int>(sql, cmd =>
+        {
+            cmd.Parameters.AddWithValue("@houseNo", houseNo);
+            cmd.Parameters.AddWithValue("@street", street);
+            cmd.Parameters.AddWithValue("@barangayId", barangayId);
+            cmd.Parameters.AddWithValue("@purokId", purokId);
+            if (excludeId.HasValue)
+                cmd.Parameters.AddWithValue("@excludeId", excludeId.Value);
+        });
+        return count > 0;
+    }
+
+    /// <summary>Checks if a duplicate address exists (4-arg overload).</summary>
+    public bool ExistsDuplicateAddress(string houseNo, string street, int barangayId, int? excludeId = null)
+    {
+        string sql = @"SELECT COUNT(*) FROM household WHERE house_no = @houseNo AND street = @street AND barangay_id = @barangayId";
+        if (excludeId.HasValue)
+            sql += " AND household_id != @excludeId";
+        int count = DbHelper.ExecuteScalar<int>(sql, cmd =>
+        {
+            cmd.Parameters.AddWithValue("@houseNo", houseNo);
+            cmd.Parameters.AddWithValue("@street", street);
+            cmd.Parameters.AddWithValue("@barangayId", barangayId);
+            if (excludeId.HasValue)
+                cmd.Parameters.AddWithValue("@excludeId", excludeId.Value);
+        });
+        return count > 0;
+    }
+
+    /// <summary>Tries to delete a household (3-arg overload with out message).</summary>
     public bool TryDelete(int householdId, int barangayId, out string message)
     {
-        message = string.Empty;
-        int targetBarangayId = ResolveBarangayId(barangayId);
+        int memberCount = DbHelper.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM resident WHERE household_id = @id AND IFNULL(is_deleted, 0) = 0",
+            cmd => cmd.Parameters.AddWithValue("@id", householdId));
 
-        using var conn = DBConnection.GetConnection();
-        conn.Open();
-
-        using (var membersCmd = new MySqlCommand(
-                   @"SELECT COUNT(*)
-                     FROM resident
-                     WHERE household_id = @householdId
-                       AND IFNULL(is_deleted,0) = 0",
-                   conn))
+        if (memberCount > 0)
         {
-            membersCmd.Parameters.AddWithValue("@householdId", householdId);
-            int members = Convert.ToInt32(membersCmd.ExecuteScalar() ?? 0);
-            if (members > 0)
-            {
-                message = "Cannot delete a household with assigned members.";
-                return false;
-            }
-        }
-
-        using var tx = conn.BeginTransaction();
-        object? beforeSnapshot = ReadHouseholdAuditSnapshot(conn, tx, householdId);
-        using var deleteCmd = new MySqlCommand(
-            @"DELETE FROM household
-              WHERE household_id = @householdId
-                AND barangay_id = @barangayId",
-            conn,
-            tx);
-        deleteCmd.Parameters.AddWithValue("@householdId", householdId);
-        deleteCmd.Parameters.AddWithValue("@barangayId", targetBarangayId);
-
-        int rows = deleteCmd.ExecuteNonQuery();
-        if (rows <= 0)
-        {
-            tx.Rollback();
-            message = "Household not found.";
+            message = $"Cannot delete household: it still has {memberCount} member(s).";
             return false;
         }
 
-        AuditTrailService.LogTransactional(
-            conn,
-            tx,
-            "Households",
-            "household",
-            householdId,
-            "DELETE",
-            beforeSnapshot,
-            null,
-            "Household deleted.");
-        tx.Commit();
-
+        DbHelper.ExecuteNonQuery(
+            "DELETE FROM household WHERE household_id = @id AND barangay_id = @barangayId",
+            cmd =>
+            {
+                cmd.Parameters.AddWithValue("@id", householdId);
+                cmd.Parameters.AddWithValue("@barangayId", barangayId);
+            });
+        message = string.Empty;
         return true;
     }
 
-    public bool ExistsDuplicateAddress(int barangayId, int purokId, string? houseNo, string? street, int? excludeHouseholdId = null)
+    /// <summary>Tries to delete a household. Returns false if it has members.</summary>
+    public bool TryDelete(int householdId)
     {
-        int targetBarangayId = ResolveBarangayId(barangayId);
-        string normalizedHouseNo = (houseNo ?? string.Empty).Trim();
-        string normalizedStreet = (street ?? string.Empty).Trim();
-
-        using var conn = DBConnection.GetConnection();
-        conn.Open();
-        using var cmd = new MySqlCommand(
-            @"SELECT COUNT(*)
-              FROM household
-              WHERE barangay_id = @barangayId
-                AND purok_id = @purokId
-                AND UPPER(TRIM(COALESCE(house_no, ''))) = UPPER(@houseNo)
-                AND UPPER(TRIM(COALESCE(street, ''))) = UPPER(@street)
-                AND (@excludeId IS NULL OR household_id <> @excludeId)",
-            conn);
-        cmd.Parameters.AddWithValue("@barangayId", targetBarangayId);
-        cmd.Parameters.AddWithValue("@purokId", purokId);
-        cmd.Parameters.AddWithValue("@houseNo", normalizedHouseNo);
-        cmd.Parameters.AddWithValue("@street", normalizedStreet);
-        cmd.Parameters.AddWithValue("@excludeId", (object?)excludeHouseholdId ?? DBNull.Value);
-
-        return Convert.ToInt32(cmd.ExecuteScalar() ?? 0) > 0;
-    }
-
-    public IReadOnlyList<HouseholdMemberRecord> GetMembers(int householdId, int barangayId)
-    {
-        int targetBarangayId = ResolveBarangayId(barangayId);
-        var members = new List<HouseholdMemberRecord>();
-
-        using var conn = DBConnection.GetConnection();
-        conn.Open();
-        using var cmd = new MySqlCommand(
-            @"SELECT r.resident_id,
-                     CONCAT_WS(' ', r.first_name, r.middle_name, r.last_name) AS full_name,
-                     CASE
-                       WHEN r.birth_date IS NULL THEN NULL
-                       ELSE TIMESTAMPDIFF(YEAR, r.birth_date, CURDATE())
-                     END AS age,
-                     COALESCE(r.sex, '') AS sex,
-                     COALESCE(r.civil_status, '') AS civil_status,
-                     COALESCE(r.contact_no, '') AS contact_no,
-                     COALESCE(r.status, 'ACTIVE') AS status,
-                     r.photo
-              FROM resident r
-              WHERE r.household_id = @householdId
-                AND r.barangay_id = @barangayId
-                AND IFNULL(r.is_deleted, 0) = 0
-              ORDER BY r.last_name, r.first_name, r.middle_name",
-            conn);
-        cmd.Parameters.AddWithValue("@householdId", householdId);
-        cmd.Parameters.AddWithValue("@barangayId", targetBarangayId);
-        using var reader = cmd.ExecuteReader();
-        while (reader.Read())
-        {
-            members.Add(new HouseholdMemberRecord
-            {
-                ResidentId = Convert.ToInt32(reader["resident_id"]),
-                FullName = Convert.ToString(reader["full_name"]) ?? string.Empty,
-                Age = reader["age"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["age"]),
-                Sex = Convert.ToString(reader["sex"]) ?? string.Empty,
-                CivilStatus = Convert.ToString(reader["civil_status"]) ?? string.Empty,
-                ContactNo = Convert.ToString(reader["contact_no"]) ?? string.Empty,
-                Status = Convert.ToString(reader["status"]) ?? string.Empty,
-                HasPhoto = reader["photo"] != DBNull.Value
-            });
-        }
-
-        return members;
-    }
-
-    public IReadOnlyList<HouseholdTransferHistoryItem> GetTransferHistory(int householdId, int barangayId)
-    {
-        int targetBarangayId = ResolveBarangayId(barangayId);
-        var history = new List<HouseholdTransferHistoryItem>();
-
-        using var conn = DBConnection.GetConnection();
-        conn.Open();
-        using var cmd = new MySqlCommand(
-            @"SELECT th.transfer_id,
-                     th.resident_id,
-                     CONCAT_WS(' ', r.first_name, r.middle_name, r.last_name) AS resident_name,
-                     COALESCE(th.old_address, '') AS old_address,
-                     COALESCE(th.new_address, '') AS new_address,
-                     COALESCE(th.transfer_reason, '') AS transfer_reason,
-                     COALESCE(NULLIF(ua.full_name, ''), ua.username, CONCAT('User #', th.transferred_by_user_id)) AS transferred_by,
-                     th.transferred_at
-              FROM resident_transfer_history th
-              INNER JOIN resident r ON r.resident_id = th.resident_id
-              LEFT JOIN user_account ua ON ua.user_id = th.transferred_by_user_id
-              WHERE r.barangay_id = @barangayId
-                AND (th.old_household_id = @householdId OR th.new_household_id = @householdId)
-              ORDER BY th.transferred_at DESC, th.transfer_id DESC",
-            conn);
-        cmd.Parameters.AddWithValue("@householdId", householdId);
-        cmd.Parameters.AddWithValue("@barangayId", targetBarangayId);
-        using var reader = cmd.ExecuteReader();
-        while (reader.Read())
-        {
-            history.Add(new HouseholdTransferHistoryItem
-            {
-                TransferId = Convert.ToInt64(reader["transfer_id"]),
-                ResidentId = Convert.ToInt32(reader["resident_id"]),
-                ResidentName = Convert.ToString(reader["resident_name"]) ?? string.Empty,
-                OldAddress = Convert.ToString(reader["old_address"]) ?? string.Empty,
-                NewAddress = Convert.ToString(reader["new_address"]) ?? string.Empty,
-                Reason = Convert.ToString(reader["transfer_reason"]) ?? string.Empty,
-                TransferredBy = Convert.ToString(reader["transferred_by"]) ?? string.Empty,
-                TransferredAt = reader["transferred_at"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["transferred_at"])
-            });
-        }
-
-        return history;
-    }
-
-    public IReadOnlyList<ResidentPickerItem> GetResidentsForHouseholdPicker(int barangayId, int targetHouseholdId, string? searchText)
-    {
-        int targetBarangayId = ResolveBarangayId(barangayId);
-        string search = (searchText ?? string.Empty).Trim();
-        string searchLike = $"%{search}%";
-        var residents = new List<ResidentPickerItem>();
-
-        using var conn = DBConnection.GetConnection();
-        conn.Open();
-        using var cmd = new MySqlCommand(
-            @"SELECT r.resident_id,
-                     CONCAT_WS(' ', r.first_name, r.middle_name, r.last_name) AS full_name,
-                     COALESCE(r.contact_no, '') AS contact_no,
-                     r.household_id,
-                     r.purok_id,
-                     COALESCE(h.house_no, '') AS house_no,
-                     COALESCE(h.street, '') AS street,
-                     COALESCE(h.subdivision, '') AS subdivision,
-                     COALESCE(p.name, '') AS purok_name
-              FROM resident r
-              LEFT JOIN household h ON h.household_id = r.household_id
-              LEFT JOIN purok_sitio p ON p.purok_id = r.purok_id
-              WHERE r.barangay_id = @barangayId
-                AND IFNULL(r.is_deleted, 0) = 0
-                AND (r.status IS NULL OR UPPER(r.status) = 'ACTIVE')
-                AND (r.household_id IS NULL OR r.household_id <> @targetHouseholdId)
-                AND (@searchText = '' OR
-                     CONCAT_WS(' ', r.first_name, r.middle_name, r.last_name) LIKE @searchLike OR
-                     COALESCE(r.contact_no, '') LIKE @searchLike)
-              ORDER BY r.last_name, r.first_name, r.middle_name
-              LIMIT 200",
-            conn);
-        cmd.Parameters.AddWithValue("@barangayId", targetBarangayId);
-        cmd.Parameters.AddWithValue("@targetHouseholdId", targetHouseholdId);
-        cmd.Parameters.AddWithValue("@searchText", search);
-        cmd.Parameters.AddWithValue("@searchLike", searchLike);
-        using var reader = cmd.ExecuteReader();
-        while (reader.Read())
-        {
-            string houseNo = Convert.ToString(reader["house_no"]) ?? string.Empty;
-            string street = Convert.ToString(reader["street"]) ?? string.Empty;
-            string subdivision = Convert.ToString(reader["subdivision"]) ?? string.Empty;
-            string purokName = Convert.ToString(reader["purok_name"]) ?? string.Empty;
-            residents.Add(new ResidentPickerItem
-            {
-                ResidentId = Convert.ToInt32(reader["resident_id"]),
-                FullName = Convert.ToString(reader["full_name"]) ?? string.Empty,
-                ContactNo = Convert.ToString(reader["contact_no"]) ?? string.Empty,
-                CurrentHouseholdId = reader["household_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["household_id"]),
-                CurrentPurokId = reader["purok_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["purok_id"]),
-                CurrentAddress = BuildAddressLabel(houseNo, street, subdivision, purokName)
-            });
-        }
-
-        return residents;
-    }
-
-    public ResidentLocationSnapshot GetResidentLocationSnapshot(MySqlConnection conn, MySqlTransaction tx, int residentId)
-    {
-        using var cmd = new MySqlCommand(
-            @"SELECT r.purok_id,
-                     r.household_id,
-                     COALESCE(p.name, '') AS purok_name,
-                     COALESCE(h.house_no, '') AS house_no,
-                     COALESCE(h.street, '') AS street,
-                     COALESCE(h.subdivision, '') AS subdivision
-              FROM resident r
-              LEFT JOIN purok_sitio p ON p.purok_id = r.purok_id
-              LEFT JOIN household h ON h.household_id = r.household_id
-              WHERE r.resident_id = @residentId
-              LIMIT 1",
-            conn,
-            tx);
-        cmd.Parameters.AddWithValue("@residentId", residentId);
-        using var reader = cmd.ExecuteReader();
-        if (!reader.Read())
-        {
-            return new ResidentLocationSnapshot();
-        }
-
-        int? purokId = reader["purok_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["purok_id"]);
-        int? householdId = reader["household_id"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["household_id"]);
-        string purokName = Convert.ToString(reader["purok_name"]) ?? string.Empty;
-        string houseNo = Convert.ToString(reader["house_no"]) ?? string.Empty;
-        string street = Convert.ToString(reader["street"]) ?? string.Empty;
-        string subdivision = Convert.ToString(reader["subdivision"]) ?? string.Empty;
-
-        return new ResidentLocationSnapshot
-        {
-            PurokId = purokId,
-            HouseholdId = householdId,
-            AddressLabel = BuildAddressLabel(houseNo, street, subdivision, purokName)
-        };
-    }
-
-    public static int ResolveBarangayId(int barangayId)
-    {
-        if (barangayId > 0)
-        {
-            return barangayId;
-        }
-
-        if (UserSession.BarangayId > 0)
-        {
-            return UserSession.BarangayId;
-        }
-
-        return SchemaDefaults.DefaultBarangayId;
-    }
-
-    public static string BuildAddressLabel(string? houseNo, string? street, string? subdivision, string? purokName)
-    {
-        string h = (houseNo ?? string.Empty).Trim();
-        string s = (street ?? string.Empty).Trim();
-        string sub = (subdivision ?? string.Empty).Trim();
-        string purok = (purokName ?? string.Empty).Trim();
-
-        var left = new List<string>();
-        if (!string.IsNullOrWhiteSpace(h))
-        {
-            left.Add(h);
-        }
-        if (!string.IsNullOrWhiteSpace(s))
-        {
-            left.Add(s);
-        }
-        if (!string.IsNullOrWhiteSpace(sub))
-        {
-            left.Add(sub);
-        }
-
-        string address = string.Join(", ", left);
-        if (!string.IsNullOrWhiteSpace(address) && !string.IsNullOrWhiteSpace(purok))
-        {
-            return address + ", " + purok;
-        }
-
-        if (!string.IsNullOrWhiteSpace(address))
-        {
-            return address;
-        }
-
-        return purok;
-    }
-
-    private static HouseholdListFilters NormalizeFilters(HouseholdListFilters filters)
-    {
-        HouseholdListFilters source = filters ?? new HouseholdListFilters();
-        int page = source.PageNumber <= 0 ? 1 : source.PageNumber;
-        int size = source.PageSize <= 0 ? 25 : source.PageSize;
-        size = Math.Min(size, MaxPageSize);
-
-        return new HouseholdListFilters
-        {
-            BarangayId = ResolveBarangayId(source.BarangayId),
-            SearchText = (source.SearchText ?? string.Empty).Trim(),
-            PurokId = source.PurokId,
-            WithSeniors = source.WithSeniors,
-            WithPwd = source.WithPwd,
-            With4Ps = source.With4Ps,
-            EmptyHouseholdOnly = source.EmptyHouseholdOnly,
-            HasActiveCasesOnly = source.HasActiveCasesOnly,
-            PageNumber = page,
-            PageSize = size
-        };
-    }
-
-    private static void AddListParameters(MySqlCommand cmd, HouseholdListFilters filters)
-    {
-        string searchText = filters.SearchText ?? string.Empty;
-        cmd.Parameters.AddWithValue("@barangayId", filters.BarangayId);
-        cmd.Parameters.AddWithValue("@purokId", (object?)filters.PurokId ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@searchText", searchText);
-        cmd.Parameters.AddWithValue("@searchLike", $"%{searchText}%");
-        cmd.Parameters.AddWithValue("@withSeniors", filters.WithSeniors ? 1 : 0);
-        cmd.Parameters.AddWithValue("@withPwd", filters.WithPwd ? 1 : 0);
-        cmd.Parameters.AddWithValue("@with4Ps", filters.With4Ps ? 1 : 0);
-        cmd.Parameters.AddWithValue("@emptyOnly", filters.EmptyHouseholdOnly ? 1 : 0);
-        cmd.Parameters.AddWithValue("@hasActiveCases", filters.HasActiveCasesOnly ? 1 : 0);
-    }
-
-    private static object ToDbValue(string? value)
-    {
-        string cleaned = (value ?? string.Empty).Trim();
-        return string.IsNullOrWhiteSpace(cleaned) ? DBNull.Value : cleaned;
-    }
-
-    private static object? ReadHouseholdAuditSnapshot(MySqlConnection conn, MySqlTransaction? tx, int householdId)
-    {
-        using var cmd = new MySqlCommand(
-            @"SELECT household_id, barangay_id, purok_id, house_no, street, subdivision, address_note, latitude, longitude, updated_at
-              FROM household
-              WHERE household_id = @householdId
-              LIMIT 1",
-            conn,
-            tx);
-        cmd.Parameters.AddWithValue("@householdId", householdId);
-        using var reader = cmd.ExecuteReader();
-        if (!reader.Read())
-        {
-            return null;
-        }
-
-        return new
-        {
-            HouseholdId = Convert.ToInt32(reader["household_id"]),
-            BarangayId = Convert.ToInt32(reader["barangay_id"]),
-            PurokId = Convert.ToInt32(reader["purok_id"]),
-            HouseNo = Convert.ToString(reader["house_no"]) ?? string.Empty,
-            Street = Convert.ToString(reader["street"]) ?? string.Empty,
-            Subdivision = Convert.ToString(reader["subdivision"]) ?? string.Empty,
-            AddressNote = Convert.ToString(reader["address_note"]) ?? string.Empty,
-            Latitude = reader["latitude"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["latitude"]),
-            Longitude = reader["longitude"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(reader["longitude"]),
-            UpdatedAt = reader["updated_at"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["updated_at"])
-        };
+        return TryDelete(householdId, 0, out _);
     }
 }

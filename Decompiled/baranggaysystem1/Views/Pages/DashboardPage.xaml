@@ -1,0 +1,382 @@
+<UserControl x:Class="baranggaysystem1.Views.Pages.DashboardPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:fa="clr-namespace:FontAwesome.Sharp;assembly=FontAwesome.Sharp" Background="{StaticResource PageBgBrush}" xmlns:pages="clr-namespace:baranggaysystem1.Views.Pages;assembly=baranggaysystem1">
+  <FrameworkElement.Resources>
+    <ResourceDictionary>
+      <Style x:Key="ReminderSurfaceCardStyle" TargetType="{x:Type Border}">
+        <Setter Property="Background" Value="#FFFFFFFF" />
+        <Setter Property="BorderBrush" Value="{StaticResource Slate100Brush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Border.CornerRadius" Value="18" />
+        <Setter Property="Border.Padding" Value="22,18" />
+        <Setter Property="UIElement.Effect">
+          <Setter.Value>
+            <DropShadowEffect BlurRadius="22" ShadowDepth="2" Opacity="0.06" Direction="270" />
+          </Setter.Value>
+        </Setter>
+      </Style>
+      <Style x:Key="ReminderMetricCardStyle" TargetType="{x:Type Border}" BasedOn="{StaticResource ReminderSurfaceCardStyle}">
+        <Setter Property="Border.Padding" Value="14,10" />
+      </Style>
+      <Style x:Key="ReminderMetricLabelStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource SmallTextStyle}">
+        <Setter Property="Foreground" Value="{StaticResource Slate500Brush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontSize" Value="9.5" />
+      </Style>
+      <Style x:Key="ReminderMetricValueStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource HeadingTextStyle}">
+        <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
+        <Setter Property="FontSize" Value="18" />
+      </Style>
+    </ResourceDictionary>
+  </FrameworkElement.Resources>
+  <ScrollViewer Name="pageScrollViewer" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <StackPanel>
+      <StackPanel Name="reminderCenterSection">
+        <Border Margin="20,16,20,0" CornerRadius="16" ClipToBounds="True">
+          <Border.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+              <GradientStop Color="#0F172A" Offset="0" />
+              <GradientStop Color="#1D4ED8" Offset="1" />
+            </LinearGradientBrush>
+          </Border.Background>
+          <Grid>
+            <fa:IconBlock Icon="Bell" Opacity="0.06" FontSize="170" Foreground="#FFFFFFFF" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,-48,0" />
+            <Grid Margin="18,14">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <StackPanel Grid.Column="0">
+                <Border Background="#172554" HorizontalAlignment="Left" Padding="10,2" CornerRadius="999" Margin="0,0,0,6">
+                  <TextBlock Text="DASHBOARD ENTRY" Foreground="#FFFFFFFF" FontSize="9.5" FontWeight="Bold" />
+                </Border>
+                <TextBlock Name="reminderStatusNote" Text="Loading reminders..." Foreground="#DBEAFE" FontSize="12" TextWrapping="Wrap" />
+              </StackPanel>
+              <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Style="{StaticResource SecondaryButtonStyle}" Height="34" Padding="14,0" MinWidth="92" Margin="0,0,8,0" Click="BtnRefreshReminderCenter_Click">
+                  <StackPanel Orientation="Horizontal">
+                    <fa:IconBlock Icon="SyncAlt" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center" />
+                    <TextBlock Text="Refresh" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Button>
+                <Button Style="{StaticResource PrimaryButtonStyle}" Height="34" Padding="14,0" MinWidth="120" Click="BtnOpenDashboardOverview_Click">
+                  <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Dashboard" VerticalAlignment="Center" />
+                    <fa:IconBlock Icon="ArrowRight" FontSize="11" Margin="8,0,0,0" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Button>
+              </StackPanel>
+            </Grid>
+          </Grid>
+        </Border>
+        <Grid Margin="20,12,20,0">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+          <Border Grid.Column="0" Style="{StaticResource ReminderMetricCardStyle}" Margin="0,0,12,0">
+            <StackPanel>
+              <TextBlock Text="Urgent" Style="{StaticResource ReminderMetricLabelStyle}" />
+              <TextBlock Name="urgentReminderCountText" Text="0" Style="{StaticResource ReminderMetricValueStyle}" Margin="0,6,0,0" />
+            </StackPanel>
+          </Border>
+          <Border Grid.Column="1" Style="{StaticResource ReminderMetricCardStyle}" Margin="0,0,12,0">
+            <StackPanel>
+              <TextBlock Text="Important Notifications" Style="{StaticResource ReminderMetricLabelStyle}" />
+              <TextBlock Name="importantReminderCountText" Text="0" Style="{StaticResource ReminderMetricValueStyle}" Margin="0,6,0,0" />
+            </StackPanel>
+          </Border>
+          <Border Grid.Column="2" Style="{StaticResource ReminderMetricCardStyle}">
+            <StackPanel>
+              <TextBlock Text="Plans And Schedules" Style="{StaticResource ReminderMetricLabelStyle}" />
+              <TextBlock Name="planReminderCountText" Text="0" Style="{StaticResource ReminderMetricValueStyle}" Margin="0,6,0,0" />
+            </StackPanel>
+          </Border>
+        </Grid>
+        <Grid Margin="20,18,20,20">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1.35*" />
+            <ColumnDefinition Width="0.95*" />
+          </Grid.ColumnDefinitions>
+          <Border Grid.Column="0" Style="{StaticResource ReminderSurfaceCardStyle}" Margin="0,0,14,0">
+            <StackPanel>
+              <Grid Margin="0,0,0,18">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                  <TextBlock Text="Important Notifications" Style="{StaticResource SectionHeaderTextStyle}" />
+                  <TextBlock Text="Open the day's urgent requests, case alerts, and high-priority notices before moving into the full dashboard." Style="{StaticResource SmallTextStyle}" Foreground="{StaticResource Slate500Brush}" Margin="0,4,0,0" TextWrapping="Wrap" />
+                </StackPanel>
+                <Border Grid.Column="1" Background="#EFF6FF" CornerRadius="999" Padding="10,4" VerticalAlignment="Top">
+                  <StackPanel Orientation="Horizontal">
+                    <fa:IconBlock Icon="ExclamationCircle" Foreground="#1D4ED8" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center" />
+                    <TextBlock Text="Priority Inbox" FontSize="10.5" FontWeight="Bold" Foreground="#1D4ED8" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Border>
+              </Grid>
+              <StackPanel Name="importantReminderCards" />
+            </StackPanel>
+          </Border>
+          <StackPanel Grid.Column="1">
+            <Border Style="{StaticResource ReminderSurfaceCardStyle}" Margin="0,0,0,14">
+              <StackPanel>
+                <Grid Margin="0,0,0,18">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                  </Grid.ColumnDefinitions>
+                  <StackPanel>
+                    <TextBlock Text="Plans And Upcoming Work" Style="{StaticResource SectionHeaderTextStyle}" />
+                    <TextBlock Text="Review scheduled mediations, planned initiatives, and projects that are about to start or hit their target dates." Style="{StaticResource SmallTextStyle}" Foreground="{StaticResource Slate500Brush}" Margin="0,4,0,0" TextWrapping="Wrap" />
+                  </StackPanel>
+                  <Border Grid.Column="1" Background="#ECFDF5" CornerRadius="999" Padding="10,4" VerticalAlignment="Top">
+                    <StackPanel Orientation="Horizontal">
+                      <fa:IconBlock Icon="CalendarCheck" Foreground="#047857" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center" />
+                      <TextBlock Text="Plans First" FontSize="10.5" FontWeight="Bold" Foreground="#047857" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </Border>
+                </Grid>
+                <StackPanel Name="planReminderCards" />
+              </StackPanel>
+            </Border>
+            <Border Style="{StaticResource ReminderSurfaceCardStyle}">
+              <StackPanel>
+                <TextBlock Text="Next Step" Style="{StaticResource SectionHeaderTextStyle}" />
+                <TextBlock Text="Once you've checked the urgent items and plans, continue to the normal dashboard for KPIs, shortcuts, announcements, and project snapshots." Style="{StaticResource SmallTextStyle}" Foreground="{StaticResource Slate500Brush}" Margin="0,8,0,18" TextWrapping="Wrap" />
+                <Button Style="{StaticResource PrimaryButtonStyle}" Height="40" Padding="16,0" Click="BtnOpenDashboardOverview_Click">
+                  <StackPanel Orientation="Horizontal">
+                    <fa:IconBlock Icon="ChartPie" FontSize="12" Margin="0,0,8,0" VerticalAlignment="Center" />
+                    <TextBlock Text="Continue to KPI Dashboard" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Button>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </Grid>
+      </StackPanel>
+      <StackPanel Name="dashboardOverviewSection" Visibility="Collapsed">
+        <Border Margin="20,20,20,0" CornerRadius="16" ClipToBounds="True">
+          <Border.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+              <GradientStop Color="#1E293B" Offset="0" />
+              <GradientStop Color="#334155" Offset="1" />
+            </LinearGradientBrush>
+          </Border.Background>
+          <Grid>
+            <fa:IconBlock Icon="LayerGroup" Opacity="0.05" FontSize="300" Foreground="#FFFFFFFF" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-100,-100" />
+            <Grid Margin="32,28">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <StackPanel Grid.Column="0">
+                <Border Background="#3B82F6" HorizontalAlignment="Left" Padding="10,2" CornerRadius="4" Margin="0,0,0,12">
+                  <TextBlock Name="welcomeGreeting" Text="GOOD MORNING, ADMINISTRATOR" Foreground="#FFFFFFFF" FontSize="10" FontWeight="Black" />
+                </Border>
+                <TextBlock Text="Barangay Dashboard" Foreground="#FFFFFFFF" FontSize="28" FontWeight="Bold" FontFamily="{StaticResource CenturyGothic}" />
+                <StackPanel Orientation="Horizontal" Margin="0,4,0,0" Visibility="Collapsed">
+                  <fa:IconBlock Icon="CalendarAlt" Foreground="#94A3B8" FontSize="12" VerticalAlignment="Center" Margin="0,0,8,0" />
+                  <TextBlock Name="welcomeDate" Text="Monday, April 14, 2026" Foreground="#94A3B8" FontSize="13" VerticalAlignment="Center" />
+                </StackPanel>
+              </StackPanel>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <Button Style="{StaticResource SecondaryButtonStyle}" Height="36" Padding="14,0" Margin="0,0,0,10" Click="BtnOpenReminderCenter_Click">
+                  <StackPanel Orientation="Horizontal">
+                    <fa:IconBlock Icon="Bell" FontSize="11" Margin="0,0,8,0" VerticalAlignment="Center" />
+                    <TextBlock Text="Reminder Center" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Button>
+                <Border Background="#1E293B" BorderBrush="#475569" BorderThickness="1" Padding="16,10" CornerRadius="12">
+                  <StackPanel Orientation="Horizontal">
+                    <Border Width="12" Height="12" CornerRadius="6" Background="#22C55E" Margin="0,0,10,0" VerticalAlignment="Center">
+                      <UIElement.Effect>
+                        <BlurEffect Radius="4" />
+                      </UIElement.Effect>
+                    </Border>
+                    <TextBlock Text="ONLINE" Foreground="#FFFFFFFF" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Border>
+              </StackPanel>
+            </Grid>
+          </Grid>
+        </Border>
+        <Grid Name="kpiRow" Margin="20,20,20,0">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+          <Border Grid.Column="0" Margin="0,0,8,0" Style="{StaticResource KpiCardStyle}">
+            <StackPanel Margin="20">
+              <Border Width="56" Height="56" CornerRadius="14" Background="#F0FDF4" HorizontalAlignment="Left">
+                <fa:IconBlock Icon="Users" Foreground="#22C55E" FontSize="26" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <TextBlock Text="Residents" Style="{StaticResource LabelTextStyle}" Margin="0,14,0,4" />
+              <TextBlock Name="statResidentsValue" Text="0" Style="{StaticResource ValueTextStyle}" />
+            </StackPanel>
+          </Border>
+          <Border Grid.Column="1" Margin="0,0,8,0" Style="{StaticResource KpiCardStyle}">
+            <StackPanel Margin="20">
+              <Border Width="56" Height="56" CornerRadius="14" Background="#EFF6FF" HorizontalAlignment="Left">
+                <fa:IconBlock Icon="UserCheck" Foreground="#3B82F6" FontSize="26" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <TextBlock Text="Active" Style="{StaticResource LabelTextStyle}" Margin="0,14,0,4" />
+              <TextBlock Name="statActiveValue" Text="0" Style="{StaticResource ValueTextStyle}" />
+            </StackPanel>
+          </Border>
+          <Border Grid.Column="2" Margin="0,0,8,0" Style="{StaticResource KpiCardStyle}">
+            <StackPanel Margin="20">
+              <Border Width="56" Height="56" CornerRadius="14" Background="#F5F3FF" HorizontalAlignment="Left">
+                <fa:IconBlock Icon="Home" Foreground="#8B5CF6" FontSize="26" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <TextBlock Text="Households" Style="{StaticResource LabelTextStyle}" Margin="0,14,0,4" />
+              <TextBlock Name="statHouseholdsValue" Text="0" Style="{StaticResource ValueTextStyle}" />
+            </StackPanel>
+          </Border>
+          <Border Grid.Column="3" Margin="0,0,8,0" Style="{StaticResource KpiCardStyle}">
+            <StackPanel Margin="20">
+              <Border Width="56" Height="56" CornerRadius="14" Background="#FFFBEB" HorizontalAlignment="Left">
+                <fa:IconBlock Icon="FileContract" Foreground="#F59E0B" FontSize="26" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <TextBlock Text="Pending Docs" Style="{StaticResource LabelTextStyle}" Margin="0,14,0,4" />
+              <TextBlock Name="statCertsValue" Text="0" Style="{StaticResource ValueTextStyle}" />
+            </StackPanel>
+          </Border>
+          <Border Name="kpiBlotter" Grid.Column="4" Style="{StaticResource KpiCardStyle}">
+            <StackPanel Margin="20">
+              <Border Width="56" Height="56" CornerRadius="14" Background="#FEF2F2" HorizontalAlignment="Left">
+                <fa:IconBlock Icon="Gavel" Foreground="#EF4444" FontSize="26" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <TextBlock Text="Blotters" Style="{StaticResource LabelTextStyle}" Margin="0,14,0,4" />
+              <TextBlock Name="statBlotterValue" Text="0" Style="{StaticResource ValueTextStyle}" />
+            </StackPanel>
+          </Border>
+        </Grid>
+        <Grid Margin="20,20,20,20">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="320" />
+          </Grid.ColumnDefinitions>
+          <StackPanel Grid.Column="0" Margin="0,0,20,0">
+            <TextBlock Text="Quick Actions" Style="{StaticResource SectionHeaderTextStyle}" Margin="0,0,0,16" />
+            <UniformGrid Name="quickLaunchGrid" Columns="4" Rows="1" Height="104" Margin="0,0,0,24">
+              <Button Name="quickTileResident" Style="{StaticResource TileButtonStyle}" Margin="0,0,10,0" Click="QuickAddResident_Click">
+                <StackPanel>
+                  <fa:IconBlock Icon="UserPlus" FontSize="30" Margin="0,0,0,10" />
+                  <TextBlock Text="Resident" FontSize="12" FontWeight="SemiBold" />
+                </StackPanel>
+              </Button>
+              <Button Name="quickTileCert" Style="{StaticResource TileButtonStyle}" Margin="0,0,10,0" Click="QuickAddCertificate_Click">
+                <StackPanel>
+                  <fa:IconBlock Icon="FileContract" FontSize="30" Margin="0,0,0,10" />
+                  <TextBlock Text="Document" FontSize="12" FontWeight="SemiBold" />
+                </StackPanel>
+              </Button>
+              <Button Name="quickTileBlotter" Style="{StaticResource TileButtonStyle}" Margin="0,0,10,0" Click="QuickAddBlotter_Click">
+                <StackPanel>
+                  <fa:IconBlock Icon="ShieldAlt" FontSize="30" Margin="0,0,0,10" />
+                  <TextBlock Text="Blotter" FontSize="12" FontWeight="SemiBold" />
+                </StackPanel>
+              </Button>
+              <Button Name="quickTileReports" Style="{StaticResource TileButtonStyle}" Click="QuickOpenReports_Click">
+                <StackPanel>
+                  <fa:IconBlock Icon="ChartBar" FontSize="30" Margin="0,0,0,10" />
+                  <TextBlock Text="Reports" FontSize="12" FontWeight="SemiBold" />
+                </StackPanel>
+              </Button>
+            </UniformGrid>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*" />
+                <ColumnDefinition Width="1*" />
+              </Grid.ColumnDefinitions>
+              <Border Grid.Column="0" Margin="0,0,10,0" Style="{StaticResource CardStyle}" Padding="20">
+                <DockPanel>
+                  <Grid DockPanel.Dock="Top" Margin="0,0,0,16">
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*" />
+                      <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Announcements" Style="{StaticResource SectionHeaderTextStyle}" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                      <Button Name="btnAnnouncementRegistry" Content="Registry" Style="{StaticResource GhostButtonStyle}" Margin="0,0,8,0" Click="BtnOpenGovernanceRegistry_Click" />
+                      <Button Name="btnAnnouncementNew" Content="+ New" Style="{StaticResource GhostButtonStyle}" Click="BtnAnnouncementNew_Click" />
+                    </StackPanel>
+                  </Grid>
+                  <ScrollViewer VerticalScrollBarVisibility="Auto" Height="250">
+                    <StackPanel Name="announcementCards" />
+                  </ScrollViewer>
+                </DockPanel>
+              </Border>
+              <Border Name="projectsPanel" Grid.Column="1" Style="{StaticResource CardStyle}" Padding="20">
+                <DockPanel>
+                  <Grid DockPanel.Dock="Top" Margin="0,0,0,16">
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*" />
+                      <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Projects" Style="{StaticResource SectionHeaderTextStyle}" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                      <Button Name="btnProjectRegistry" Content="Registry" Style="{StaticResource GhostButtonStyle}" Margin="0,0,8,0" Click="BtnOpenGovernanceRegistry_Click" />
+                      <Button Name="btnProjectNew" Content="+ New" Style="{StaticResource GhostButtonStyle}" Click="BtnProjectNew_Click" />
+                    </StackPanel>
+                  </Grid>
+                  <ScrollViewer VerticalScrollBarVisibility="Auto" Height="250">
+                    <StackPanel Name="projectCards" />
+                  </ScrollViewer>
+                </DockPanel>
+              </Border>
+            </Grid>
+          </StackPanel>
+          <StackPanel Grid.Column="1">
+            <Border Name="governanceToolsPanel" Style="{StaticResource CardStyle}" Padding="20" Margin="0,0,0,20">
+              <StackPanel>
+                <TextBlock Text="Tools" Style="{StaticResource SectionHeaderTextStyle}" Margin="0,0,0,16" />
+                <Button Style="{StaticResource MenuActionButtonStyle}" Margin="0,0,0,8">
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="Auto" />
+                      <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <fa:IconBlock Grid.Column="0" Icon="Database" FontSize="18" Margin="0,0,12,0" />
+                    <TextBlock Grid.Column="1" Text="Backup" />
+                  </Grid>
+                </Button>
+                <Button Style="{StaticResource MenuActionButtonStyle}" Margin="0,0,0,8">
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="Auto" />
+                      <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <fa:IconBlock Grid.Column="0" Icon="Cog" FontSize="18" Margin="0,0,12,0" />
+                    <TextBlock Grid.Column="1" Text="Settings" />
+                  </Grid>
+                </Button>
+                <Border Background="#F8FAFC" CornerRadius="8" Padding="12" Margin="0,16,0,0">
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="Auto" />
+                      <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <fa:IconBlock Icon="CheckCircle" FontSize="16" Foreground="#16A34A" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="Database ready" Margin="10,0,0,0" FontSize="11" FontWeight="Bold" Foreground="#166534" VerticalAlignment="Center" />
+                  </Grid>
+                </Border>
+              </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardStyle}" Padding="20">
+              <StackPanel>
+                <TextBlock Text="Calendar" Style="{StaticResource SectionHeaderTextStyle}" Margin="0,0,0,16" />
+                <Calendar Name="actionCalendar" HorizontalAlignment="Center" BorderThickness="0" />
+                <TextBlock Name="calendarInfoText" Text="Daily operations schedule view." Style="{StaticResource SmallTextStyle}" HorizontalAlignment="Center" Margin="0,12,0,0" Opacity="0.5" Visibility="Collapsed" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </Grid>
+      </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

@@ -1,6 +1,6 @@
 using System;
+using System.Data;
 using baranggaysystem1.Database;
-using MySql.Data.MySqlClient;
 
 namespace baranggaysystem1.helper;
 
@@ -32,9 +32,6 @@ internal static class ResidentDuplicateService
             return null;
         }
 
-        using MySqlConnection conn = DBConnection.GetConnection();
-        conn.Open();
-
         const string sql = @"
 SELECT
     r.resident_id,
@@ -62,33 +59,37 @@ WHERE
     )
 LIMIT 1";
 
-        using MySqlCommand cmd = new MySqlCommand(sql, conn);
-        cmd.Parameters.AddWithValue("@firstName", firstName);
-        cmd.Parameters.AddWithValue("@middleName", middleName);
-        cmd.Parameters.AddWithValue("@lastName", lastName);
-        cmd.Parameters.AddWithValue("@birthDate", resident.DateOfBirth.Date);
-        cmd.Parameters.AddWithValue("@householdId", resident.HouseholdId.HasValue ? resident.HouseholdId.Value : (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("@barangayId", barangayId);
-        cmd.Parameters.AddWithValue("@purokId", purokId);
-        cmd.Parameters.AddWithValue("@excludeResidentId", excludeResidentId.HasValue ? excludeResidentId.Value : (object)DBNull.Value);
+        DataTable table = DbHelper.LoadTable(
+            sql,
+            cmd =>
+            {
+                cmd.Parameters.AddWithValue("@firstName", firstName);
+                cmd.Parameters.AddWithValue("@middleName", middleName);
+                cmd.Parameters.AddWithValue("@lastName", lastName);
+                cmd.Parameters.AddWithValue("@birthDate", resident.DateOfBirth.Date);
+                cmd.Parameters.AddWithValue("@householdId", resident.HouseholdId.HasValue ? resident.HouseholdId.Value : (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@barangayId", barangayId);
+                cmd.Parameters.AddWithValue("@purokId", purokId);
+                cmd.Parameters.AddWithValue("@excludeResidentId", excludeResidentId.HasValue ? excludeResidentId.Value : (object)DBNull.Value);
+            });
 
-        using MySqlDataReader reader = cmd.ExecuteReader();
-        if (!reader.Read())
+        if (table.Rows.Count == 0)
         {
             return null;
         }
 
+        DataRow row = table.Rows[0];
         return new ResidentDuplicateMatch
         {
-            ResidentId = Convert.ToInt32(reader["resident_id"]),
+            ResidentId = Convert.ToInt32(row["resident_id"]),
             FullName = string.Join(" ", new[]
             {
-                Convert.ToString(reader["first_name"]) ?? string.Empty,
-                Convert.ToString(reader["middle_name"]) ?? string.Empty,
-                Convert.ToString(reader["last_name"]) ?? string.Empty
+                Convert.ToString(row["first_name"]) ?? string.Empty,
+                Convert.ToString(row["middle_name"]) ?? string.Empty,
+                Convert.ToString(row["last_name"]) ?? string.Empty
             }).Replace("  ", " ").Trim(),
-            BirthDate = reader["birth_date"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(reader["birth_date"]),
-            AddressLabel = Convert.ToString(reader["address_label"]) ?? string.Empty
+            BirthDate = row["birth_date"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(row["birth_date"]),
+            AddressLabel = Convert.ToString(row["address_label"]) ?? string.Empty
         };
     }
 }

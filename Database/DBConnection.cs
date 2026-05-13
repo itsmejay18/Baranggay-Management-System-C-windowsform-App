@@ -9,8 +9,10 @@ namespace baranggaysystem1.Database
     {
         private const string DefaultDatabase = "barangay_system";
         private const string DefaultUser = "root";
-        private const string DefaultPassword = "123456";
+        private const string DefaultPassword = "";
         private const string BootstrapConnectionString = "server=srv1237.hstgr.io;port=3306;database=u621755393_CBaranggayMana;user id=u621755393_cbaranggay;password=Dssc@2026;SslMode=Disabled;AllowPublicKeyRetrieval=true;AllowUserVariables=true;ConnectionTimeout=5";
+        private const string EnvDbConnection = "BARANGAY_DB_CONNECTION";
+        private const string EnvAllowLocalFallback = "BARANGAY_ALLOW_LOCAL_FALLBACK";
         private const uint DefaultPort = 3306;
         private const uint AlternatePort = 3307;
         private const uint ConnectionTimeoutSeconds = 5;
@@ -44,7 +46,7 @@ namespace baranggaysystem1.Database
                 }
             }
 
-            string? envConnection = Environment.GetEnvironmentVariable("BARANGAY_DB_CONNECTION");
+            string? envConnection = Environment.GetEnvironmentVariable(EnvDbConnection);
             if (!string.IsNullOrWhiteSpace(envConnection))
             {
                 envConnection = NormalizeConnectionString(envConnection);
@@ -55,12 +57,6 @@ namespace baranggaysystem1.Database
             }
 
             string? savedConnection = null;
-            string bootstrapConnection = NormalizeConnectionString(BootstrapConnectionString);
-            if (TryResolveWorkingConnectionString(bootstrapConnection, out string workingBootstrap, out _))
-            {
-                return Cache(workingBootstrap);
-            }
-
             if (DbConnectionSettingsStore.TryLoad(out var profile))
             {
                 savedConnection = NormalizeConnectionString(DbConnectionSettingsStore.BuildConnectionString(profile));
@@ -70,21 +66,28 @@ namespace baranggaysystem1.Database
                 }
             }
 
-            var candidates = new[]
+            string bootstrapConnection = NormalizeConnectionString(BootstrapConnectionString);
+            if (TryResolveWorkingConnectionString(bootstrapConnection, out string workingBootstrap, out _))
             {
-                BuildCandidate("localhost", DefaultPort, DefaultUser, DefaultPassword),
-                BuildCandidate("localhost", DefaultPort, DefaultUser, string.Empty),
-                BuildCandidate("127.0.0.1", DefaultPort, DefaultUser, string.Empty),
-                BuildCandidate("localhost", AlternatePort, DefaultUser, DefaultPassword),
-                BuildCandidate("localhost", AlternatePort, DefaultUser, string.Empty),
-                BuildCandidate("127.0.0.1", AlternatePort, DefaultUser, string.Empty)
-            };
+                return Cache(workingBootstrap);
+            }
 
-            foreach (string candidate in candidates.Distinct(StringComparer.OrdinalIgnoreCase))
+            if (AllowLocalFallback())
             {
-                if (TryResolveWorkingConnectionString(candidate, out string workingCandidate, out _))
+                var candidates = new[]
                 {
-                    return Cache(workingCandidate);
+                    BuildCandidate("localhost", DefaultPort, DefaultUser, DefaultPassword),
+                    BuildCandidate("127.0.0.1", DefaultPort, DefaultUser, DefaultPassword),
+                    BuildCandidate("localhost", AlternatePort, DefaultUser, DefaultPassword),
+                    BuildCandidate("127.0.0.1", AlternatePort, DefaultUser, DefaultPassword)
+                };
+
+                foreach (string candidate in candidates.Distinct(StringComparer.OrdinalIgnoreCase))
+                {
+                    if (TryResolveWorkingConnectionString(candidate, out string workingCandidate, out _))
+                    {
+                        return Cache(workingCandidate);
+                    }
                 }
             }
 
@@ -101,6 +104,11 @@ namespace baranggaysystem1.Database
             if (!string.IsNullOrWhiteSpace(savedConnection))
             {
                 return Cache(savedConnection);
+            }
+
+            if (AllowLocalFallback())
+            {
+                return Cache(BuildCandidate("localhost", DefaultPort, DefaultUser, DefaultPassword));
             }
 
             return Cache(bootstrapConnection);
@@ -123,6 +131,16 @@ namespace baranggaysystem1.Database
                 {
                     builder.ConnectionTimeout = ConnectionTimeoutSeconds;
                 }
+
+                // Explicit connection pool settings (Connector/NET defaults to 100 max which is too high
+                // for a desktop WinForms app hitting a single remote MySQL instance).
+                builder.Pooling = true;
+                if (builder.MinimumPoolSize == 0)
+                    builder.MinimumPoolSize = 2;
+                if (builder.MaximumPoolSize >= 100)
+                    builder.MaximumPoolSize = 10;
+                if (builder.ConnectionLifeTime == 0)
+                    builder.ConnectionLifeTime = 300;
 
                 return builder.ConnectionString;
             }
@@ -290,7 +308,15 @@ namespace baranggaysystem1.Database
 
         public static bool TryOpenCurrent(out string errorMessage)
         {
-            return TryOpen(GetCurrentConnectionString(), out errorMessage);
+            try
+            {
+                return TryOpen(GetCurrentConnectionString(), out errorMessage);
+            }
+            catch (Exception ex)
+            {
+                errorMessage = ex.Message;
+                return false;
+            }
         }
 
         public static string BuildFromParts(string server, uint port, string database, string user, string password, bool useSsl)
@@ -331,6 +357,27 @@ namespace baranggaysystem1.Database
         public static MySqlConnection GetConnection()
         {
             return new MySqlConnection(ResolveConnectionString());
+        }
+
+        private static bool AllowLocalFallback()
+        {
+            string? value = Environment.GetEnvironmentVariable(EnvAllowLocalFallback);
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                value = value.Trim();
+                if (value.Equals("1", StringComparison.OrdinalIgnoreCase)
+                    || value.Equals("true", StringComparison.OrdinalIgnoreCase)
+                    || value.Equals("yes", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+#if DEBUG
+            return true;
+#else
+            return false;
+#endif
         }
     }
 }

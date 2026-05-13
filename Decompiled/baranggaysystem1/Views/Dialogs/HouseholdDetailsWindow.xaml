@@ -1,0 +1,152 @@
+<Window x:Class="baranggaysystem1.Views.Dialogs.HouseholdDetailsWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:fa="clr-namespace:FontAwesome.Sharp;assembly=FontAwesome.Sharp" Title="Household Management" Width="760" Height="640" WindowStartupLocation="CenterOwner" Style="{StaticResource BaseWindowStyle}" ShowInTaskbar="False" ResizeMode="NoResize" Background="{StaticResource Slate50Brush}" xmlns:dialogs="clr-namespace:baranggaysystem1.Views.Dialogs;assembly=baranggaysystem1">
+  <FrameworkElement.Resources>
+    <ResourceDictionary>
+      <Style x:Key="RoleBadgeStyle" TargetType="{x:Type Border}">
+        <Setter Property="Border.CornerRadius" Value="4" />
+        <Setter Property="Border.Padding" Value="8,2" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Style.Triggers>
+          <DataTrigger Value="True" Binding="{Binding IsHead}">
+            <Setter Property="Background" Value="#FEE2E2" />
+          </DataTrigger>
+          <DataTrigger Value="False" Binding="{Binding IsHead}">
+            <Setter Property="Background" Value="#F1F5F9" />
+          </DataTrigger>
+        </Style.Triggers>
+      </Style>
+      <Style x:Key="RoleTextStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource SmallTextStyle}">
+        <Setter Property="FontWeight" Value="Bold" />
+        <Style.Triggers>
+          <DataTrigger Value="True" Binding="{Binding IsHead}">
+            <Setter Property="Foreground" Value="#EF4444" />
+          </DataTrigger>
+          <DataTrigger Value="False" Binding="{Binding IsHead}">
+            <Setter Property="Foreground" Value="{StaticResource Slate500Brush}" />
+          </DataTrigger>
+        </Style.Triggers>
+      </Style>
+      <Style x:Key="MemberCardStyle" TargetType="{x:Type Border}" BasedOn="{StaticResource SectionCardStyle}">
+        <Setter Property="Margin" Value="0,0,0,10" />
+        <Style.Triggers>
+          <DataTrigger Value="True" Binding="{Binding IsCurrentContext}">
+            <Setter Property="BorderBrush" Value="#4F46E5" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="Background" Value="#F5F3FF" />
+          </DataTrigger>
+        </Style.Triggers>
+      </Style>
+    </ResourceDictionary>
+  </FrameworkElement.Resources>
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+    <Border Grid.Row="0" Background="{StaticResource Slate900Brush}" Padding="24,20">
+      <Grid>
+        <StackPanel>
+          <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+            <fa:IconBlock Icon="Home" Foreground="#FFFFFFFF" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center" />
+            <TextBlock Text="Household #" Foreground="#94A3B8" FontSize="14" VerticalAlignment="Center" FontWeight="SemiBold" />
+            <TextBlock Foreground="#FFFFFFFF" FontSize="14" FontWeight="Bold" Margin="6,0,0,0" VerticalAlignment="Center" Text="{Binding HouseholdNumber}" />
+          </StackPanel>
+          <TextBlock Foreground="#FFFFFFFF" FontSize="20" FontWeight="Bold" FontFamily="{StaticResource CenturyGothic}" Text="{Binding Address}" />
+          <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+            <fa:IconBlock Icon="MapMarkerAlt" Foreground="#CBD5E1" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center" />
+            <TextBlock Foreground="#CBD5E1" FontSize="12" Text="{Binding PurokName, StringFormat=Purok: {0}}" />
+          </StackPanel>
+        </StackPanel>
+        <Border HorizontalAlignment="Right" VerticalAlignment="Center" Background="#334155" Padding="16,8" CornerRadius="10">
+          <StackPanel Orientation="Horizontal">
+            <fa:IconBlock Icon="Users" Foreground="#38BDF8" FontSize="20" Margin="0,0,12,0" VerticalAlignment="Center" />
+            <StackPanel>
+              <TextBlock Foreground="#FFFFFFFF" FontSize="18" FontWeight="Bold" LineHeight="18" Text="{Binding MemberCount}" />
+              <TextBlock Text="MEMBERS" Foreground="#94A3B8" FontSize="9" FontWeight="Black" Margin="0,-2,0,0" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+      </Grid>
+    </Border>
+    <Grid Row="1" Margin="24,20">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+      </Grid.RowDefinitions>
+      <TextBlock Grid.Row="0" Text="Family Members" Style="{StaticResource HeadingTextStyle}" Margin="0,0,0,16" />
+      <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+        <ItemsControl ItemsSource="{Binding Members}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Border Style="{StaticResource MemberCardStyle}">
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="50" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="150" />
+                    <ColumnDefinition Width="Auto" />
+                  </Grid.ColumnDefinitions>
+                  <Border Grid.Column="0" Width="40" Height="40" CornerRadius="20" Background="{StaticResource Slate100Brush}">
+                    <fa:IconBlock Icon="User" Foreground="{StaticResource Slate400Brush}" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                  </Border>
+                  <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="12,0">
+                    <TextBlock FontWeight="Bold" FontSize="14" Foreground="{StaticResource Slate900Brush}" Text="{Binding FullName}" />
+                    <StackPanel Orientation="Horizontal">
+                      <fa:IconBlock FontSize="11" Foreground="{StaticResource Slate400Brush}" Margin="0,0,6,0" VerticalAlignment="Center" Icon="{Binding GenderIcon}" />
+                      <TextBlock Style="{StaticResource SmallTextStyle}" Text="{Binding Age, StringFormat={}{0} years old}" />
+                      <TextBlock Text=" • " Foreground="{StaticResource Slate300Brush}" />
+                      <TextBlock Style="{StaticResource SmallTextStyle}" Text="{Binding Status}" />
+                    </StackPanel>
+                  </StackPanel>
+                  <Border Grid.Column="2" Style="{StaticResource RoleBadgeStyle}" HorizontalAlignment="Right" Margin="0,0,20,0">
+                    <TextBlock Style="{StaticResource RoleTextStyle}" Text="{Binding RoleLabel}" />
+                  </Border>
+                  <StackPanel Grid.Column="3" Orientation="Horizontal">
+                    <Button ToolTip="Set as Head of Family" Style="{StaticResource GhostButtonStyle}" FontSize="16" Command="{Binding DataContext.SetAsHeadCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" Visibility="{Binding IsHead, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                      <fa:IconBlock Icon="Star" Foreground="#EAB308" />
+                    </Button>
+                    <Button ToolTip="Remove from Household" Style="{StaticResource GhostButtonStyle}" FontSize="16" Command="{Binding DataContext.RemoveMemberCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}">
+                      <fa:IconBlock Icon="Unlink" Foreground="#EF4444" />
+                    </Button>
+                  </StackPanel>
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+      <Border Grid.RowSpan="2" Background="#80FFFFFF" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
+        <StackPanel VerticalAlignment="Center">
+          <fa:IconBlock Icon="Spinner" FontSize="36" Foreground="{StaticResource Slate400Brush}" HorizontalAlignment="Center">
+            <UIElement.RenderTransform>
+              <RotateTransform CenterX="18" CenterY="18" />
+            </UIElement.RenderTransform>
+            <FrameworkElement.Triggers>
+              <EventTrigger RoutedEvent="Loaded">
+                <BeginStoryboard>
+                  <Storyboard>
+                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" From="0" To="360" Duration="0:0:1" RepeatBehavior="Forever" />
+                  </Storyboard>
+                </BeginStoryboard>
+              </EventTrigger>
+            </FrameworkElement.Triggers>
+          </fa:IconBlock>
+          <TextBlock Text="Scaling the family tree..." Style="{StaticResource SubtitleTextStyle}" HorizontalAlignment="Center" Margin="0,10,0,0" />
+        </StackPanel>
+      </Border>
+    </Grid>
+    <Border Grid.Row="2" Background="#FFFFFFFF" BorderBrush="{StaticResource Slate200Brush}" BorderThickness="0,1,0,0" Padding="24,16">
+      <Grid>
+        <Button HorizontalAlignment="Left" Style="{StaticResource ActionButtonStyle}" Width="150" Height="36" IsEnabled="{Binding CanManageMembers}" Click="BtnAddMember_Click">
+          <StackPanel Orientation="Horizontal">
+            <fa:IconBlock Icon="UserPlus" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center" />
+            <TextBlock Text="Add Family" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+          <Button Content="Close" Style="{StaticResource SecondaryButtonStyle}" Width="100" Height="38" Click="BtnClose_Click" />
+        </StackPanel>
+      </Grid>
+    </Border>
+  </Grid>
+</Window>

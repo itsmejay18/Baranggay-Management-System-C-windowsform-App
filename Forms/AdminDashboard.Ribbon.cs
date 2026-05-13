@@ -694,7 +694,7 @@ public partial class AdminDashboard
         var page = CreateRibbonPageContainer();
         page.Controls.Add(CreateRibbonGroup("Dashboard",
             CreateRibbonCommand("Dashboard", (_, __) => ShowDashboard(), primary: true),
-            CreateRibbonCommand("Refresh", (_, __) => _controller.LoadDashboardStats())));
+            CreateRibbonCommand("Refresh", (_, __) => _ = _controller.LoadDashboardStatsAsync())));
         page.Controls.Add(CreateRibbonGroup("Residents",
             CreateRibbonCommand("Profile", (_, __) => OpenResidents(ResidentsView.Profile)),
             CreateRibbonCommand("History", (_, __) => OpenResidents(ResidentsView.History))));

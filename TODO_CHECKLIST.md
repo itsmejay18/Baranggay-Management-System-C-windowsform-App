@@ -105,7 +105,7 @@ Use this file to track progress. Mark a task done by changing `[ ]` to `[x]`.
 - [x] Add a visible `Select Resident` action in profile view (no hidden left-grid dependency).
 - [x] Make resident jump selection work across all pages (not only current page rows).
 - [x] Restore a stable left resident list pane (search + paging + click-to-load) with split layout guards.
-- [ ] Rename/remove legacy controls (`button1/button2/button3`) and replace with semantic command names.
+- [x] Rename/remove legacy controls (`button1/button2/button3`) and replace with semantic command names.
 - [ ] Move resident list data source to a dedicated service/model (stop relying on hidden `dgvResidents` as backing state).
 - [ ] Add per-module action bars with overflow handling to prevent clipped/hidden buttons on small windows.
 - [ ] Run a full small-window QA pass (`<= 1280x720`) for Residents, Certificates, and Blotter views.

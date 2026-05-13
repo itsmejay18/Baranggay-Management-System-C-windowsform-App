@@ -2,7 +2,104 @@ using System;
 
 namespace baranggaysystem1;
 
-internal enum SlaState
+/// <summary>
+/// Service Level Agreement rules for certificates and blotter cases.
+/// </summary>
+public static class SlaRules
+{
+    /// <summary>Number of days allowed for certificate approval.</summary>
+    public const int CertificateApprovalSlaDays = 3;
+
+    /// <summary>Number of days allowed for certificate release after approval.</summary>
+    public const int CertificateReleaseSlaDays = 3;
+
+    /// <summary>Number of days before SLA breach to show "due soon" warning.</summary>
+    public const int CertificateDueSoonDays = 1;
+
+    /// <summary>Number of days allowed for blotter case resolution.</summary>
+    public const int BlotterResolutionSlaDays = 15;
+
+    /// <summary>Number of days before blotter SLA breach to show "due soon" warning.</summary>
+    public const int BlotterDueSoonDays = 3;
+
+    /// <summary>
+    /// Evaluates the SLA status for a certificate request.
+    /// </summary>
+    public static SlaEvaluation EvaluateCertificate(string rawStatus, DateTime? requestedAt, DateTime? approvedAt, DateTime now)
+    {
+        string status = (rawStatus ?? string.Empty).Trim().ToUpperInvariant();
+
+        if (status == "SUBMITTED" && requestedAt.HasValue)
+        {
+            double daysElapsed = (now - requestedAt.Value).TotalDays;
+            if (daysElapsed > CertificateApprovalSlaDays)
+            {
+                return new SlaEvaluation(true, SlaState.Overdue, (int)Math.Ceiling(daysElapsed - CertificateApprovalSlaDays));
+            }
+            if (daysElapsed >= CertificateApprovalSlaDays - CertificateDueSoonDays)
+            {
+                return new SlaEvaluation(true, SlaState.DueSoon, (int)Math.Ceiling(CertificateApprovalSlaDays - daysElapsed));
+            }
+            return new SlaEvaluation(true, SlaState.OnTrack, (int)Math.Ceiling(CertificateApprovalSlaDays - daysElapsed));
+        }
+
+        if (status == "APPROVED" && approvedAt.HasValue)
+        {
+            double daysElapsed = (now - approvedAt.Value).TotalDays;
+            if (daysElapsed > CertificateReleaseSlaDays)
+            {
+                return new SlaEvaluation(true, SlaState.Overdue, (int)Math.Ceiling(daysElapsed - CertificateReleaseSlaDays));
+            }
+            if (daysElapsed >= CertificateReleaseSlaDays - CertificateDueSoonDays)
+            {
+                return new SlaEvaluation(true, SlaState.DueSoon, (int)Math.Ceiling(CertificateReleaseSlaDays - daysElapsed));
+            }
+            return new SlaEvaluation(true, SlaState.OnTrack, (int)Math.Ceiling(CertificateReleaseSlaDays - daysElapsed));
+        }
+
+        return new SlaEvaluation(false, SlaState.NotApplicable, 0);
+    }
+
+    /// <summary>
+    /// Evaluates the SLA status for a blotter case.
+    /// </summary>
+    public static SlaEvaluation EvaluateBlotter(string rawStatus, DateTime? createdAt, DateTime now)
+    {
+        string status = (rawStatus ?? string.Empty).Trim().ToUpperInvariant();
+
+        if ((status == "OPEN" || status == "ONGOING") && createdAt.HasValue)
+        {
+            double daysElapsed = (now - createdAt.Value).TotalDays;
+            if (daysElapsed > BlotterResolutionSlaDays)
+            {
+                return new SlaEvaluation(true, SlaState.Overdue, (int)Math.Ceiling(daysElapsed - BlotterResolutionSlaDays));
+            }
+            if (daysElapsed >= BlotterResolutionSlaDays - BlotterDueSoonDays)
+            {
+                return new SlaEvaluation(true, SlaState.DueSoon, (int)Math.Ceiling(BlotterResolutionSlaDays - daysElapsed));
+            }
+            return new SlaEvaluation(true, SlaState.OnTrack, (int)Math.Ceiling(BlotterResolutionSlaDays - daysElapsed));
+        }
+
+        return new SlaEvaluation(false, SlaState.NotApplicable, 0);
+    }
+
+    /// <summary>
+    /// Formats a short label for display in SLA badges.
+    /// </summary>
+    public static string FormatShortLabel(SlaEvaluation evaluation)
+    {
+        return evaluation.State switch
+        {
+            SlaState.Overdue => $"Overdue ({evaluation.DaysCount}d)",
+            SlaState.DueSoon => $"Due soon ({evaluation.DaysCount}d left)",
+            SlaState.OnTrack => $"{evaluation.DaysCount}d left",
+            _ => string.Empty
+        };
+    }
+}
+
+public enum SlaState
 {
     NotApplicable,
     OnTrack,
@@ -10,127 +107,16 @@ internal enum SlaState
     Overdue
 }
 
-internal readonly record struct SlaEvaluation(
-    SlaState State,
-    string Stage,
-    DateTime? DueDate,
-    int? DaysRemaining,
-    int? DaysOverdue)
+public sealed class SlaEvaluation
 {
-    internal bool Applies => State != SlaState.NotApplicable;
-}
+    public bool Applies { get; }
+    public SlaState State { get; }
+    public int DaysCount { get; }
 
-internal static class SlaRules
-{
-    // Keep these defaults in one place so it is easy to tune later.
-    // All calculations are date-based (not time-of-day) to keep the UI predictable.
-    internal const int CertificateApprovalSlaDays = 2; // SUBMITTED -> APPROVED
-    internal const int CertificateReleaseSlaDays = 1; // APPROVED -> RELEASED
-    internal const int BlotterResolutionSlaDays = 15; // OPEN/ONGOING -> SETTLED/REFERRED/CLOSED
-
-    internal const int CertificateDueSoonDays = 1;
-    internal const int BlotterDueSoonDays = 3;
-
-    internal static SlaEvaluation EvaluateCertificate(string? rawStatus, DateTime? requestedAt, DateTime? approvedAt, DateTime now)
+    public SlaEvaluation(bool applies, SlaState state, int daysCount)
     {
-        string status = NormalizeStatus(rawStatus);
-
-        if (status is "SUBMITTED" or "REQUESTED")
-        {
-            return EvaluateFromStart("Approval", requestedAt, CertificateApprovalSlaDays, CertificateDueSoonDays, now);
-        }
-
-        if (status is "APPROVED")
-        {
-            return EvaluateFromStart("Release", approvedAt, CertificateReleaseSlaDays, CertificateDueSoonDays, now);
-        }
-
-        return new SlaEvaluation(SlaState.NotApplicable, string.Empty, null, null, null);
-    }
-
-    internal static SlaEvaluation EvaluateBlotter(string? rawStatus, DateTime? createdAt, DateTime now)
-    {
-        string status = NormalizeStatus(rawStatus);
-
-        if (status is "OPEN" or "ONGOING")
-        {
-            return EvaluateFromStart("Resolution", createdAt, BlotterResolutionSlaDays, BlotterDueSoonDays, now);
-        }
-
-        return new SlaEvaluation(SlaState.NotApplicable, string.Empty, null, null, null);
-    }
-
-    internal static string FormatShortLabel(SlaEvaluation evaluation)
-    {
-        if (!evaluation.Applies)
-        {
-            return string.Empty;
-        }
-
-        if (evaluation.State == SlaState.Overdue)
-        {
-            int days = evaluation.DaysOverdue.GetValueOrDefault(0);
-            return days <= 0 ? "Overdue" : $"Overdue {days}d";
-        }
-
-        int remaining = evaluation.DaysRemaining.GetValueOrDefault(0);
-        if (remaining <= 0)
-        {
-            return "Due today";
-        }
-
-        return $"Due {remaining}d";
-    }
-
-    internal static string FormatDetailText(SlaEvaluation evaluation)
-    {
-        if (!evaluation.Applies)
-        {
-            return "-";
-        }
-
-        string due = evaluation.DueDate.HasValue ? evaluation.DueDate.Value.ToString("MMM dd, yyyy") : "-";
-        if (evaluation.State == SlaState.Overdue)
-        {
-            int days = evaluation.DaysOverdue.GetValueOrDefault(0);
-            return $"{evaluation.Stage} overdue since {due} ({days}d)";
-        }
-
-        int remaining = evaluation.DaysRemaining.GetValueOrDefault(0);
-        if (remaining <= 0)
-        {
-            return $"{evaluation.Stage} due today ({due})";
-        }
-
-        return $"{evaluation.Stage} due {due} ({remaining}d left)";
-    }
-
-    private static SlaEvaluation EvaluateFromStart(string stage, DateTime? startAt, int slaDays, int dueSoonDays, DateTime now)
-    {
-        if (!startAt.HasValue || startAt.Value == DateTime.MinValue)
-        {
-            return new SlaEvaluation(SlaState.NotApplicable, string.Empty, null, null, null);
-        }
-
-        DateTime dueDate = startAt.Value.Date.AddDays(slaDays);
-        int daysRemaining = (dueDate.Date - now.Date).Days;
-
-        if (daysRemaining < 0)
-        {
-            return new SlaEvaluation(SlaState.Overdue, stage, dueDate, null, -daysRemaining);
-        }
-
-        if (daysRemaining <= dueSoonDays)
-        {
-            return new SlaEvaluation(SlaState.DueSoon, stage, dueDate, daysRemaining, null);
-        }
-
-        return new SlaEvaluation(SlaState.OnTrack, stage, dueDate, daysRemaining, null);
-    }
-
-    private static string NormalizeStatus(string? value)
-    {
-        return (value ?? string.Empty).Trim().ToUpperInvariant();
+        Applies = applies;
+        State = state;
+        DaysCount = daysCount;
     }
 }
-

@@ -1,0 +1,381 @@
+<UserControl x:Class="baranggaysystem1.Views.Pages.ResidentModulePage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:fa="clr-namespace:FontAwesome.Sharp;assembly=FontAwesome.Sharp" Background="{StaticResource PageBgBrush}" xmlns:pages="clr-namespace:baranggaysystem1.Views.Pages;assembly=baranggaysystem1">
+  <FrameworkElement.Resources>
+    <ResourceDictionary>
+      <Style x:Key="ResidentStatCardStyle" TargetType="{x:Type Border}">
+        <Setter Property="Background" Value="#FFFFFFFF" />
+        <Setter Property="BorderBrush" Value="{StaticResource Slate100Brush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Border.CornerRadius" Value="12" />
+        <Setter Property="Border.Padding" Value="10,6" />
+        <Setter Property="Margin" Value="0,0,8,0" />
+        <Setter Property="MinWidth" Value="118" />
+        <Setter Property="UIElement.Effect">
+          <Setter.Value>
+            <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.04" Direction="270" />
+          </Setter.Value>
+        </Setter>
+      </Style>
+      <Style x:Key="ResidentStatLabelStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource SmallTextStyle}">
+        <Setter Property="Foreground" Value="{StaticResource Slate500Brush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="Margin" Value="0,0,0,2" />
+      </Style>
+      <Style x:Key="ResidentStatValueStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource HeadingTextStyle}">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
+      </Style>
+      <Style x:Key="ResidentSurfaceCardStyle" TargetType="{x:Type Border}">
+        <Setter Property="Background" Value="#FFFFFFFF" />
+        <Setter Property="BorderBrush" Value="{StaticResource Slate100Brush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Border.CornerRadius" Value="16" />
+        <Setter Property="UIElement.Effect">
+          <Setter.Value>
+            <DropShadowEffect BlurRadius="18" ShadowDepth="2" Opacity="0.06" Direction="270" />
+          </Setter.Value>
+        </Setter>
+      </Style>
+      <Style x:Key="ResidentSearchShellStyle" TargetType="{x:Type Border}">
+        <Setter Property="Background" Value="#FFFFFFFF" />
+        <Setter Property="BorderBrush" Value="{StaticResource Slate200Brush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Border.CornerRadius" Value="10" />
+        <Setter Property="Height" Value="34" />
+      </Style>
+      <Style x:Key="ResidentMetaBadgeStyle" TargetType="{x:Type Border}">
+        <Setter Property="Background" Value="{StaticResource Slate50Brush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Slate100Brush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Border.CornerRadius" Value="999" />
+        <Setter Property="Border.Padding" Value="10,4" />
+        <Setter Property="Margin" Value="0,0,8,0" />
+      </Style>
+      <Style x:Key="ResidentDataGridRowStyle" TargetType="{x:Type DataGridRow}" BasedOn="{StaticResource StyledDataGridRowStyle}">
+        <Setter Property="Background" Value="#FFFFFFFF" />
+        <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Style.Triggers>
+          <Trigger Property="DataGridRow.AlternationIndex" Value="1">
+            <Setter Property="Background" Value="#FFFBFD" />
+          </Trigger>
+          <Trigger Property="UIElement.IsMouseOver" Value="True">
+            <Setter Property="Background" Value="#FFF8FAFC" />
+          </Trigger>
+          <Trigger Property="DataGridRow.IsSelected" Value="True">
+            <Setter Property="Background" Value="#FFEFF6FF" />
+            <Setter Property="Foreground" Value="#FF1D4ED8" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+          </Trigger>
+        </Style.Triggers>
+      </Style>
+      <Style x:Key="ResidentDataGridCellStyle" TargetType="{x:Type DataGridCell}">
+        <Setter Property="Background" Value="#00FFFFFF" />
+        <Setter Property="BorderBrush" Value="{StaticResource Slate100Brush}" />
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+        <Setter Property="Padding" Value="14,0" />
+        <Setter Property="FrameworkElement.FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+      </Style>
+      <Style x:Key="ResidentIdBadgeStyle" TargetType="{x:Type Border}">
+        <Setter Property="Background" Value="#FFF1F5F9" />
+        <Setter Property="BorderBrush" Value="#FFE2E8F0" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Border.CornerRadius" Value="999" />
+        <Setter Property="Border.Padding" Value="8,2" />
+      </Style>
+      <Style x:Key="ResidentStatusBadgeBorderStyle" TargetType="{x:Type Border}">
+        <Setter Property="Background" Value="#FFF1F5F9" />
+        <Setter Property="BorderBrush" Value="#FFE2E8F0" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Border.CornerRadius" Value="999" />
+        <Setter Property="Border.Padding" Value="10,4" />
+        <Style.Triggers>
+          <Trigger Property="FrameworkElement.Tag" Value="Active">
+            <Setter Property="Background" Value="#FFDCFCE7" />
+            <Setter Property="BorderBrush" Value="#FF86EFAC" />
+          </Trigger>
+          <Trigger Property="FrameworkElement.Tag" Value="ACTIVE">
+            <Setter Property="Background" Value="#FFDCFCE7" />
+            <Setter Property="BorderBrush" Value="#FF86EFAC" />
+          </Trigger>
+          <Trigger Property="FrameworkElement.Tag" Value="Inactive">
+            <Setter Property="Background" Value="#FFF1F5F9" />
+            <Setter Property="BorderBrush" Value="#FFCBD5E1" />
+          </Trigger>
+          <Trigger Property="FrameworkElement.Tag" Value="INACTIVE">
+            <Setter Property="Background" Value="#FFF1F5F9" />
+            <Setter Property="BorderBrush" Value="#FFCBD5E1" />
+          </Trigger>
+          <Trigger Property="FrameworkElement.Tag" Value="Deceased">
+            <Setter Property="Background" Value="#FFFEE2E2" />
+            <Setter Property="BorderBrush" Value="#FFFCA5A5" />
+          </Trigger>
+          <Trigger Property="FrameworkElement.Tag" Value="DECEASED">
+            <Setter Property="Background" Value="#FFFEE2E2" />
+            <Setter Property="BorderBrush" Value="#FFFCA5A5" />
+          </Trigger>
+        </Style.Triggers>
+      </Style>
+      <Style x:Key="ResidentStatusBadgeTextStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource SmallTextStyle}">
+        <Setter Property="Foreground" Value="{StaticResource Slate700Brush}" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Style.Triggers>
+          <Trigger Property="FrameworkElement.Tag" Value="Active">
+            <Setter Property="Foreground" Value="#FF15803D" />
+          </Trigger>
+          <Trigger Property="FrameworkElement.Tag" Value="ACTIVE">
+            <Setter Property="Foreground" Value="#FF15803D" />
+          </Trigger>
+          <Trigger Property="FrameworkElement.Tag" Value="Inactive">
+            <Setter Property="Foreground" Value="#FF475569" />
+          </Trigger>
+          <Trigger Property="FrameworkElement.Tag" Value="INACTIVE">
+            <Setter Property="Foreground" Value="#FF475569" />
+          </Trigger>
+          <Trigger Property="FrameworkElement.Tag" Value="Deceased">
+            <Setter Property="Foreground" Value="#FFB91C1C" />
+          </Trigger>
+          <Trigger Property="FrameworkElement.Tag" Value="DECEASED">
+            <Setter Property="Foreground" Value="#FFB91C1C" />
+          </Trigger>
+        </Style.Triggers>
+      </Style>
+    </ResourceDictionary>
+  </FrameworkElement.Resources>
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+    <Border Grid.Row="0" Style="{StaticResource PageHeaderStyle}" Padding="22,8,22,6">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="0" Orientation="Horizontal">
+          <Border Width="34" Height="34" CornerRadius="10" Background="#FFDCFCE7" Margin="0,0,12,0">
+            <fa:IconBlock Icon="Users" Foreground="#FF16A34A" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Border>
+          <StackPanel VerticalAlignment="Center">
+            <TextBlock Name="pageTitleText" Text="Resident Records" FontSize="15" FontWeight="Bold" Foreground="{StaticResource Slate900Brush}" FontFamily="{StaticResource CenturyGothic}" />
+            <TextBlock Name="recordCountLabel" Text="Loading records..." Style="{StaticResource SubtitleTextStyle}" Margin="0,1,0,0" FontWeight="SemiBold" />
+            <WrapPanel Margin="0,4,0,0" VerticalAlignment="Center">
+              <TextBlock Name="totalResidentsMetric" Text="0 residents" Style="{StaticResource SmallTextStyle}" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource Slate700Brush}" />
+              <TextBlock Text="•" Margin="6,0" Style="{StaticResource SmallTextStyle}" FontSize="10" />
+              <TextBlock Name="activeResidentsMetric" Text="0 active" Style="{StaticResource SmallTextStyle}" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource Slate700Brush}" />
+              <TextBlock Text="•" Margin="6,0" Style="{StaticResource SmallTextStyle}" FontSize="10" />
+              <TextBlock Name="purokResidentsMetric" Text="0 puroks" Style="{StaticResource SmallTextStyle}" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource Slate700Brush}" />
+              <TextBlock Text="•" Margin="6,0" Style="{StaticResource SmallTextStyle}" FontSize="10" />
+              <TextBlock Name="visibleResidentsMetric" Text="0 visible" Style="{StaticResource SmallTextStyle}" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource Slate700Brush}" />
+            </WrapPanel>
+          </StackPanel>
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
+          <Button Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,8,0" MinWidth="88" Height="32" Padding="10,0">
+            <StackPanel Orientation="Horizontal">
+              <fa:IconBlock Icon="Download" FontSize="10" Margin="0,0,6,0" VerticalAlignment="Center" />
+              <TextBlock Text="Export" VerticalAlignment="Center" FontSize="11" />
+            </StackPanel>
+          </Button>
+          <Button Style="{StaticResource PrimaryButtonStyle}" MinWidth="118" Height="32" Padding="10,0" Click="BtnAdd_Click">
+            <StackPanel Orientation="Horizontal">
+              <fa:IconBlock Icon="UserPlus" FontSize="10" Margin="0,0,6,0" VerticalAlignment="Center" />
+              <TextBlock Text="Add Resident" VerticalAlignment="Center" Foreground="#FFFFFFFF" FontSize="11" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
+      </Grid>
+    </Border>
+    <Border Grid.Row="1" Style="{StaticResource ToolbarBorderStyle}" Padding="22,6">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="300" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Border Grid.Column="0" Style="{StaticResource ResidentSearchShellStyle}">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="40" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <fa:IconBlock Grid.Column="0" Icon="Search" FontSize="11" Foreground="{StaticResource Slate400Brush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            <Grid Column="1">
+              <TextBox Name="searchBox" Margin="0,0,12,0" Background="#00FFFFFF" BorderThickness="0" VerticalContentAlignment="Center" FontSize="11" TextChanged="SearchBox_TextChanged" />
+              <TextBlock Name="searchPlaceholderText" Text="Search by resident name, contact, purok, or ID" Margin="0,0,12,0" VerticalAlignment="Center" FontSize="11" Foreground="{StaticResource Slate400Brush}" IsHitTestVisible="False">
+                <FrameworkElement.Style>
+                  <Style TargetType="{x:Type TextBlock}">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                      <DataTrigger Value="" Binding="{Binding Text, ElementName=searchBox}">
+                        <Setter Property="Visibility" Value="Visible" />
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </FrameworkElement.Style>
+              </TextBlock>
+            </Grid>
+          </Grid>
+        </Border>
+        <ComboBox Name="filterStatus" Grid.Column="1" Width="122" Height="32" Margin="8,0,0,0" Style="{StaticResource StyledComboBoxStyle}" SelectionChanged="Filter_SelectionChanged" />
+        <ComboBox Name="filterPurok" Grid.Column="2" Width="130" Height="32" Margin="8,0,0,0" Style="{StaticResource StyledComboBoxStyle}" SelectionChanged="Filter_SelectionChanged" />
+        <Button Grid.Column="4" Style="{StaticResource SecondaryButtonStyle}" Height="32" MinWidth="0" Padding="10,0" Click="BtnRefresh_Click">
+          <StackPanel Orientation="Horizontal">
+            <fa:IconBlock Icon="SyncAlt" FontSize="10" Margin="0,0,6,0" VerticalAlignment="Center" />
+            <TextBlock Text="Refresh" VerticalAlignment="Center" FontSize="11" />
+          </StackPanel>
+        </Button>
+      </Grid>
+    </Border>
+    <Border Grid.Row="2" Margin="20,16,20,0" ClipToBounds="True" Style="{StaticResource ResidentSurfaceCardStyle}">
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Border Grid.Row="0" Background="#FFFCFDFE" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="0,0,0,1" Padding="18,14">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+              <TextBlock Name="tableTitleText" Text="Resident Directory" Style="{StaticResource SectionHeaderTextStyle}" />
+              <TextBlock Name="tableMetaLabel" Text="Browse the full directory, then select a row for quick actions." Style="{StaticResource SmallTextStyle}" Margin="0,4,0,0" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+              <Border Style="{StaticResource ResidentMetaBadgeStyle}">
+                <TextBlock Name="tableVisibleLabel" Text="0 visible" Style="{StaticResource SmallTextStyle}" FontWeight="Bold" />
+              </Border>
+              <Border Style="{StaticResource ResidentMetaBadgeStyle}" Margin="0">
+                <TextBlock Name="tableSelectionLabel" Text="No selection" Style="{StaticResource SmallTextStyle}" FontWeight="Bold" />
+              </Border>
+            </StackPanel>
+          </Grid>
+        </Border>
+        <Grid Row="1">
+          <DataGrid Name="mainGrid" Margin="10,8,10,10" Style="{StaticResource StyledDataGridStyle}" ColumnHeaderStyle="{StaticResource StyledDataGridColumnHeaderStyle}" RowStyle="{StaticResource ResidentDataGridRowStyle}" CellStyle="{StaticResource ResidentDataGridCellStyle}" AutoGenerateColumns="False" IsReadOnly="True" AlternationCount="2" RowHeight="58" HeadersVisibility="Column" CanUserAddRows="False" SelectionChanged="MainGrid_SelectionChanged">
+            <DataGrid.Columns>
+              <DataGridTemplateColumn Header="Resident" Width="2.4*">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <StackPanel Margin="0,6">
+                      <TextBlock Foreground="{StaticResource Slate900Brush}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Text="{Binding full_name}" />
+                      <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                        <Border Style="{StaticResource ResidentIdBadgeStyle}">
+                          <TextBlock Style="{StaticResource SmallTextStyle}" FontWeight="Bold" Text="{Binding resident_id, StringFormat=ID #{0}}" />
+                        </Border>
+                      </StackPanel>
+                    </StackPanel>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTextColumn Header="Age" Width="0.55*" ElementStyle="{StaticResource BodyTextStyle}" Binding="{Binding age_display}" />
+              <DataGridTextColumn Header="Sex" Width="0.75*" ElementStyle="{StaticResource BodyTextStyle}" Binding="{Binding sex_display}" />
+              <DataGridTextColumn Header="Purok" Width="1.1*" ElementStyle="{StaticResource BodyTextStyle}" Binding="{Binding purok_display}" />
+              <DataGridTextColumn Header="Contact" Width="1.15*" ElementStyle="{StaticResource BodyTextStyle}" Binding="{Binding contact_display, TargetNullValue=No contact}" />
+              <DataGridTemplateColumn Header="Status" Width="0.9*">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <Border Style="{StaticResource ResidentStatusBadgeBorderStyle}" HorizontalAlignment="Left" Tag="{Binding status_display}">
+                      <TextBlock Style="{StaticResource ResidentStatusBadgeTextStyle}" Text="{Binding status_display}" Tag="{Binding status_display}" />
+                    </Border>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+            </DataGrid.Columns>
+          </DataGrid>
+          <StackPanel Name="emptyState" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="Collapsed">
+            <fa:IconBlock Icon="UserSlash" FontSize="48" Foreground="{StaticResource Slate300Brush}" HorizontalAlignment="Center" Margin="0,0,0,12" />
+            <TextBlock Name="emptyLabel" Text="No residents found." Style="{StaticResource SubtitleTextStyle}" HorizontalAlignment="Center" />
+            <TextBlock Text="Try adjusting your search or filters." Style="{StaticResource SmallTextStyle}" HorizontalAlignment="Center" Margin="0,4,0,0" />
+          </StackPanel>
+        </Grid>
+      </Grid>
+    </Border>
+    <Border Name="contextActionBar" Grid.Row="3" Visibility="Collapsed" Margin="20,12,20,0" Padding="18,14" Style="{StaticResource ResidentSurfaceCardStyle}">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="0">
+          <StackPanel Orientation="Horizontal">
+            <fa:IconBlock Icon="Bolt" Foreground="#FF4F46E5" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0" />
+            <TextBlock Text="Quick actions for" VerticalAlignment="Center" FontWeight="Bold" Foreground="{StaticResource Slate700Brush}" />
+            <TextBlock Name="selectedResidentLabel" Text="Resident Name" VerticalAlignment="Center" FontWeight="Bold" Foreground="{StaticResource Slate900Brush}" Margin="6,0,0,0" />
+          </StackPanel>
+          <TextBlock Name="selectedResidentMetaLabel" Text="Resident details" Style="{StaticResource SmallTextStyle}" Margin="24,6,0,0" />
+          <WrapPanel Margin="0,14,0,0">
+            <Button Name="btnContextBlotter" Style="{StaticResource ContextualActionButtonStyle}" Margin="0,0,8,8" Click="BtnContextBlotter_Click">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="Gavel" FontSize="12" Margin="0,0,8,0" VerticalAlignment="Center" />
+                <TextBlock Text="File Blotter" VerticalAlignment="Center" Foreground="#FFFFFFFF" />
+              </StackPanel>
+            </Button>
+            <Button Name="btnContextBlotterHistory" Style="{StaticResource ActionButtonStyle}" Margin="0,0,8,8" Click="BtnContextBlotterHistory_Click">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="History" FontSize="12" Margin="0,0,8,0" VerticalAlignment="Center" />
+                <TextBlock Text="Blotter Cases" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <Button Name="btnContextCert" Style="{StaticResource ActionButtonStyle}" Margin="0,0,8,8" Click="BtnContextCert_Click">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="FileContract" FontSize="12" Margin="0,0,8,0" VerticalAlignment="Center" />
+                <TextBlock Text="Issue Certificate" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <Button Name="btnContextHousehold" Style="{StaticResource ActionButtonStyle}" Margin="0,0,8,8" Click="BtnContextHousehold_Click">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="Home" FontSize="12" Margin="0,0,8,0" VerticalAlignment="Center" />
+                <TextBlock Text="Open Household" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <Button Name="btnContextPayment" Style="{StaticResource ActionButtonStyle}" Margin="0,0,8,8" Click="BtnContextPayment_Click">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="MoneyBillWave" FontSize="12" Margin="0,0,8,0" VerticalAlignment="Center" />
+                <TextBlock Text="Record Payment" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </WrapPanel>
+        </StackPanel>
+        <Button Grid.Column="1" Style="{StaticResource GhostButtonStyle}" Padding="4" Foreground="{StaticResource Slate400Brush}" Click="BtnClearSelection_Click">
+          <fa:IconBlock Icon="Times" FontSize="12" />
+        </Button>
+      </Grid>
+    </Border>
+    <Border Grid.Row="4" Margin="20,12,20,16" Padding="16,12" Style="{StaticResource ResidentSurfaceCardStyle}">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <StackPanel>
+          <TextBlock Name="footerCountLabel" Text="No records loaded." Style="{StaticResource SmallTextStyle}" FontWeight="SemiBold" />
+          <TextBlock Text="Tip: click a resident row to reveal quick actions." Style="{StaticResource SmallTextStyle}" Margin="0,3,0,0" />
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+          <Button Name="btnEdit" Style="{StaticResource EditButtonStyle}" Height="32" MinWidth="0" Padding="12,0" FontSize="11" Margin="0,0,8,0" IsEnabled="False" Click="BtnEdit_Click">
+            <StackPanel Orientation="Horizontal">
+              <fa:IconBlock Icon="Edit" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center" />
+              <TextBlock Text="Edit Selected" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Button Name="btnDelete" Style="{StaticResource DangerButtonStyle}" Height="32" MinWidth="0" Padding="12,0" FontSize="11" IsEnabled="False" Click="BtnDelete_Click">
+            <StackPanel Orientation="Horizontal">
+              <fa:IconBlock Icon="Trash" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center" />
+              <TextBlock Text="Delete" VerticalAlignment="Center" Foreground="#FFFFFFFF" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
+      </Grid>
+    </Border>
+  </Grid>
+</UserControl>

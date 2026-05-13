@@ -1,6 +1,8 @@
 using System;
 using System.Data;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using baranggaysystem1.Database;
 using baranggaysystem1.helper;
@@ -12,20 +14,69 @@ namespace baranggaysystem1
         private sealed class UsersListFormController
         {
             private readonly UsersListForm _form;
+            private readonly System.Windows.Forms.Timer _searchDebounceTimer = new System.Windows.Forms.Timer();
+            private CancellationTokenSource? _loadCancellation;
+            private int _loadVersion;
+            private bool _permissionsDenied;
 
             public UsersListFormController(UsersListForm form)
             {
                 _form = form;
+                _searchDebounceTimer.Interval = 250;
+                _searchDebounceTimer.Tick += (_, __) =>
+                {
+                    _searchDebounceTimer.Stop();
+                    TriggerLoad(immediate: true);
+                };
+                _form.Disposed += (_, __) =>
+                {
+                    _searchDebounceTimer.Stop();
+                    _searchDebounceTimer.Dispose();
+                    _loadCancellation?.Cancel();
+                    _loadCancellation?.Dispose();
+                    _loadCancellation = null;
+                };
             }
 
-            public void LoadUsers()
+            public void TriggerLoad(bool immediate = false)
             {
                 if (!Permissions.CanManageUsers)
                 {
+                    if (_permissionsDenied)
+                    {
+                        return;
+                    }
+
+                    _permissionsDenied = true;
                     ControllerDialogs.Warning("Only Admin users can manage user accounts.");
                     _form.Close();
                     return;
                 }
+
+                _permissionsDenied = false;
+                if (immediate)
+                {
+                    _searchDebounceTimer.Stop();
+                    _ = LoadUsersAsync();
+                    return;
+                }
+
+                _searchDebounceTimer.Stop();
+                _searchDebounceTimer.Start();
+            }
+
+            public async Task LoadUsersAsync()
+            {
+                if (!Permissions.CanManageUsers || _form.IsDisposed)
+                {
+                    return;
+                }
+
+                int loadVersion = Interlocked.Increment(ref _loadVersion);
+                _loadCancellation?.Cancel();
+                _loadCancellation?.Dispose();
+                _loadCancellation = new CancellationTokenSource();
+                CancellationToken token = _loadCancellation.Token;
 
                 var sql = new StringBuilder();
                 sql.Append("SELECT ua.user_id, ua.username, ua.first_name, ua.middle_name, ua.last_name, ");
@@ -54,28 +105,47 @@ namespace baranggaysystem1
                     sql.Append(" AND ua.is_active = @active ");
                 }
 
-                DataTable table = DbHelper.LoadTable(sql.ToString(), cmd =>
+                try
                 {
-                    if (!string.IsNullOrWhiteSpace(search))
+                    DataTable table = await Task.Run(() => DbHelper.LoadTable(sql.ToString(), cmd =>
                     {
-                        cmd.Parameters.AddWithValue("@q", "%" + search + "%");
+                        if (!string.IsNullOrWhiteSpace(search))
+                        {
+                            cmd.Parameters.AddWithValue("@q", "%" + search + "%");
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(role) && role != "All")
+                        {
+                            cmd.Parameters.AddWithValue("@role", role);
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(status) && status != "All")
+                        {
+                            int active = status == "Active" ? 1 : 0;
+                            cmd.Parameters.AddWithValue("@active", active);
+                        }
+                    }), token).ConfigureAwait(true);
+
+                    if (token.IsCancellationRequested || _form.IsDisposed || loadVersion != _loadVersion)
+                    {
+                        return;
                     }
 
-                    if (!string.IsNullOrWhiteSpace(role) && role != "All")
+                    _form.UsersGrid.DataSource = table;
+                    _form.UsersGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+                    ConfigureUsersGridColumns();
+                }
+                catch (OperationCanceledException)
+                {
+                    // Ignore canceled loads (newer query already queued).
+                }
+                catch (Exception ex)
+                {
+                    if (!_form.IsDisposed)
                     {
-                        cmd.Parameters.AddWithValue("@role", role);
+                        AppLogger.LogError("Failed to load users.", ex);
                     }
-
-                    if (!string.IsNullOrWhiteSpace(status) && status != "All")
-                    {
-                        int active = status == "Active" ? 1 : 0;
-                        cmd.Parameters.AddWithValue("@active", active);
-                    }
-                });
-
-                _form.UsersGrid.DataSource = table;
-                _form.UsersGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-                ConfigureUsersGridColumns();
+                }
             }
 
             public void EditSelected()
@@ -102,7 +172,7 @@ namespace baranggaysystem1
 
                 using var form = new UpdateUserForm(userId);
                 form.ShowDialog(_form);
-                LoadUsers();
+                TriggerLoad(immediate: true);
             }
 
             private void ConfigureUsersGridColumns()

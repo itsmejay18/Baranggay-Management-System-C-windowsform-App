@@ -1,0 +1,95 @@
+<Window x:Class="baranggaysystem1.Views.Dialogs.AssetRecordWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:fa="clr-namespace:FontAwesome.Sharp;assembly=FontAwesome.Sharp" Title="Asset Record" Width="580" Height="730" WindowStartupLocation="CenterOwner" Style="{StaticResource BaseWindowStyle}" ShowInTaskbar="False" ResizeMode="NoResize" Background="{StaticResource Slate50Brush}" xmlns:dialogs="clr-namespace:baranggaysystem1.Views.Dialogs;assembly=baranggaysystem1">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+    <Border Grid.Row="0" Background="#334155" Padding="24,20">
+      <StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+          <fa:IconBlock Icon="Building" Foreground="#CBD5E1" FontSize="20" Margin="0,0,12,0" VerticalAlignment="Center" />
+          <TextBlock Name="windowEyebrowText" Text="NEW ASSET RECORD" Foreground="#FFFFFFFF" FontSize="14" FontWeight="Black" VerticalAlignment="Center" />
+        </StackPanel>
+        <TextBlock Name="windowTitleText" Text="Register barangay asset" Foreground="#FFFFFFFF" FontSize="24" FontWeight="Bold" FontFamily="{StaticResource CenturyGothic}" />
+        <TextBlock Text="Maintain the asset registry with acquisition, custodian, location, and lifecycle details." Foreground="#E2E8F0" FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap" />
+      </StackPanel>
+    </Border>
+    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,20">
+      <StackPanel>
+        <TextBlock Text="Asset Name" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+        <TextBox Name="assetNameTextBox" Style="{StaticResource StyledTextBoxStyle}" Height="40" />
+        <Grid Margin="0,18,0,0">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+          <StackPanel Grid.Column="0" Margin="0,0,10,0">
+            <TextBlock Text="Category" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+            <ComboBox Name="categoryComboBox" IsEditable="True" Style="{StaticResource StyledComboBoxStyle}" Height="40" />
+          </StackPanel>
+          <StackPanel Grid.Column="1" Margin="10,0,0,0">
+            <TextBlock Text="Asset Tag" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+            <TextBox Name="assetTagTextBox" Style="{StaticResource StyledTextBoxStyle}" Height="40" />
+          </StackPanel>
+        </Grid>
+        <Grid Margin="0,18,0,0">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+          <StackPanel Grid.Column="0" Margin="0,0,10,0">
+            <TextBlock Text="Acquisition Date" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+            <DatePicker Name="acquisitionDatePicker" Height="40" />
+          </StackPanel>
+          <StackPanel Grid.Column="1" Margin="10,0,0,0">
+            <TextBlock Text="Acquisition Cost (PHP)" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+            <TextBox Name="acquisitionCostTextBox" Style="{StaticResource StyledTextBoxStyle}" Height="40" />
+          </StackPanel>
+        </Grid>
+        <Grid Margin="0,18,0,0">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+          <StackPanel Grid.Column="0" Margin="0,0,10,0">
+            <TextBlock Text="Assigned Location" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+            <TextBox Name="locationTextBox" Style="{StaticResource StyledTextBoxStyle}" Height="40" />
+          </StackPanel>
+          <StackPanel Grid.Column="1" Margin="10,0,0,0">
+            <TextBlock Text="Custodian" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+            <TextBox Name="custodianTextBox" Style="{StaticResource StyledTextBoxStyle}" Height="40" />
+          </StackPanel>
+        </Grid>
+        <Grid Margin="0,18,0,0">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+          <StackPanel Grid.Column="0" Margin="0,0,10,0">
+            <TextBlock Text="Condition Status" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+            <ComboBox Name="conditionComboBox" Style="{StaticResource StyledComboBoxStyle}" Height="40" />
+          </StackPanel>
+          <StackPanel Grid.Column="1" Margin="10,0,0,0">
+            <TextBlock Text="Lifecycle Status" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+            <ComboBox Name="lifecycleComboBox" Style="{StaticResource StyledComboBoxStyle}" Height="40" />
+          </StackPanel>
+        </Grid>
+        <TextBlock Text="Notes" Style="{StaticResource LabelTextStyle}" Margin="0,20,0,8" />
+        <TextBox Name="notesTextBox" Style="{StaticResource StyledTextBoxStyle}" Height="110" TextWrapping="Wrap" AcceptsReturn="True" VerticalContentAlignment="Top" Padding="10" />
+        <Border Margin="0,24,0,0" Padding="16" Background="#E2E8F0" CornerRadius="8" BorderBrush="#CBD5E1" BorderThickness="1">
+          <StackPanel Orientation="Horizontal">
+            <fa:IconBlock Icon="InfoCircle" Foreground="#334155" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center" />
+            <TextBlock Text="Use lifecycle status for where the asset stands operationally, and condition status for its physical state during inspections." Foreground="#334155" FontSize="12" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="420" />
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+    <Border Grid.Row="2" Background="#FFFFFFFF" BorderBrush="{StaticResource Slate200Brush}" BorderThickness="0,1,0,0" Padding="24,16">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+        <Button Content="Cancel" Style="{StaticResource SecondaryButtonStyle}" Width="100" Height="40" Margin="0,0,12,0" IsCancel="True" />
+        <Button Name="saveButton" Content="Save Asset" Style="{StaticResource PrimaryButtonStyle}" Width="150" Height="40" Click="SaveButton_Click" />
+      </StackPanel>
+    </Border>
+  </Grid>
+</Window>

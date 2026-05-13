@@ -21,38 +21,19 @@ namespace baranggaysystem1
             {
                 string username = _form.txtUsername.Text;
                 string password = _form.txtPassword.Text;
-                string hashedPassword = PasswordHelper.HashPassword(password);
 
-                string query = @"SELECT ua.user_id,
-                                        ua.barangay_id,
-                                        COALESCE(r.name, 'Staff') AS role
-                     FROM user_account ua
-                     LEFT JOIN user_role ur ON ur.user_id = ua.user_id
-                     LEFT JOIN role r ON r.role_id = ur.role_id
-                     WHERE ua.username=@username
-                     AND ua.password_hash=@password
-                     AND ua.is_active=1
-                     ORDER BY
-                        (r.name = 'Super Admin') DESC,
-                        (r.name = 'Admin') DESC
-                     LIMIT 1";
-
-                using (MySqlConnection conn = DBConnection.GetConnection())
+                if (OfflineDatabaseSupport.IsOffline)
                 {
-                    conn.Open();
-                    MySqlCommand cmd = new MySqlCommand(query, conn);
-                    cmd.Parameters.AddWithValue("@username", username);
-                    cmd.Parameters.AddWithValue("@password", hashedPassword);
-
-                    MySqlDataReader reader = cmd.ExecuteReader();
-
-                    if (reader.Read())
+                    if (OfflineDatabaseSupport.TryAuthenticateOffline(
+                        username,
+                        password,
+                        out int offlineUserId,
+                        out int offlineBarangayId,
+                        out string offlineRole))
                     {
-                        UserSession.UserId = Convert.ToInt32(reader["user_id"]);
-                        UserSession.BarangayId = reader["barangay_id"] == DBNull.Value
-                            ? SchemaDefaults.DefaultBarangayId
-                            : Convert.ToInt32(reader["barangay_id"]);
-                        UserSession.Role = Convert.ToString(reader["role"]) ?? string.Empty;
+                        UserSession.UserId = offlineUserId;
+                        UserSession.BarangayId = offlineBarangayId;
+                        UserSession.Role = offlineRole;
                         UserSession.Username = username;
                         Permissions.Refresh();
 
@@ -65,10 +46,77 @@ namespace baranggaysystem1
                         {
                             _form.CompleteLogin(new StaffDashboard());
                         }
+
+                        return;
+                    }
+
+                    ControllerDialogs.Warning("Invalid username or password");
+                    return;
+                }
+
+                string query = @"SELECT ua.user_id,
+                                        ua.barangay_id,
+                                        COALESCE(r.name, 'Staff') AS role,
+                                        ua.password_hash
+                     FROM user_account ua
+                     LEFT JOIN user_role ur ON ur.user_id = ua.user_id
+                     LEFT JOIN role r ON r.role_id = ur.role_id
+                     WHERE ua.username=@username
+                     AND ua.is_active=1
+                     ORDER BY
+                        (r.name = 'Super Admin') DESC,
+                        (r.name = 'Admin') DESC
+                     LIMIT 1";
+
+                using (MySqlConnection conn = DBConnection.GetConnection())
+                {
+                    conn.Open();
+                    MySqlCommand cmd = new MySqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@username", username);
+
+                    using var reader = cmd.ExecuteReader();
+
+                    if (!reader.Read())
+                    {
+                        ControllerDialogs.Warning("Invalid username or password");
+                        return;
+                    }
+
+                    int userId = Convert.ToInt32(reader["user_id"]);
+                    int barangayId = reader["barangay_id"] == DBNull.Value
+                        ? SchemaDefaults.DefaultBarangayId
+                        : Convert.ToInt32(reader["barangay_id"]);
+                    string role = Convert.ToString(reader["role"]) ?? string.Empty;
+                    string storedHash = Convert.ToString(reader["password_hash"]) ?? string.Empty;
+                    reader.Close();
+
+                    var verification = PasswordHelper.VerifyPassword(password, storedHash, out string? upgradedHash);
+                    if (verification == PasswordHelper.VerificationResult.Failed)
+                    {
+                        ControllerDialogs.Warning("Invalid username or password");
+                        return;
+                    }
+
+                    if (verification == PasswordHelper.VerificationResult.SuccessRehashNeeded
+                        && !string.IsNullOrWhiteSpace(upgradedHash))
+                    {
+                        TryUpgradePasswordHash(conn, userId, upgradedHash);
+                    }
+
+                    UserSession.UserId = userId;
+                    UserSession.BarangayId = barangayId;
+                    UserSession.Role = role;
+                    UserSession.Username = username;
+                    Permissions.Refresh();
+
+                    if (UserSession.Role.Equals("Admin", StringComparison.OrdinalIgnoreCase)
+                        || UserSession.Role.Equals("Super Admin", StringComparison.OrdinalIgnoreCase))
+                    {
+                        _form.CompleteLogin(new AdminDashboard());
                     }
                     else
                     {
-                        ControllerDialogs.Warning("Invalid username or password");
+                        _form.CompleteLogin(new StaffDashboard());
                     }
                 }
             }
@@ -81,6 +129,26 @@ namespace baranggaysystem1
             public void HandleLoad()
             {
                 _form.StartFadeIn();
+            }
+
+            private static void TryUpgradePasswordHash(MySqlConnection conn, int userId, string upgradedHash)
+            {
+                try
+                {
+                    using var update = new MySqlCommand(
+                        @"UPDATE user_account
+                          SET password_hash = @hash,
+                              updated_at = NOW()
+                          WHERE user_id = @userId",
+                        conn);
+                    update.Parameters.AddWithValue("@hash", upgradedHash);
+                    update.Parameters.AddWithValue("@userId", userId);
+                    update.ExecuteNonQuery();
+                }
+                catch
+                {
+                    // Ignore hash upgrade failures (login already succeeded).
+                }
             }
         }
     }

@@ -1,0 +1,665 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:conv="clr-namespace:baranggaysystem1.Views.Converters">
+  <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+  <conv:BoolToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+  <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
+  <conv:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+  <conv:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+  <conv:PathToBitmapConverter x:Key="PathToBitmapConverter" />
+  <conv:WidthToVisibilityConverter x:Key="WidthToVisibilityConverter" />
+  <Color x:Key="Slate900Color">#FF121212</Color>
+  <Color x:Key="Slate800Color">#FF1F2937</Color>
+  <Color x:Key="Slate700Color">#FF2D2D2D</Color>
+  <Color x:Key="Slate600Color">#FF464646</Color>
+  <Color x:Key="Slate500Color">#FF606060</Color>
+  <Color x:Key="Slate300Color">#FFC8C8C8</Color>
+  <Color x:Key="Slate200Color">#FFDCDCDC</Color>
+  <Color x:Key="Slate100Color">#FFEEEEEE</Color>
+  <Color x:Key="Slate50Color">#FFFAFAFA</Color>
+  <Color x:Key="Ink900Color">#FF0F1115</Color>
+  <Color x:Key="Ink800Color">#FF161A22</Color>
+  <Color x:Key="Ink700Color">#FF2A2F3A</Color>
+  <Color x:Key="AccentBlueColor">#FF4DA3FF</Color>
+  <Color x:Key="AccentGreenColor">#FF42D392</Color>
+  <Color x:Key="AccentAmberColor">#FFF6C343</Color>
+  <Color x:Key="AccentOrangeColor">#FFFF9F43</Color>
+  <Color x:Key="AccentRedColor">#FFFF6B6B</Color>
+  <SolidColorBrush x:Key="Slate900Brush" Color="{StaticResource Slate900Color}" />
+  <SolidColorBrush x:Key="Slate800Brush" Color="{StaticResource Slate800Color}" />
+  <SolidColorBrush x:Key="Slate700Brush" Color="{StaticResource Slate700Color}" />
+  <SolidColorBrush x:Key="Slate600Brush" Color="{StaticResource Slate600Color}" />
+  <SolidColorBrush x:Key="Slate500Brush" Color="{StaticResource Slate500Color}" />
+  <SolidColorBrush x:Key="Slate400Brush" Color="#FF94A3B8" />
+  <SolidColorBrush x:Key="Slate300Brush" Color="{StaticResource Slate300Color}" />
+  <SolidColorBrush x:Key="Slate200Brush" Color="{StaticResource Slate200Color}" />
+  <SolidColorBrush x:Key="Slate100Brush" Color="{StaticResource Slate100Color}" />
+  <SolidColorBrush x:Key="Slate50Brush" Color="{StaticResource Slate50Color}" />
+  <SolidColorBrush x:Key="Ink900Brush" Color="{StaticResource Ink900Color}" />
+  <SolidColorBrush x:Key="Ink800Brush" Color="{StaticResource Ink800Color}" />
+  <SolidColorBrush x:Key="Ink700Brush" Color="{StaticResource Ink700Color}" />
+  <SolidColorBrush x:Key="AccentBlueBrush" Color="{StaticResource AccentBlueColor}" />
+  <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource AccentBlueColor}" />
+  <SolidColorBrush x:Key="AccentGreenBrush" Color="{StaticResource AccentGreenColor}" />
+  <SolidColorBrush x:Key="AccentAmberBrush" Color="{StaticResource AccentAmberColor}" />
+  <SolidColorBrush x:Key="AccentOrangeBrush" Color="{StaticResource AccentOrangeColor}" />
+  <SolidColorBrush x:Key="AccentRedBrush" Color="{StaticResource AccentRedColor}" />
+  <SolidColorBrush x:Key="WhiteBrush" Color="White" />
+  <SolidColorBrush x:Key="TransparentBrush" Color="Transparent" />
+  <SolidColorBrush x:Key="StatusOnlineBrush" Color="#FF22C55E" />
+  <SolidColorBrush x:Key="StatusOfflineBrush" Color="#FF94A3B8" />
+  <SolidColorBrush x:Key="StatusAwayBrush" Color="#FFEAB308" />
+  <SolidColorBrush x:Key="CardResidentsBrush" Color="#FF228B22" />
+  <SolidColorBrush x:Key="CardActiveBrush" Color="#FF16A34A" />
+  <SolidColorBrush x:Key="CardHouseholdsBrush" Color="#FF1976D2" />
+  <SolidColorBrush x:Key="CardCertBrush" Color="#FFF59E0B" />
+  <SolidColorBrush x:Key="CardBlotterBrush" Color="#FFDC2626" />
+  <FontFamily x:Key="CenturyGothic">Century Gothic</FontFamily>
+  <FontFamily x:Key="TrebuchetMs">Trebuchet MS</FontFamily>
+  <FontFamily x:Key="SegoeUi">Segoe UI</FontFamily>
+  <sys:Double x:Key="TitleFontSize" xmlns:sys="clr-namespace:System;assembly=mscorlib">22</sys:Double>
+  <sys:Double x:Key="HeadingFontSize" xmlns:sys="clr-namespace:System;assembly=mscorlib">16</sys:Double>
+  <sys:Double x:Key="BodyFontSize" xmlns:sys="clr-namespace:System;assembly=mscorlib">13</sys:Double>
+  <sys:Double x:Key="LabelFontSize" xmlns:sys="clr-namespace:System;assembly=mscorlib">12</sys:Double>
+  <sys:Double x:Key="SmallFontSize" xmlns:sys="clr-namespace:System;assembly=mscorlib">11</sys:Double>
+  <sys:Double x:Key="ButtonFontSize" xmlns:sys="clr-namespace:System;assembly=mscorlib">12</sys:Double>
+  <Style x:Key="TitleTextStyle" TargetType="{x:Type TextBlock}">
+    <Setter Property="FontFamily" Value="{StaticResource CenturyGothic}" />
+    <Setter Property="FontSize" Value="{StaticResource TitleFontSize}" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
+  </Style>
+  <Style x:Key="HeadingTextStyle" TargetType="{x:Type TextBlock}">
+    <Setter Property="FontFamily" Value="{StaticResource CenturyGothic}" />
+    <Setter Property="FontSize" Value="{StaticResource HeadingFontSize}" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
+  </Style>
+  <Style x:Key="BodyTextStyle" TargetType="{x:Type TextBlock}">
+    <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+    <Setter Property="FontSize" Value="{StaticResource BodyFontSize}" />
+    <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
+  </Style>
+  <Style x:Key="LabelTextStyle" TargetType="{x:Type TextBlock}">
+    <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+    <Setter Property="FontSize" Value="{StaticResource LabelFontSize}" />
+    <Setter Property="Foreground" Value="{StaticResource Slate700Brush}" />
+    <Setter Property="Margin" Value="0,0,0,6" />
+  </Style>
+  <Style x:Key="SubtitleTextStyle" TargetType="{x:Type TextBlock}">
+    <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+    <Setter Property="FontSize" Value="{StaticResource LabelFontSize}" />
+    <Setter Property="Foreground" Value="{StaticResource Slate500Brush}" />
+  </Style>
+  <Style x:Key="SmallTextStyle" TargetType="{x:Type TextBlock}">
+    <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+    <Setter Property="FontSize" Value="{StaticResource SmallFontSize}" />
+    <Setter Property="Foreground" Value="{StaticResource Slate500Brush}" />
+  </Style>
+  <Style x:Key="SmallLightTextStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource SmallTextStyle}">
+    <Setter Property="Foreground" Value="{StaticResource Slate500Brush}" />
+    <Setter Property="UIElement.Opacity" Value="0.92" />
+  </Style>
+  <Style x:Key="ValueTextStyle" TargetType="{x:Type TextBlock}">
+    <Setter Property="FontFamily" Value="{StaticResource CenturyGothic}" />
+    <Setter Property="FontSize" Value="30" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
+  </Style>
+  <Style x:Key="SectionHeaderTextStyle" TargetType="{x:Type TextBlock}">
+    <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+    <Setter Property="FontSize" Value="{StaticResource LabelFontSize}" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
+  </Style>
+  <Style x:Key="{x:Type TextBlock}" TargetType="{x:Type TextBlock}">
+    <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+    <Setter Property="FontSize" Value="{StaticResource BodyFontSize}" />
+  </Style>
+  <ControlTemplate x:Key="FlatButtonTemplate" TargetType="{x:Type Button}">
+    <Border Name="border" Background="{TemplateBinding Control.Background}" BorderBrush="{TemplateBinding Control.BorderBrush}" BorderThickness="{TemplateBinding Control.BorderThickness}" CornerRadius="6" SnapsToDevicePixels="True">
+      <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Control.Padding}" />
+    </Border>
+    <ControlTemplate.Triggers>
+      <Trigger Property="UIElement.IsMouseOver" Value="True">
+        <Setter TargetName="border" Property="UIElement.Opacity" Value="0.88" />
+      </Trigger>
+      <Trigger Property="ButtonBase.IsPressed" Value="True">
+        <Setter TargetName="border" Property="UIElement.Opacity" Value="0.72" />
+      </Trigger>
+      <Trigger Property="UIElement.IsEnabled" Value="False">
+        <Setter TargetName="border" Property="UIElement.Opacity" Value="0.45" />
+      </Trigger>
+    </ControlTemplate.Triggers>
+  </ControlTemplate>
+  <Style x:Key="PrimaryButtonStyle" TargetType="{x:Type Button}">
+    <Setter Property="Background" Value="{StaticResource Slate900Brush}" />
+    <Setter Property="Foreground" Value="#FFFFFFFF" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+    <Setter Property="FontSize" Value="{StaticResource ButtonFontSize}" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="Height" Value="38" />
+    <Setter Property="MinWidth" Value="96" />
+    <Setter Property="Padding" Value="14,0" />
+    <Setter Property="FrameworkElement.Cursor" Value="Hand" />
+    <Setter Property="Template" Value="{StaticResource FlatButtonTemplate}" />
+  </Style>
+  <ControlTemplate x:Key="OutlinedButtonTemplate" TargetType="{x:Type Button}">
+    <Border Name="border" Background="{TemplateBinding Control.Background}" BorderBrush="{TemplateBinding Control.BorderBrush}" BorderThickness="{TemplateBinding Control.BorderThickness}" CornerRadius="6" SnapsToDevicePixels="True">
+      <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Control.Padding}" />
+    </Border>
+    <ControlTemplate.Triggers>
+      <Trigger Property="UIElement.IsMouseOver" Value="True">
+        <Setter TargetName="border" Property="Border.Background" Value="{StaticResource Slate100Brush}" />
+      </Trigger>
+      <Trigger Property="ButtonBase.IsPressed" Value="True">
+        <Setter TargetName="border" Property="Border.Background" Value="{StaticResource Slate300Brush}" />
+      </Trigger>
+      <Trigger Property="UIElement.IsEnabled" Value="False">
+        <Setter TargetName="border" Property="UIElement.Opacity" Value="0.45" />
+      </Trigger>
+    </ControlTemplate.Triggers>
+  </ControlTemplate>
+  <Style x:Key="SecondaryButtonStyle" TargetType="{x:Type Button}">
+    <Setter Property="Background" Value="#FFFFFFFF" />
+    <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Slate700Brush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+    <Setter Property="FontSize" Value="{StaticResource ButtonFontSize}" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="Height" Value="38" />
+    <Setter Property="MinWidth" Value="96" />
+    <Setter Property="Padding" Value="14,0" />
+    <Setter Property="FrameworkElement.Cursor" Value="Hand" />
+    <Setter Property="Template" Value="{StaticResource OutlinedButtonTemplate}" />
+  </Style>
+  <Style x:Key="DangerButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource PrimaryButtonStyle}">
+    <Setter Property="Background" Value="{StaticResource AccentRedBrush}" />
+  </Style>
+  <Style x:Key="EditButtonStyle" TargetType="{x:Type Button}">
+    <Setter Property="Background" Value="#FFFFFFFF" />
+    <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Slate300Brush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+    <Setter Property="FontSize" Value="{StaticResource ButtonFontSize}" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="Height" Value="38" />
+    <Setter Property="MinWidth" Value="72" />
+    <Setter Property="Padding" Value="12,0" />
+    <Setter Property="FrameworkElement.Cursor" Value="Hand" />
+    <Setter Property="Template" Value="{StaticResource OutlinedButtonTemplate}" />
+  </Style>
+  <Style x:Key="SuccessButtonStyle" TargetType="{x:Type Button}">
+    <Setter Property="Background" Value="#16A34A" />
+    <Setter Property="Foreground" Value="#FFFFFFFF" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+    <Setter Property="FontSize" Value="{StaticResource ButtonFontSize}" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="Height" Value="36" />
+    <Setter Property="Padding" Value="14,0" />
+    <Setter Property="FrameworkElement.Cursor" Value="Hand" />
+    <Setter Property="Template" Value="{StaticResource FlatButtonTemplate}" />
+  </Style>
+  <Style x:Key="ContextualActionButtonStyle" TargetType="{x:Type Button}">
+    <Setter Property="Background" Value="#4F46E5" />
+    <Setter Property="Foreground" Value="#FFFFFFFF" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Height" Value="32" />
+    <Setter Property="Padding" Value="14,0" />
+    <Setter Property="FrameworkElement.Cursor" Value="Hand" />
+    <Setter Property="Template" Value="{StaticResource FlatButtonTemplate}" />
+    <Style.Triggers>
+      <Trigger Property="UIElement.IsMouseOver" Value="True">
+        <Setter Property="Background" Value="#4338CA" />
+      </Trigger>
+    </Style.Triggers>
+  </Style>
+  <Style x:Key="ActionButtonStyle" TargetType="{x:Type Button}">
+    <Setter Property="Background" Value="{StaticResource Slate100Brush}" />
+    <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Slate200Brush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Height" Value="32" />
+    <Setter Property="Padding" Value="12,0" />
+    <Setter Property="FrameworkElement.Cursor" Value="Hand" />
+    <Setter Property="Template" Value="{StaticResource FlatButtonTemplate}" />
+  </Style>
+  <Style x:Key="TileButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource ActionButtonStyle}">
+    <Setter Property="Background" Value="#FFFFFFFF" />
+    <Setter Property="BorderBrush" Value="{StaticResource Slate100Brush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Height" Value="90" />
+    <Setter Property="Padding" Value="14" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="UIElement.Effect">
+      <Setter.Value>
+        <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.06" Direction="270" />
+      </Setter.Value>
+    </Setter>
+    <Style.Triggers>
+      <Trigger Property="UIElement.IsMouseOver" Value="True">
+        <Setter Property="Background" Value="{StaticResource Slate50Brush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Slate200Brush}" />
+      </Trigger>
+    </Style.Triggers>
+  </Style>
+  <Style x:Key="MenuActionButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource ActionButtonStyle}">
+    <Setter Property="Background" Value="{StaticResource Slate50Brush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Slate100Brush}" />
+    <Setter Property="Height" Value="42" />
+    <Setter Property="Padding" Value="14,0" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+  </Style>
+  <ControlTemplate x:Key="GhostButtonTemplate" TargetType="{x:Type Button}">
+    <Border Name="border" Background="#00FFFFFF" CornerRadius="5" SnapsToDevicePixels="True" Padding="{TemplateBinding Control.Padding}">
+      <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+    </Border>
+    <ControlTemplate.Triggers>
+      <Trigger Property="UIElement.IsMouseOver" Value="True">
+        <Setter TargetName="border" Property="Border.Background" Value="{StaticResource Slate100Brush}" />
+      </Trigger>
+      <Trigger Property="ButtonBase.IsPressed" Value="True">
+        <Setter TargetName="border" Property="Border.Background" Value="{StaticResource Slate300Brush}" />
+      </Trigger>
+      <Trigger Property="UIElement.IsEnabled" Value="False">
+        <Setter TargetName="border" Property="UIElement.Opacity" Value="0.45" />
+      </Trigger>
+    </ControlTemplate.Triggers>
+  </ControlTemplate>
+  <Style x:Key="GhostButtonStyle" TargetType="{x:Type Button}">
+    <Setter Property="Background" Value="#00FFFFFF" />
+    <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+    <Setter Property="FontSize" Value="{StaticResource ButtonFontSize}" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="Height" Value="34" />
+    <Setter Property="MinWidth" Value="72" />
+    <Setter Property="Padding" Value="10,0" />
+    <Setter Property="FrameworkElement.Cursor" Value="Hand" />
+    <Setter Property="Template" Value="{StaticResource GhostButtonTemplate}" />
+  </Style>
+  <Style x:Key="IconButtonStyle" TargetType="{x:Type Button}">
+    <Setter Property="Background" Value="#00FFFFFF" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Width" Value="34" />
+    <Setter Property="Height" Value="34" />
+    <Setter Property="Padding" Value="4" />
+    <Setter Property="FrameworkElement.Cursor" Value="Hand" />
+    <Setter Property="Template" Value="{StaticResource GhostButtonTemplate}" />
+  </Style>
+  <ControlTemplate x:Key="RibbonTabTemplate" TargetType="{x:Type ToggleButton}">
+    <Border Name="border" Background="#FFFFFFFF" CornerRadius="5,5,0,0" SnapsToDevicePixels="True" Padding="{TemplateBinding Control.Padding}">
+      <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+    </Border>
+    <ControlTemplate.Triggers>
+      <Trigger Property="UIElement.IsMouseOver" Value="True">
+        <Setter TargetName="border" Property="Border.Background" Value="{StaticResource Slate50Brush}" />
+      </Trigger>
+      <Trigger Property="ToggleButton.IsChecked" Value="True">
+        <Setter TargetName="border" Property="Border.Background" Value="#FFFFFFFF" />
+      </Trigger>
+    </ControlTemplate.Triggers>
+  </ControlTemplate>
+  <Style x:Key="RibbonTabStyle" TargetType="{x:Type ToggleButton}">
+    <Setter Property="Background" Value="#FFFFFFFF" />
+    <Setter Property="Foreground" Value="{StaticResource Slate700Brush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="Height" Value="34" />
+    <Setter Property="MinWidth" Value="86" />
+    <Setter Property="Padding" Value="10,0" />
+    <Setter Property="FrameworkElement.Cursor" Value="Hand" />
+    <Setter Property="Template" Value="{StaticResource RibbonTabTemplate}" />
+    <Style.Triggers>
+      <Trigger Property="ToggleButton.IsChecked" Value="True">
+        <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
+      </Trigger>
+    </Style.Triggers>
+  </Style>
+  <ControlTemplate x:Key="RibbonRadioTabTemplate" TargetType="{x:Type RadioButton}">
+    <Border Name="border" Background="#FFFFFFFF" CornerRadius="5,5,0,0" SnapsToDevicePixels="True" Padding="{TemplateBinding Control.Padding}">
+      <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+    </Border>
+    <ControlTemplate.Triggers>
+      <Trigger Property="UIElement.IsMouseOver" Value="True">
+        <Setter TargetName="border" Property="Border.Background" Value="{StaticResource Slate50Brush}" />
+      </Trigger>
+      <Trigger Property="ToggleButton.IsChecked" Value="True">
+        <Setter TargetName="border" Property="Border.Background" Value="#FFFFFFFF" />
+      </Trigger>
+    </ControlTemplate.Triggers>
+  </ControlTemplate>
+  <Style x:Key="RibbonRadioTabStyle" TargetType="{x:Type RadioButton}">
+    <Setter Property="Background" Value="#FFFFFFFF" />
+    <Setter Property="Foreground" Value="{StaticResource Slate700Brush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="Height" Value="34" />
+    <Setter Property="MinWidth" Value="86" />
+    <Setter Property="Padding" Value="10,0" />
+    <Setter Property="FrameworkElement.Cursor" Value="Hand" />
+    <Setter Property="Template" Value="{StaticResource RibbonRadioTabTemplate}" />
+    <Style.Triggers>
+      <Trigger Property="ToggleButton.IsChecked" Value="True">
+        <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
+      </Trigger>
+    </Style.Triggers>
+  </Style>
+  <Style x:Key="StyledTextBoxStyle" TargetType="{x:Type TextBox}">
+    <Setter Property="Background" Value="#FFFFFFFF" />
+    <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Slate300Brush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+    <Setter Property="FontSize" Value="{StaticResource BodyFontSize}" />
+    <Setter Property="Height" Value="38" />
+    <Setter Property="TextBoxBase.CaretBrush" Value="{StaticResource Slate900Brush}" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type TextBox}">
+          <Border Name="border" Background="{TemplateBinding Control.Background}" BorderBrush="{TemplateBinding Control.BorderBrush}" BorderThickness="{TemplateBinding Control.BorderThickness}" CornerRadius="6" SnapsToDevicePixels="True">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="10" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="10" />
+              </Grid.ColumnDefinitions>
+              <ScrollViewer Name="PART_ContentHost" Grid.Column="1" VerticalAlignment="Center" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" Focusable="False" />
+            </Grid>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="UIElement.IsFocused" Value="True">
+              <Setter TargetName="border" Property="Border.BorderBrush" Value="{StaticResource AccentBlueBrush}" />
+              <Setter TargetName="border" Property="Border.BorderThickness" Value="2" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter TargetName="border" Property="UIElement.Opacity" Value="0.55" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+  <Style x:Key="StyledPasswordBoxStyle" TargetType="{x:Type PasswordBox}">
+    <Setter Property="Background" Value="#FFFFFFFF" />
+    <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Slate300Brush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+    <Setter Property="FontSize" Value="{StaticResource BodyFontSize}" />
+    <Setter Property="Height" Value="38" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type PasswordBox}">
+          <Border Name="border" Background="{TemplateBinding Control.Background}" BorderBrush="{TemplateBinding Control.BorderBrush}" BorderThickness="{TemplateBinding Control.BorderThickness}" CornerRadius="6" SnapsToDevicePixels="True">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="10" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="10" />
+              </Grid.ColumnDefinitions>
+              <ScrollViewer Name="PART_ContentHost" Grid.Column="1" VerticalAlignment="Center" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" Focusable="False" />
+            </Grid>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="UIElement.IsFocused" Value="True">
+              <Setter TargetName="border" Property="Border.BorderBrush" Value="{StaticResource AccentBlueBrush}" />
+              <Setter TargetName="border" Property="Border.BorderThickness" Value="2" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+  <Style x:Key="StyledComboBoxStyle" TargetType="{x:Type ComboBox}">
+    <Setter Property="Background" Value="#FFFFFFFF" />
+    <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Slate300Brush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Padding" Value="10,8" />
+    <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+    <Setter Property="FontSize" Value="{StaticResource BodyFontSize}" />
+    <Setter Property="Height" Value="38" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style x:Key="CardStyle" TargetType="{x:Type Border}">
+    <Setter Property="Background" Value="#FFFFFFFF" />
+    <Setter Property="Border.CornerRadius" Value="10" />
+    <Setter Property="Border.Padding" Value="20" />
+    <Setter Property="UIElement.Effect">
+      <Setter.Value>
+        <DropShadowEffect BlurRadius="14" ShadowDepth="3" Opacity="0.1" Direction="270" />
+      </Setter.Value>
+    </Setter>
+  </Style>
+  <Style x:Key="SectionCardStyle" TargetType="{x:Type Border}">
+    <Setter Property="Background" Value="#FFFFFFFF" />
+    <Setter Property="Border.CornerRadius" Value="8" />
+    <Setter Property="Border.Padding" Value="16" />
+    <Setter Property="BorderBrush" Value="{StaticResource Slate100Brush}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <Style x:Key="StatCardStyle" TargetType="{x:Type Border}">
+    <Setter Property="Background" Value="#FFFFFFFF" />
+    <Setter Property="Border.CornerRadius" Value="10" />
+    <Setter Property="Border.Padding" Value="18,14" />
+    <Setter Property="Margin" Value="0,0,8,8" />
+    <Setter Property="UIElement.Effect">
+      <Setter.Value>
+        <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.09" Direction="270" />
+      </Setter.Value>
+    </Setter>
+  </Style>
+  <Style x:Key="StyledDataGridStyle" TargetType="{x:Type DataGrid}">
+    <Setter Property="Background" Value="#FFFFFFFF" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="DataGrid.GridLinesVisibility" Value="Horizontal" />
+    <Setter Property="DataGrid.HorizontalGridLinesBrush" Value="{StaticResource Slate100Brush}" />
+    <Setter Property="DataGrid.RowHeight" Value="36" />
+    <Setter Property="DataGrid.CanUserResizeRows" Value="False" />
+    <Setter Property="DataGrid.SelectionMode" Value="Single" />
+    <Setter Property="DataGrid.SelectionUnit" Value="FullRow" />
+    <Setter Property="DataGrid.AutoGenerateColumns" Value="False" />
+    <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+    <Setter Property="FontSize" Value="{StaticResource BodyFontSize}" />
+    <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
+    <Setter Property="DataGrid.RowHeaderWidth" Value="0" />
+  </Style>
+  <Style x:Key="StyledDataGridColumnHeaderStyle" TargetType="{x:Type DataGridColumnHeader}">
+    <Setter Property="Background" Value="{StaticResource Slate900Brush}" />
+    <Setter Property="Foreground" Value="#FFFFFFFF" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+    <Setter Property="FontSize" Value="{StaticResource BodyFontSize}" />
+    <Setter Property="Height" Value="38" />
+    <Setter Property="Padding" Value="12,0" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+  <Style x:Key="StyledDataGridRowStyle" TargetType="{x:Type DataGridRow}">
+    <Setter Property="Background" Value="#FFFFFFFF" />
+    <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Style.Triggers>
+      <Trigger Property="DataGridRow.IsSelected" Value="True">
+        <Setter Property="Background" Value="#EFF6FF" />
+        <Setter Property="Foreground" Value="#1D4ED8" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+      </Trigger>
+      <Trigger Property="UIElement.IsMouseOver" Value="True">
+        <Setter Property="Background" Value="{StaticResource Slate50Brush}" />
+      </Trigger>
+    </Style.Triggers>
+  </Style>
+  <Style x:Key="SlimScrollBarThumb" TargetType="{x:Type Thumb}">
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type Thumb}">
+          <Border CornerRadius="4" Background="{StaticResource Slate300Brush}" />
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+  <Style x:Key="SlimScrollBarStyle" TargetType="{x:Type ScrollBar}">
+    <Setter Property="Width" Value="6" />
+    <Setter Property="Background" Value="#00FFFFFF" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type ScrollBar}">
+          <Track Name="PART_Track" IsDirectionReversed="True">
+            <Track.Thumb>
+              <Thumb Style="{StaticResource SlimScrollBarThumb}" />
+            </Track.Thumb>
+          </Track>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+  <Style x:Key="{x:Type ScrollViewer}" TargetType="{x:Type ScrollViewer}">
+    <Setter Property="ScrollViewer.PanningMode" Value="Both" />
+  </Style>
+  <Storyboard x:Key="FadeInStoryboard">
+    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.35" EasingFunction="{x:Null}" />
+  </Storyboard>
+  <Storyboard x:Key="FadeOutStoryboard">
+    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:0.2" />
+  </Storyboard>
+  <Storyboard x:Key="SlideInFromBottomStoryboard">
+    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" From="24" To="0" Duration="0:0:0.3">
+      <DoubleAnimation.EasingFunction>
+        <CubicEase EasingMode="EaseOut" />
+      </DoubleAnimation.EasingFunction>
+    </DoubleAnimation>
+    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.3" />
+  </Storyboard>
+  <Style x:Key="{x:Type Separator}" TargetType="{x:Type Separator}">
+    <Setter Property="Background" Value="{StaticResource Slate100Brush}" />
+    <Setter Property="Margin" Value="0,6" />
+  </Style>
+  <Style x:Key="BaseWindowStyle" TargetType="{x:Type Window}">
+    <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+    <Setter Property="FontSize" Value="{StaticResource BodyFontSize}" />
+    <Setter Property="Background" Value="{StaticResource Slate50Brush}" />
+    <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
+    <Setter Property="TextOptions.TextRenderingMode" Value="ClearType" />
+    <Setter Property="FrameworkElement.UseLayoutRounding" Value="True" />
+  </Style>
+  <LinearGradientBrush x:Key="SidebarBgBrush" StartPoint="0.5,0" EndPoint="0.5,1">
+    <GradientStop Color="#0F172A" Offset="0" />
+    <GradientStop Color="#020617" Offset="1" />
+  </LinearGradientBrush>
+  <SolidColorBrush x:Key="SidebarHoverBrush" Color="#16314F" Opacity="0.78" />
+  <SolidColorBrush x:Key="SidebarActiveBrush" Color="#2563EB" Opacity="0.22" />
+  <SolidColorBrush x:Key="SidebarTextBrush" Color="#D8E4F8" />
+  <SolidColorBrush x:Key="SidebarActiveTextBrush" Color="#FFFFFF" />
+  <SolidColorBrush x:Key="SidebarGroupBrush" Color="#7C93B5" />
+  <SolidColorBrush x:Key="SidebarAccentBrush" Color="#60A5FA" />
+  <SolidColorBrush x:Key="SidebarDividerBrush" Color="#22314D" Opacity="0.8" />
+  <SolidColorBrush x:Key="PageBgBrush" Color="#F8FAFC" />
+  <SolidColorBrush x:Key="TopBarBgBrush" Color="#F8FAFC" Opacity="0.96" />
+  <SolidColorBrush x:Key="StatusBarBgBrush" Color="#020617" />
+  <Style x:Key="NavGroupStyle" TargetType="{x:Type TextBlock}">
+    <Setter Property="FontSize" Value="10.5" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="Foreground" Value="{StaticResource SidebarGroupBrush}" />
+    <Setter Property="Margin" Value="18,18,0,8" />
+    <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+    <Setter Property="UIElement.Opacity" Value="0.95" />
+  </Style>
+  <ControlTemplate x:Key="NavItemTemplate" TargetType="{x:Type RadioButton}">
+    <Border Name="border" CornerRadius="14" Background="#00FFFFFF" Margin="10,3,10,0" BorderThickness="1" BorderBrush="#00FFFFFF">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="4" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Rectangle Name="activeIndicator" Grid.Column="0" Fill="#00FFFFFF" RadiusX="2" RadiusY="2" VerticalAlignment="Center" Height="16" HorizontalAlignment="Left" Margin="-1,0,0,0" />
+        <ContentPresenter Grid.Column="1" Margin="14,11,16,11" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextElement.Foreground="{TemplateBinding Control.Foreground}" TextElement.FontFamily="{TemplateBinding Control.FontFamily}" TextElement.FontSize="{TemplateBinding Control.FontSize}" TextElement.FontWeight="{TemplateBinding Control.FontWeight}" />
+      </Grid>
+    </Border>
+    <ControlTemplate.Triggers>
+      <Trigger Property="UIElement.IsMouseOver" Value="True">
+        <Setter TargetName="border" Property="Border.Background" Value="{StaticResource SidebarHoverBrush}" />
+        <Setter TargetName="border" Property="Border.BorderBrush" Value="#27486F" />
+      </Trigger>
+      <Trigger Property="ToggleButton.IsChecked" Value="True">
+        <Setter TargetName="border" Property="Border.Background" Value="{StaticResource SidebarActiveBrush}" />
+        <Setter TargetName="border" Property="Border.BorderBrush" Value="#60A5FA" />
+        <Setter TargetName="activeIndicator" Property="Shape.Fill" Value="{StaticResource SidebarAccentBrush}" />
+      </Trigger>
+      <Trigger Property="UIElement.IsEnabled" Value="False">
+        <Setter TargetName="border" Property="UIElement.Opacity" Value="0.38" />
+      </Trigger>
+    </ControlTemplate.Triggers>
+  </ControlTemplate>
+  <Style x:Key="NavItemStyle" TargetType="{x:Type RadioButton}">
+    <Setter Property="Template" Value="{StaticResource NavItemTemplate}" />
+    <Setter Property="Foreground" Value="{StaticResource SidebarTextBrush}" />
+    <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="FrameworkElement.Cursor" Value="Hand" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Style.Triggers>
+      <Trigger Property="ToggleButton.IsChecked" Value="True">
+        <Setter Property="Foreground" Value="{StaticResource SidebarActiveTextBrush}" />
+        <Setter Property="FontWeight" Value="Bold" />
+      </Trigger>
+    </Style.Triggers>
+  </Style>
+  <Style x:Key="PageHeaderStyle" TargetType="{x:Type Border}">
+    <Setter Property="Background">
+      <Setter.Value>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+          <GradientStop Color="#FFFFFF" Offset="0" />
+          <GradientStop Color="#F8FAFC" Offset="1" />
+        </LinearGradientBrush>
+      </Setter.Value>
+    </Setter>
+    <Setter Property="Border.Padding" Value="24,20,24,18" />
+    <Setter Property="BorderBrush" Value="{StaticResource Slate100Brush}" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+    <Setter Property="UIElement.Effect">
+      <Setter.Value>
+        <DropShadowEffect BlurRadius="10" ShadowDepth="1" Opacity="0.04" Direction="270" />
+      </Setter.Value>
+    </Setter>
+  </Style>
+  <Style x:Key="ToolbarBorderStyle" TargetType="{x:Type Border}">
+    <Setter Property="Background" Value="#FFFFFFFF" />
+    <Setter Property="Border.Padding" Value="24,10" />
+    <Setter Property="BorderBrush" Value="{StaticResource Slate100Brush}" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+  </Style>
+  <Style x:Key="StatusBarTextStyle" TargetType="{x:Type TextBlock}">
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="Foreground" Value="#64748B" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+  </Style>
+  <Style x:Key="KpiCardStyle" TargetType="{x:Type Border}">
+    <Setter Property="Background" Value="#FFFFFFFF" />
+    <Setter Property="Border.CornerRadius" Value="10" />
+    <Setter Property="ClipToBounds" Value="True" />
+    <Setter Property="Margin" Value="0,0,12,0" />
+    <Setter Property="UIElement.Effect">
+      <Setter.Value>
+        <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.07" Direction="270" />
+      </Setter.Value>
+    </Setter>
+  </Style>
+</ResourceDictionary>

@@ -1,230 +1,253 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Data;
 using baranggaysystem1.Database;
-using baranggaysystem1.helper;
-using MySql.Data.MySqlClient;
 
 namespace baranggaysystem1;
 
-internal readonly struct RepeatRespondentCounts
+/// <summary>
+/// Service for tracking repeat respondents in blotter cases.
+/// </summary>
+public static class RepeatRespondentService
 {
-    public int TotalCases { get; }
-    public int ActiveCases { get; }
-
-    public RepeatRespondentCounts(int totalCases, int activeCases)
+    /// <summary>
+    /// Normalizes a respondent name for comparison.
+    /// </summary>
+    public static string NormalizeName(string? name)
     {
-        TotalCases = totalCases < 0 ? 0 : totalCases;
-        ActiveCases = activeCases < 0 ? 0 : activeCases;
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return string.Empty;
+        }
+
+        return name.Trim().ToUpperInvariant();
     }
 
-    public static RepeatRespondentCounts Zero => new(0, 0);
-
-    public RepeatRespondentCounts Add(RepeatRespondentCounts other)
-        => new(TotalCases + other.TotalCases, ActiveCases + other.ActiveCases);
-}
-
-internal sealed class RepeatRespondentBatch
-{
-    public Dictionary<int, RepeatRespondentCounts> ByResidentId { get; } = new();
-
-    public Dictionary<string, RepeatRespondentCounts> ByNameAll { get; } =
-        new(StringComparer.Ordinal);
-
-    public Dictionary<string, RepeatRespondentCounts> ByNameNullIdOnly { get; } =
-        new(StringComparer.Ordinal);
-}
-
-internal static class RepeatRespondentService
-{
-    public static string NormalizeName(string? respondentName)
-        => (respondentName ?? string.Empty).Trim().ToUpperInvariant();
-
-    public static RepeatRespondentCounts GetCountsForRespondent(int? respondentResidentId, string? respondentName)
+    /// <summary>
+    /// Gets the count of cases where a resident was a respondent.
+    /// </summary>
+    public static RepeatRespondentCounts GetCounts(int residentId)
     {
+        var table = DbHelper.LoadTable(
+            @"SELECT
+                COUNT(*) AS total_cases,
+                SUM(CASE WHEN cr.status IN ('OPEN','ONGOING') THEN 1 ELSE 0 END) AS active_cases,
+                SUM(CASE WHEN cr.status IN ('RESOLVED','CLOSED','SETTLED') THEN 1 ELSE 0 END) AS resolved_cases,
+                MAX(cr.created_at) AS last_case_date
+              FROM case_record cr
+              INNER JOIN case_respondent cres ON cres.case_id = cr.case_id
+              WHERE cres.resident_id = @residentId",
+            cmd => cmd.Parameters.AddWithValue("@residentId", residentId));
+
+        if (table.Rows.Count == 0 || table.Rows[0]["total_cases"] == DBNull.Value)
+        {
+            return RepeatRespondentCounts.Zero;
+        }
+
+        var row = table.Rows[0];
+        return new RepeatRespondentCounts
+        {
+            ResidentId = residentId,
+            TotalCases = Convert.ToInt32(row["total_cases"]),
+            ActiveCases = Convert.ToInt32(row["active_cases"]),
+            ResolvedCases = Convert.ToInt32(row["resolved_cases"]),
+            LastCaseDate = row["last_case_date"] != DBNull.Value ? Convert.ToDateTime(row["last_case_date"]) : null
+        };
+    }
+
+    /// <summary>
+    /// Gets counts for a respondent by resident ID and/or name.
+    /// </summary>
+    public static RepeatRespondentCounts GetCountsForRespondent(int? residentId, string? respondentName)
+    {
+        if (residentId.HasValue && residentId.Value > 0)
+        {
+            return GetCounts(residentId.Value);
+        }
+
+        if (string.IsNullOrWhiteSpace(respondentName))
+        {
+            return RepeatRespondentCounts.Zero;
+        }
+
         string normalized = NormalizeName(respondentName);
+        var table = DbHelper.LoadTable(
+            @"SELECT
+                COUNT(*) AS total_cases,
+                SUM(CASE WHEN cr.status IN ('OPEN','ONGOING') THEN 1 ELSE 0 END) AS active_cases,
+                SUM(CASE WHEN cr.status IN ('RESOLVED','CLOSED','SETTLED') THEN 1 ELSE 0 END) AS resolved_cases,
+                MAX(cr.created_at) AS last_case_date
+              FROM case_record cr
+              INNER JOIN case_respondent cres ON cres.case_id = cr.case_id
+              WHERE UPPER(TRIM(cres.respondent_name)) = @name",
+            cmd => cmd.Parameters.AddWithValue("@name", normalized));
 
-        if (respondentResidentId.HasValue && respondentResidentId.Value > 0)
+        if (table.Rows.Count == 0 || table.Rows[0]["total_cases"] == DBNull.Value)
         {
-            var batch = LoadCounts(
-                new[] { respondentResidentId.Value },
-                Array.Empty<string>(),
-                string.IsNullOrWhiteSpace(normalized) ? Array.Empty<string>() : new[] { normalized });
-
-            RepeatRespondentCounts counts = RepeatRespondentCounts.Zero;
-            if (batch.ByResidentId.TryGetValue(respondentResidentId.Value, out RepeatRespondentCounts byId))
-            {
-                counts = counts.Add(byId);
-            }
-
-            if (!string.IsNullOrWhiteSpace(normalized) &&
-                batch.ByNameNullIdOnly.TryGetValue(normalized, out RepeatRespondentCounts byLegacyName))
-            {
-                counts = counts.Add(byLegacyName);
-            }
-
-            return counts;
+            return RepeatRespondentCounts.Zero;
         }
 
-        if (!string.IsNullOrWhiteSpace(normalized))
+        var row = table.Rows[0];
+        return new RepeatRespondentCounts
         {
-            var batch = LoadCounts(Array.Empty<int>(), new[] { normalized }, Array.Empty<string>());
-            return batch.ByNameAll.TryGetValue(normalized, out RepeatRespondentCounts byName)
-                ? byName
-                : RepeatRespondentCounts.Zero;
-        }
-
-        return RepeatRespondentCounts.Zero;
+            ResidentId = null,
+            TotalCases = Convert.ToInt32(row["total_cases"]),
+            ActiveCases = Convert.ToInt32(row["active_cases"]),
+            ResolvedCases = Convert.ToInt32(row["resolved_cases"]),
+            LastCaseDate = row["last_case_date"] != DBNull.Value ? Convert.ToDateTime(row["last_case_date"]) : null
+        };
     }
 
+    /// <summary>
+    /// Gets repeat respondent info for all respondents in a given case.
+    /// </summary>
+    public static RepeatRespondentBatch GetBatchForCase(int caseId)
+    {
+        var respondentTable = DbHelper.LoadTable(
+            "SELECT resident_id FROM case_respondent WHERE case_id = @caseId",
+            cmd => cmd.Parameters.AddWithValue("@caseId", caseId));
+
+        var items = new List<RepeatRespondentCounts>();
+
+        foreach (DataRow row in respondentTable.Rows)
+        {
+            int residentId = Convert.ToInt32(row["resident_id"]);
+            items.Add(GetCounts(residentId));
+        }
+
+        return new RepeatRespondentBatch(items);
+    }
+
+    /// <summary>
+    /// Loads counts for a batch of resident IDs and names.
+    /// </summary>
     public static RepeatRespondentBatch LoadCounts(
         IEnumerable<int> residentIds,
-        IEnumerable<string> normalizedNamesAll,
-        IEnumerable<string> normalizedNamesNullIdOnly)
+        IEnumerable<string> namesAll,
+        IEnumerable<string> namesNullIdOnly)
     {
-        var batch = new RepeatRespondentBatch();
+        var byResidentId = new Dictionary<int, RepeatRespondentCounts>();
+        var byNameAll = new Dictionary<string, RepeatRespondentCounts>(StringComparer.Ordinal);
+        var byNameNullIdOnly = new Dictionary<string, RepeatRespondentCounts>(StringComparer.Ordinal);
 
-        List<int> ids = residentIds
-            .Where(id => id > 0)
-            .Distinct()
-            .ToList();
-
-        List<string> namesAll = NormalizeDistinctNames(normalizedNamesAll);
-        List<string> namesNullId = NormalizeDistinctNames(normalizedNamesNullIdOnly);
-
-        if (ids.Count == 0 && namesAll.Count == 0 && namesNullId.Count == 0)
+        foreach (int id in residentIds)
         {
-            return batch;
-        }
-
-        try
-        {
-            using var conn = DBConnection.GetConnection();
-            conn.Open();
-
-            if (ids.Count > 0)
+            if (!byResidentId.ContainsKey(id))
             {
-                LoadCountsByResidentId(conn, ids, batch.ByResidentId);
-            }
-
-            if (namesAll.Count > 0)
-            {
-                LoadCountsByName(conn, namesAll, includeLinked: true, batch.ByNameAll);
-            }
-
-            if (namesNullId.Count > 0)
-            {
-                LoadCountsByName(conn, namesNullId, includeLinked: false, batch.ByNameNullIdOnly);
+                byResidentId[id] = GetCounts(id);
             }
         }
-        catch (Exception ex)
+
+        foreach (string name in namesAll)
         {
-            // Best-effort: repeat flags should never block the workflow.
-            AppLogger.LogWarning("Unable to load repeat-respondent counts.", ex);
+            if (!byNameAll.ContainsKey(name))
+            {
+                byNameAll[name] = GetCountsByName(name, includeLinked: true);
+            }
         }
 
-        return batch;
+        foreach (string name in namesNullIdOnly)
+        {
+            if (!byNameNullIdOnly.ContainsKey(name))
+            {
+                byNameNullIdOnly[name] = GetCountsByName(name, includeLinked: false);
+            }
+        }
+
+        return new RepeatRespondentBatch(byResidentId, byNameAll, byNameNullIdOnly);
     }
 
-    private static List<string> NormalizeDistinctNames(IEnumerable<string> names)
+    private static RepeatRespondentCounts GetCountsByName(string normalizedName, bool includeLinked)
     {
-        var set = new HashSet<string>(StringComparer.Ordinal);
-        foreach (string name in names ?? Array.Empty<string>())
+        string condition = includeLinked
+            ? "UPPER(TRIM(cres.respondent_name)) = @name"
+            : "UPPER(TRIM(cres.respondent_name)) = @name AND (cres.resident_id IS NULL OR cres.resident_id = 0)";
+
+        var table = DbHelper.LoadTable(
+            $@"SELECT
+                COUNT(*) AS total_cases,
+                SUM(CASE WHEN cr.status IN ('OPEN','ONGOING') THEN 1 ELSE 0 END) AS active_cases,
+                SUM(CASE WHEN cr.status IN ('RESOLVED','CLOSED','SETTLED') THEN 1 ELSE 0 END) AS resolved_cases,
+                MAX(cr.created_at) AS last_case_date
+              FROM case_record cr
+              INNER JOIN case_respondent cres ON cres.case_id = cr.case_id
+              WHERE {condition}",
+            cmd => cmd.Parameters.AddWithValue("@name", normalizedName));
+
+        if (table.Rows.Count == 0 || table.Rows[0]["total_cases"] == DBNull.Value)
         {
-            string normalized = NormalizeName(name);
-            if (!string.IsNullOrWhiteSpace(normalized))
-            {
-                set.Add(normalized);
-            }
+            return RepeatRespondentCounts.Zero;
         }
 
-        return set.ToList();
-    }
-
-    private static void LoadCountsByResidentId(MySqlConnection conn, IReadOnlyList<int> ids, Dictionary<int, RepeatRespondentCounts> target)
-    {
-        using var cmd = new MySqlCommand();
-        cmd.Connection = conn;
-        string inClause = BuildInClause(cmd, ids, "@rid");
-        cmd.CommandText =
-            $@"SELECT respondent_resident_id AS rid,
-                      COUNT(*) AS total_cases,
-                      SUM(CASE WHEN UPPER(status) IN ('OPEN','ONGOING') THEN 1 ELSE 0 END) AS active_cases
-               FROM case_record
-               WHERE respondent_resident_id IN ({inClause})
-               GROUP BY respondent_resident_id";
-
-        using var reader = cmd.ExecuteReader();
-        while (reader.Read())
+        var row = table.Rows[0];
+        return new RepeatRespondentCounts
         {
-            if (reader["rid"] == DBNull.Value)
-            {
-                continue;
-            }
-
-            int rid = Convert.ToInt32(reader["rid"]);
-            target[rid] = ReadCounts(reader);
-        }
+            ResidentId = null,
+            TotalCases = Convert.ToInt32(row["total_cases"]),
+            ActiveCases = Convert.ToInt32(row["active_cases"]),
+            ResolvedCases = Convert.ToInt32(row["resolved_cases"]),
+            LastCaseDate = row["last_case_date"] != DBNull.Value ? Convert.ToDateTime(row["last_case_date"]) : null
+        };
     }
+}
 
-    private static void LoadCountsByName(
-        MySqlConnection conn,
-        IReadOnlyList<string> normalizedNames,
-        bool includeLinked,
-        Dictionary<string, RepeatRespondentCounts> target)
+/// <summary>
+/// Counts of cases where a resident was a respondent.
+/// </summary>
+public sealed class RepeatRespondentCounts
+{
+    public static readonly RepeatRespondentCounts Zero = new();
+
+    public int? ResidentId { get; set; }
+    public int TotalCases { get; set; }
+    public int ActiveCases { get; set; }
+    public int ResolvedCases { get; set; }
+    public DateTime? LastCaseDate { get; set; }
+
+    /// <summary>
+    /// Combines counts from another instance.
+    /// </summary>
+    public RepeatRespondentCounts Add(RepeatRespondentCounts other)
     {
-        string linkedClause = includeLinked ? string.Empty : " AND respondent_resident_id IS NULL";
-
-        using var cmd = new MySqlCommand();
-        cmd.Connection = conn;
-        string inClause = BuildInClause(cmd, normalizedNames, "@nm");
-        cmd.CommandText =
-            $@"SELECT UPPER(TRIM(respondent_name)) AS norm_name,
-                      COUNT(*) AS total_cases,
-                      SUM(CASE WHEN UPPER(status) IN ('OPEN','ONGOING') THEN 1 ELSE 0 END) AS active_cases
-               FROM case_record
-               WHERE respondent_name IS NOT NULL
-                 AND respondent_name <> ''
-                 AND UPPER(TRIM(respondent_name)) IN ({inClause})
-                 {linkedClause}
-               GROUP BY UPPER(TRIM(respondent_name))";
-
-        using var reader = cmd.ExecuteReader();
-        while (reader.Read())
+        return new RepeatRespondentCounts
         {
-            string key = reader["norm_name"]?.ToString() ?? string.Empty;
-            if (string.IsNullOrWhiteSpace(key))
-            {
-                continue;
-            }
+            ResidentId = ResidentId ?? other.ResidentId,
+            TotalCases = TotalCases + other.TotalCases,
+            ActiveCases = ActiveCases + other.ActiveCases,
+            ResolvedCases = ResolvedCases + other.ResolvedCases,
+            LastCaseDate = other.LastCaseDate.HasValue
+                ? (LastCaseDate.HasValue ? (other.LastCaseDate > LastCaseDate ? other.LastCaseDate : LastCaseDate) : other.LastCaseDate)
+                : LastCaseDate
+        };
+    }
+}
 
-            key = NormalizeName(key);
-            if (string.IsNullOrWhiteSpace(key))
-            {
-                continue;
-            }
+/// <summary>
+/// Batch of repeat respondent counts.
+/// </summary>
+public sealed class RepeatRespondentBatch
+{
+    public IReadOnlyList<RepeatRespondentCounts> Items { get; }
+    public IReadOnlyDictionary<int, RepeatRespondentCounts> ByResidentId { get; }
+    public IReadOnlyDictionary<string, RepeatRespondentCounts> ByNameAll { get; }
+    public IReadOnlyDictionary<string, RepeatRespondentCounts> ByNameNullIdOnly { get; }
 
-            target[key] = ReadCounts(reader);
-        }
+    public RepeatRespondentBatch(IReadOnlyList<RepeatRespondentCounts> items)
+    {
+        Items = items;
+        ByResidentId = new Dictionary<int, RepeatRespondentCounts>();
+        ByNameAll = new Dictionary<string, RepeatRespondentCounts>();
+        ByNameNullIdOnly = new Dictionary<string, RepeatRespondentCounts>();
     }
 
-    private static string BuildInClause<T>(MySqlCommand cmd, IReadOnlyList<T> values, string prefix)
+    public RepeatRespondentBatch(
+        Dictionary<int, RepeatRespondentCounts> byResidentId,
+        Dictionary<string, RepeatRespondentCounts> byNameAll,
+        Dictionary<string, RepeatRespondentCounts> byNameNullIdOnly)
     {
-        var names = new string[values.Count];
-        for (int i = 0; i < values.Count; i++)
-        {
-            string name = prefix + i;
-            names[i] = name;
-            cmd.Parameters.AddWithValue(name, values[i]!);
-        }
-
-        return string.Join(", ", names);
-    }
-
-    private static RepeatRespondentCounts ReadCounts(MySqlDataReader reader)
-    {
-        int total = reader["total_cases"] == DBNull.Value ? 0 : Convert.ToInt32(reader["total_cases"]);
-        int active = reader["active_cases"] == DBNull.Value ? 0 : Convert.ToInt32(reader["active_cases"]);
-        return new RepeatRespondentCounts(total, active);
+        Items = new List<RepeatRespondentCounts>(byResidentId.Values);
+        ByResidentId = byResidentId;
+        ByNameAll = byNameAll;
+        ByNameNullIdOnly = byNameNullIdOnly;
     }
 }

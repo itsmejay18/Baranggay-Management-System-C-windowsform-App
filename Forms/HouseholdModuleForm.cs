@@ -4,6 +4,8 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using baranggaysystem1.helper;
 
@@ -43,6 +45,8 @@ internal sealed class HouseholdModuleForm : Form
     private int _currentPage = 1;
     private int _pageSize = 25;
     private int _totalRows;
+    private int _refreshVersion;
+    private CancellationTokenSource? _refreshCts;
     private readonly int _barangayId;
 
     public HouseholdModuleForm()
@@ -57,6 +61,12 @@ internal sealed class HouseholdModuleForm : Form
 
         InitializeComponent();
         LoadPurokOptions();
+        Disposed += (_, _) =>
+        {
+            _refreshCts?.Cancel();
+            _refreshCts?.Dispose();
+            _refreshCts = null;
+        };
         RefreshList(resetPage: true);
     }
 
@@ -347,6 +357,11 @@ internal sealed class HouseholdModuleForm : Form
 
     private void RefreshList(bool resetPage)
     {
+        _ = RefreshListAsync(resetPage);
+    }
+
+    private async Task RefreshListAsync(bool resetPage)
+    {
         if (resetPage)
         {
             _currentPage = 1;
@@ -362,9 +377,17 @@ internal sealed class HouseholdModuleForm : Form
             return;
         }
 
+        int version = Interlocked.Increment(ref _refreshVersion);
+        _refreshCts?.Cancel();
+        _refreshCts?.Dispose();
+        _refreshCts = new CancellationTokenSource();
+        CancellationToken token = _refreshCts.Token;
+
+        SetBusyState(true);
+
         try
         {
-            var result = _householdRepository.Search(new HouseholdListFilters
+            var filters = new HouseholdListFilters
             {
                 BarangayId = _barangayId,
                 SearchText = _searchBox.Text,
@@ -376,7 +399,13 @@ internal sealed class HouseholdModuleForm : Form
                 HasActiveCasesOnly = _activeCasesFilter.Checked,
                 PageNumber = _currentPage,
                 PageSize = _pageSize
-            });
+            };
+
+            var result = await Task.Run(() => _householdRepository.Search(filters), token);
+            if (token.IsCancellationRequested || version != _refreshVersion || IsDisposed)
+            {
+                return;
+            }
 
             _totalRows = result.TotalRows;
             _currentPage = result.PageNumber;
@@ -385,6 +414,10 @@ internal sealed class HouseholdModuleForm : Form
             UpdatePager(result.TotalPages);
             UpdateStatePanel(result.Items.Count);
         }
+        catch (OperationCanceledException)
+        {
+            // Ignore canceled refresh; a newer query is already running.
+        }
         catch (Exception ex)
         {
             ControllerDialogs.Error(ex, "Unable to load households.", "Households");
@@ -392,6 +425,33 @@ internal sealed class HouseholdModuleForm : Form
             _stateLabel.Text = "Unable to load households right now.";
             _stateCreateButton.Visible = false;
         }
+        finally
+        {
+            if (version == _refreshVersion)
+            {
+                SetBusyState(false);
+            }
+        }
+    }
+
+    private void SetBusyState(bool busy)
+    {
+        UseWaitCursor = busy;
+        _refreshButton.Enabled = !busy && Permissions.CanViewHouseholds;
+        _newButton.Enabled = !busy && Permissions.CanCreateHouseholds;
+        _exportButton.Enabled = !busy && Permissions.CanViewHouseholds;
+        _prevButton.Enabled = !busy && _currentPage > 1;
+        _nextButton.Enabled = !busy;
+        _grid.Enabled = !busy;
+        _searchBox.Enabled = !busy;
+        _purokFilter.Enabled = !busy;
+        _withSeniorsFilter.Enabled = !busy;
+        _withPwdFilter.Enabled = !busy;
+        _with4PsFilter.Enabled = !busy;
+        _emptyFilter.Enabled = !busy;
+        _activeCasesFilter.Enabled = !busy;
+        _pageSizeCombo.Enabled = !busy;
+        Cursor.Current = busy ? Cursors.WaitCursor : Cursors.Default;
     }
 
     private void BindGrid(IReadOnlyList<HouseholdListItem> rows)

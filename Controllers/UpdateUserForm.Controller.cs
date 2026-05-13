@@ -184,6 +184,7 @@ namespace baranggaysystem1
                     }
 
                     ControllerDialogs.Info("User updated.");
+                    _form.MarkSaved();
                     _form.Close();
                 }
                 catch

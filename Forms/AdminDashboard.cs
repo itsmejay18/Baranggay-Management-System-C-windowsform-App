@@ -77,6 +77,8 @@ public partial class AdminDashboard : Form
     private readonly Panel _dashboardHostPanel = new Panel();
     private Form? _activeWorkspaceForm;
     private Residents? _residentsWorkspaceForm;
+    private readonly Dictionary<string, Form> _workspaceCache = new Dictionary<string, Form>(StringComparer.Ordinal);
+    private bool _initialDashboardLoadTriggered;
     private readonly Panel _quickActionsPanel = new Panel();
     private readonly FlowLayoutPanel _quickActionsFlow = new FlowLayoutPanel();
     private readonly IconButton _quickAddResidentButton = new IconButton();
@@ -1132,7 +1134,7 @@ public partial class AdminDashboard : Form
         OpenGlobalSearchResult(form.SelectedResult);
     }
 
-    private void OpenGlobalSearchResult(GlobalSearchResult result)
+    private async void OpenGlobalSearchResult(GlobalSearchResult result)
     {
         switch (result.EntityType)
         {
@@ -1176,7 +1178,7 @@ public partial class AdminDashboard : Form
 
                 using var userForm = new UpdateUserForm(result.Id);
                 userForm.ShowDialog(this);
-                _controller.LoadDashboardStats();
+                await _controller.LoadDashboardStatsAsync();
                 break;
             }
         }
@@ -1273,7 +1275,7 @@ public partial class AdminDashboard : Form
                 TryOpenBlotterShortcut();
                 return true;
             case Keys.F5:
-                _controller.LoadDashboardStats();
+                _ = _controller.LoadDashboardStatsAsync();
                 return true;
             case Keys.Control | Keys.OemQuestion:
             case Keys.Control | Keys.Shift | Keys.OemQuestion:
@@ -1297,6 +1299,23 @@ public partial class AdminDashboard : Form
 
             _residentsWorkspaceForm = null;
         }
+
+        foreach (var cachedForm in _workspaceCache.Values.ToArray())
+        {
+            try
+            {
+                cachedForm.FormClosed -= HostedWorkspaceForm_Closed;
+                if (!cachedForm.IsDisposed)
+                {
+                    cachedForm.Dispose();
+                }
+            }
+            catch
+            {
+                // Best effort cleanup.
+            }
+        }
+        _workspaceCache.Clear();
 
         base.OnFormClosed(e);
     }
@@ -1569,6 +1588,35 @@ public partial class AdminDashboard : Form
         form.Dock = DockStyle.Fill;
     }
 
+    private static void ConfigureHostedFormForPerformance(Form form)
+    {
+        ConfigureHostedForm(form);
+        UiPerformance.EnableDoubleBuffering(form);
+    }
+
+    private Form GetOrCreateWorkspaceForm(string cacheKey, Func<Form> factory)
+    {
+        if (_workspaceCache.TryGetValue(cacheKey, out var cached) && !cached.IsDisposed)
+        {
+            return cached;
+        }
+
+        var created = factory();
+        ConfigureHostedFormForPerformance(created);
+        _workspaceCache[cacheKey] = created;
+        return created;
+    }
+
+    private bool IsRetainedWorkspace(Form form)
+    {
+        if (_residentsWorkspaceForm != null && ReferenceEquals(form, _residentsWorkspaceForm))
+        {
+            return true;
+        }
+
+        return _workspaceCache.Values.Any(cached => ReferenceEquals(cached, form));
+    }
+
     private void ShowWorkspaceForm(Form form, string title, string subtitle)
     {
         bool sameWorkspace = ReferenceEquals(_activeWorkspaceForm, form);
@@ -1577,7 +1625,7 @@ public partial class AdminDashboard : Form
             CloseActiveWorkspaceForm();
         }
 
-        ConfigureHostedForm(form);
+        ConfigureHostedFormForPerformance(form);
 
         _activeWorkspaceForm = form;
         _activeWorkspaceForm.FormClosed -= HostedWorkspaceForm_Closed;
@@ -1623,7 +1671,7 @@ public partial class AdminDashboard : Form
         _activeWorkspaceForm = null;
         form.FormClosed -= HostedWorkspaceForm_Closed;
 
-        if (_residentsWorkspaceForm != null && ReferenceEquals(form, _residentsWorkspaceForm))
+        if (IsRetainedWorkspace(form))
         {
             form.Hide();
             _workspaceHostPanel.SuspendLayout();
@@ -1653,6 +1701,15 @@ public partial class AdminDashboard : Form
         if (_residentsWorkspaceForm != null && ReferenceEquals(sender, _residentsWorkspaceForm))
         {
             _residentsWorkspaceForm = null;
+        }
+
+        string[] cacheKeys = _workspaceCache
+            .Where(pair => ReferenceEquals(pair.Value, sender))
+            .Select(pair => pair.Key)
+            .ToArray();
+        foreach (string key in cacheKeys)
+        {
+            _workspaceCache.Remove(key);
         }
 
         if (!ReferenceEquals(sender, _activeWorkspaceForm))
@@ -1701,7 +1758,8 @@ public partial class AdminDashboard : Form
         dashboardPanel.Visible = true;
         dashboardLowerPanel.Visible = true;
         ApplyDashboardResponsiveLayout();
-        _controller.LoadDashboardStats();
+        _initialDashboardLoadTriggered = true;
+        _ = _controller.LoadDashboardStatsAsync();
     }
 
     private void OpenResidents(ResidentsView view, CertificateAction certificateAction = CertificateAction.None)
@@ -1715,16 +1773,39 @@ public partial class AdminDashboard : Form
         OpenResidents(view);
     }
 
+    internal void OpenCertificatesWorkspace(CertificateAction action = CertificateAction.None)
+    {
+        OpenResidents(ResidentsView.Certificates, action);
+    }
+
+    internal void OpenCertificateById(int residentId, int certificateId)
+    {
+        if (residentId <= 0 || certificateId <= 0)
+        {
+            return;
+        }
+
+        SyncRibbonPrimaryFromResidentsView(ResidentsView.Certificates);
+        var residents = EnsureResidentsWorkspace(ResidentsView.Certificates);
+        residents.NavigateToResident(residentId, ResidentsView.Certificates, certificateId);
+    }
+
     internal void OpenUsersListModule()
     {
         SyncRibbonPrimary("Administration");
-        ShowWorkspaceForm(new UsersListForm(), "Staff and Admin", "Manage user accounts");
+        ShowWorkspaceForm(
+            GetOrCreateWorkspaceForm("users-list", () => new UsersListForm()),
+            "Staff and Admin",
+            "Manage user accounts");
     }
 
     private void OpenReports()
     {
         SyncRibbonPrimary("Reports");
-        ShowWorkspaceForm(new Reports(), "Reports", "View reports and analytics");
+        ShowWorkspaceForm(
+            GetOrCreateWorkspaceForm("reports", () => new Reports()),
+            "Reports",
+            "View reports and analytics");
     }
 
     private void OpenHouseholdsModule()
@@ -1737,7 +1818,7 @@ public partial class AdminDashboard : Form
         }
 
         ShowWorkspaceForm(
-            new HouseholdModuleForm(),
+            GetOrCreateWorkspaceForm("households", () => new HouseholdModuleForm()),
             "Households",
             "Household records");
     }
@@ -1746,10 +1827,7 @@ public partial class AdminDashboard : Form
     {
         SyncRibbonPrimary("Services");
         ShowWorkspaceForm(
-            new ModulePlaceholderForm(
-                "Clearances",
-                "Barangay clearance module",
-                "This module is ready for future implementation."),
+            GetOrCreateWorkspaceForm("clearances", () => new ClearancesModuleForm(OpenCertificatesWorkspace, OpenCertificateById)),
             "Clearances",
             "Clearance processing");
     }
@@ -1758,10 +1836,7 @@ public partial class AdminDashboard : Form
     {
         SyncRibbonPrimary("Services");
         ShowWorkspaceForm(
-            new ModulePlaceholderForm(
-                "Permits",
-                "Permit processing module",
-                "This module is ready for future implementation."),
+            GetOrCreateWorkspaceForm("permits", () => new PermitsModuleForm(OpenCertificatesWorkspace, OpenCertificateById)),
             "Permits",
             "Permit processing");
     }
@@ -1770,10 +1845,7 @@ public partial class AdminDashboard : Form
     {
         SyncRibbonPrimary("Finance");
         ShowWorkspaceForm(
-            new ModulePlaceholderForm(
-                "Payments",
-                "Payments module",
-                "This module is ready for future implementation."),
+            GetOrCreateWorkspaceForm("payments", () => new PaymentsModuleForm(OpenCertificateById)),
             "Payments",
             "Payment transactions");
     }
@@ -1782,10 +1854,7 @@ public partial class AdminDashboard : Form
     {
         SyncRibbonPrimary("Finance");
         ShowWorkspaceForm(
-            new ModulePlaceholderForm(
-                "Collections",
-                "Collections module",
-                "This module is ready for future implementation."),
+            GetOrCreateWorkspaceForm("collections", () => new CollectionsModuleForm(OpenCertificateById)),
             "Collections",
             "Collection tracking");
     }
@@ -1794,10 +1863,12 @@ public partial class AdminDashboard : Form
     {
         SyncRibbonPrimary("Administration");
         ShowWorkspaceForm(
-            new ModulePlaceholderForm(
-                "Officials",
-                "Barangay officials module",
-                "This module is ready for future implementation."),
+            GetOrCreateWorkspaceForm(
+                "officials-placeholder",
+                () => new ModulePlaceholderForm(
+                    "Officials",
+                    "Barangay officials module",
+                    "This module is ready for future implementation.")),
             "Officials",
             "Officials management");
     }
@@ -1806,10 +1877,12 @@ public partial class AdminDashboard : Form
     {
         SyncRibbonPrimary("Administration");
         ShowWorkspaceForm(
-            new ModulePlaceholderForm(
-                "Staff / Users",
-                "Staff and user accounts module",
-                "This module is ready for future implementation."),
+            GetOrCreateWorkspaceForm(
+                "staff-users-placeholder",
+                () => new ModulePlaceholderForm(
+                    "Staff / Users",
+                    "Staff and user accounts module",
+                    "This module is ready for future implementation.")),
             "Staff / Users",
             "Staff and user accounts");
     }
@@ -2087,14 +2160,14 @@ public partial class AdminDashboard : Form
         chips.Controls.Add(CreateChip(priority, accent));
         topRow.Controls.Add(chips, 1, 0);
 
-        var summaryLabel = new Label
+        var details = new Label
         {
             Dock = DockStyle.Fill,
             TextAlign = ContentAlignment.TopLeft,
             Font = UiTheme.SmallFont,
             ForeColor = UiTheme.Slate600,
             Padding = new Padding(0, 8, 0, 0),
-            Text = BuildSnippet(body, "No message body.")
+            Text = body
         };
 
         var footer = new TableLayoutPanel
@@ -2106,31 +2179,20 @@ public partial class AdminDashboard : Form
         };
         footer.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
         footer.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-
-        var metaRow = new FlowLayoutPanel
-        {
-            Dock = DockStyle.Fill,
-            FlowDirection = FlowDirection.LeftToRight,
-            WrapContents = false,
-            Margin = new Padding(0),
-            Padding = new Padding(0)
-        };
-        metaRow.Controls.Add(CreateChip(status, StatusColor(status)));
-        metaRow.Controls.Add(new Label
+        footer.Controls.Add(new Label
         {
             AutoSize = true,
-            Text = "Published " + published,
+            Text = $"Published: {published}",
             Font = UiTheme.SmallFont,
-            ForeColor = UiTheme.Slate600,
-            Margin = new Padding(10, 4, 0, 0)
-        });
-        footer.Controls.Add(metaRow, 0, 0);
+            ForeColor = UiTheme.Slate500,
+            Anchor = AnchorStyles.Left
+        }, 0, 0);
         footer.Controls.Add(
             CreateCardActionButton("View", () => ShowAnnouncementDetails(row)),
             1,
             0);
 
-        card.Controls.Add(summaryLabel);
+        card.Controls.Add(details);
         card.Controls.Add(footer);
         card.Controls.Add(topRow);
 
@@ -2286,25 +2348,9 @@ public partial class AdminDashboard : Form
 
     private void ShowAnnouncementDetails(DataRow row)
     {
-        int announcementId = ReadInt(row, "announcement_id");
         string title = ReadCell(row, "title");
         string body = ReadCell(row, "body");
-        string priority = ReadCell(row, "priority");
-        string status = ReadCell(row, "status");
-        string published = ReadCell(row, "published");
-
-        string message =
-            $"Title: {title}\n" +
-            $"Priority: {priority}\n" +
-             $"Status: {status}\n" +
-             $"Published: {published}\n\n" +
-             (string.IsNullOrWhiteSpace(body) ? "No message body." : body);
-        ControllerDialogs.Info(message, "Announcement");
-
-        if (announcementId > 0)
-        {
-            _controller.HandleAnnouncementViewed(announcementId);
-        }
+        MessageBox.Show(body, title, MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
 
     private void ShowProjectDetails(DataRow row)
@@ -2527,9 +2573,9 @@ public partial class AdminDashboard : Form
         announcementsNew.PerformClick();
     }
 
-    private void QuickRefresh_Click(object? sender, EventArgs e)
+    private async void QuickRefresh_Click(object? sender, EventArgs e)
     {
-        _controller.LoadDashboardStats();
+        await _controller.LoadDashboardStatsAsync();
     }
 
     private void SidebarHistory_Click(object? sender, EventArgs e)
@@ -2573,7 +2619,7 @@ public partial class AdminDashboard : Form
         }
     }
 
-    private void iconButton1_Click(object sender, EventArgs e)
+    private void SidebarDashboard_Click(object? sender, EventArgs e)
     {
         ShowDashboard();
     }
@@ -3165,14 +3211,30 @@ public partial class AdminDashboard : Form
         g.DrawLines(linePen, points);
     }
 
-    // Stub handlers for designer-wired buttons inside the old contentPanel.
-    private void add_Click(object sender, EventArgs e) { }
-    private void button1_Click(object sender, EventArgs e) { }
-    private void button2_Click(object sender, EventArgs e) { }
-    private void button3_Click(object sender, EventArgs e) { }
-    private void AdminDashboard_Load(object sender, EventArgs e)
+    private void ProfileCreateResidentButton_Click(object? sender, EventArgs e)
     {
-        _controller.LoadDashboardStats();
+        TryOpenResidentShortcut();
+    }
+
+    private void ResidentsRefreshButton_Click(object? sender, EventArgs e)
+    {
+        _ = _controller.LoadDashboardStatsAsync();
+    }
+
+    private void ProfileOpenResidentsButton_Click(object? sender, EventArgs e)
+    {
+        OpenResidents(ResidentsView.Profile);
+    }
+
+    private async void AdminDashboard_Load(object sender, EventArgs e)
+    {
+        if (_initialDashboardLoadTriggered)
+        {
+            return;
+        }
+
+        _initialDashboardLoadTriggered = true;
+        await _controller.LoadDashboardStatsAsync();
     }
 
     private void AdminDashboard_Resize(object? sender, EventArgs e)
@@ -3238,6 +3300,25 @@ public partial class AdminDashboard : Form
         _statCertsValue.Text = pendingCertificates.ToString();
         _statBlotterValue.Text = ongoingBlotter.ToString();
         UpdateDashboardStatIcons(totalResidents, activeResidents, households, pendingCertificates, ongoingBlotter);
+    }
+
+    internal void SetDashboardLoading(bool isLoading)
+    {
+        if (InvokeRequired)
+        {
+            BeginInvoke(new Action(() => SetDashboardLoading(isLoading)));
+            return;
+        }
+
+        // Show loading indicators on stat cards
+        _statResidentsValue.Text = isLoading ? "..." : _statResidentsValue.Text;
+        _statActiveValue.Text = isLoading ? "..." : _statActiveValue.Text;
+        _statHouseholdsValue.Text = isLoading ? "..." : _statHouseholdsValue.Text;
+        _statCertsValue.Text = isLoading ? "..." : _statCertsValue.Text;
+        _statBlotterValue.Text = isLoading ? "..." : _statBlotterValue.Text;
+
+        // Disable interactions during loading
+        dashboardPanel.Enabled = !isLoading;
     }
 
     internal void SetBackupStatus(BackupRunInfo? info)

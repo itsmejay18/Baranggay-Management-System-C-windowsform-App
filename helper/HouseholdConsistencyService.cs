@@ -1,6 +1,6 @@
 using System;
+using System.Data;
 using baranggaysystem1.Database;
-using MySql.Data.MySqlClient;
 
 namespace baranggaysystem1.helper;
 
@@ -29,19 +29,16 @@ internal static class HouseholdConsistencyService
         int purokId = resident.PurokId ?? SchemaDefaults.DefaultPurokId;
         string normalizedStatus = NormalizeResidentStatus(resident.Status);
 
-        using MySqlConnection conn = DBConnection.GetConnection();
-        conn.Open();
-
         const string householdSql = @"
 SELECT barangay_id, purok_id
 FROM household
 WHERE household_id = @householdId
 LIMIT 1";
 
-        using MySqlCommand householdCmd = new MySqlCommand(householdSql, conn);
-        householdCmd.Parameters.AddWithValue("@householdId", householdId);
-        using MySqlDataReader householdReader = householdCmd.ExecuteReader();
-        if (!householdReader.Read())
+        DataTable householdTable = DbHelper.LoadTable(
+            householdSql,
+            cmd => cmd.Parameters.AddWithValue("@householdId", householdId));
+        if (householdTable.Rows.Count == 0)
         {
             return new HouseholdConsistencyViolation
             {
@@ -50,9 +47,9 @@ LIMIT 1";
             };
         }
 
-        int householdBarangayId = Convert.ToInt32(householdReader["barangay_id"]);
-        int householdPurokId = Convert.ToInt32(householdReader["purok_id"]);
-        householdReader.Close();
+        DataRow householdRow = householdTable.Rows[0];
+        int householdBarangayId = Convert.ToInt32(householdRow["barangay_id"]);
+        int householdPurokId = Convert.ToInt32(householdRow["purok_id"]);
 
         if (householdBarangayId != barangayId || householdPurokId != purokId)
         {
@@ -70,13 +67,16 @@ WHERE household_id = @householdId
   AND status = 'ACTIVE'
   AND (@excludeResidentId IS NULL OR resident_id <> @excludeResidentId)";
 
-        using MySqlCommand activeCmd = new MySqlCommand(activeMembersSql, conn);
-        activeCmd.Parameters.AddWithValue("@householdId", householdId);
-        activeCmd.Parameters.AddWithValue(
-            "@excludeResidentId",
-            excludeResidentId.HasValue ? excludeResidentId.Value : (object)DBNull.Value);
+        int activeMembersExcludingCurrent = DbHelper.ExecuteScalar<int>(
+            activeMembersSql,
+            cmd =>
+            {
+                cmd.Parameters.AddWithValue("@householdId", householdId);
+                cmd.Parameters.AddWithValue(
+                    "@excludeResidentId",
+                    excludeResidentId.HasValue ? excludeResidentId.Value : (object)DBNull.Value);
+            });
 
-        int activeMembersExcludingCurrent = Convert.ToInt32(activeCmd.ExecuteScalar() ?? 0);
         bool residentIsActive = string.Equals(normalizedStatus, "ACTIVE", StringComparison.OrdinalIgnoreCase);
         if (!residentIsActive && activeMembersExcludingCurrent <= 0)
         {

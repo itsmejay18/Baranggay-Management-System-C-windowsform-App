@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using baranggaysystem1.Database;
-using MySql.Data.MySqlClient;
 
 namespace baranggaysystem1.helper
 {
@@ -58,6 +58,11 @@ namespace baranggaysystem1.helper
                 return false;
             }
 
+            if (string.Equals(UserSession.Role, "Super Admin", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
             EnsureLoaded();
             return _grants.TryGetValue(permissionKey, out bool allowed) && allowed;
         }
@@ -84,20 +89,19 @@ namespace baranggaysystem1.helper
 
             try
             {
-                using var conn = DBConnection.GetConnection();
-                conn.Open();
-                SchemaBootstrap.EnsureCoreDefaults(conn);
-                using var cmd = new MySqlCommand(
+                EnsureRolePermissionSchemaOnline();
+
+                DataTable table = DbHelper.LoadTable(
                     @"SELECT rp.permission_key, rp.is_allowed
                       FROM role_permission rp
                       INNER JOIN role r ON r.role_id = rp.role_id
-                      WHERE r.name = @roleName", conn);
-                cmd.Parameters.AddWithValue("@roleName", roleName);
-                using var reader = cmd.ExecuteReader();
-                while (reader.Read())
+                      WHERE r.name = @roleName",
+                    cmd => cmd.Parameters.AddWithValue("@roleName", roleName));
+
+                foreach (DataRow row in table.Rows)
                 {
-                    string key = Convert.ToString(reader["permission_key"]) ?? string.Empty;
-                    bool allowed = reader["is_allowed"] != DBNull.Value && Convert.ToInt32(reader["is_allowed"]) == 1;
+                    string key = Convert.ToString(row["permission_key"]) ?? string.Empty;
+                    bool allowed = row["is_allowed"] != DBNull.Value && Convert.ToInt32(row["is_allowed"]) == 1;
                     if (!string.IsNullOrWhiteSpace(key))
                     {
                         grants[key] = allowed;
@@ -109,7 +113,47 @@ namespace baranggaysystem1.helper
                 AppLogger.LogError("Permissions.LoadRolePermissions failed.", ex);
             }
 
+            ApplyFallbackPermissions(roleName, grants);
             return grants;
+        }
+
+        private static void EnsureRolePermissionSchemaOnline()
+        {
+            if (OfflineDatabaseSupport.IsOffline)
+            {
+                return;
+            }
+
+            try
+            {
+                using var conn = DBConnection.GetConnection();
+                conn.Open();
+                SchemaBootstrap.EnsureCoreDefaults(conn);
+            }
+            catch (Exception ex)
+            {
+                AppLogger.LogWarning("Permissions schema bootstrap skipped (continuing with existing data).", ex);
+            }
+        }
+
+        private static void ApplyFallbackPermissions(string roleName, Dictionary<string, bool> grants)
+        {
+            if (grants.Count > 0)
+            {
+                return;
+            }
+
+            if (string.Equals(roleName, "Admin", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(roleName, "Super Admin", StringComparison.OrdinalIgnoreCase))
+            {
+                foreach (string key in PermissionKeys.All)
+                {
+                    grants[key] = true;
+                }
+
+                AppLogger.LogWarning(
+                    $"Permissions fallback applied for role '{roleName}'. Access granted from local defaults.");
+            }
         }
     }
 }

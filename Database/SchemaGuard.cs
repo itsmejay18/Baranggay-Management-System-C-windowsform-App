@@ -552,6 +552,56 @@ internal static class SchemaGuard
             "CREATE INDEX idx_purok_coordinates ON purok_sitio(latitude, longitude)");
         TryExecuteIgnore(conn,
             "CREATE INDEX idx_backup_run_type_started_at ON backup_run(backup_type, started_at)");
+
+        // Login query: WHERE username=@u AND password_hash=@p AND is_active=1
+        TryExecuteIgnore(conn,
+            "CREATE UNIQUE INDEX ux_user_account_username ON user_account(username)");
+
+        // Resident list query: WHERE is_deleted=N ORDER BY last_name, first_name
+        TryExecuteIgnore(conn,
+            "CREATE INDEX idx_resident_search ON resident(is_deleted, last_name, first_name)");
+
+        // Fix role table bloat: deduplicate then add unique constraint so
+        // ON DUPLICATE KEY UPDATE in SchemaBootstrap works correctly.
+        EnsureRoleNameUnique(conn);
+    }
+
+    private static void EnsureRoleNameUnique(MySqlConnection conn)
+    {
+        // 1. Keep only the lowest role_id per name; re-point user_role rows then delete dupes.
+        try
+        {
+            using var dedupCmd = new MySqlCommand(@"
+                UPDATE user_role ur
+                JOIN (
+                    SELECT name, MIN(role_id) AS keep_id
+                    FROM role
+                    GROUP BY name
+                    HAVING COUNT(*) > 1
+                ) keeper ON ur.role_id IN (
+                    SELECT role_id FROM role
+                    WHERE name = keeper.name AND role_id != keeper.keep_id
+                )
+                SET ur.role_id = keeper.keep_id
+                WHERE 1=1;", conn);
+            dedupCmd.ExecuteNonQuery();
+
+            using var deleteCmd = new MySqlCommand(@"
+                DELETE r FROM role r
+                INNER JOIN (
+                    SELECT name, MIN(role_id) AS keep_id
+                    FROM role GROUP BY name
+                ) keep ON r.name = keep.name AND r.role_id != keep.keep_id;", conn);
+            deleteCmd.ExecuteNonQuery();
+        }
+        catch
+        {
+            // Non-fatal; if FKs prevent deletion it's fine — the index creation below will still succeed
+            // if only one row per name remains, or silently fail if dupes are left.
+        }
+
+        // 2. Add unique index (silently ignored if already exists or dupes remain).
+        TryExecuteIgnore(conn, "CREATE UNIQUE INDEX ux_role_name ON role(name)");
     }
 
     private static void TryExecuteIgnore(MySqlConnection conn, string sql)
