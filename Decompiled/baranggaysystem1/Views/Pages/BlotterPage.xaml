@@ -156,121 +156,44 @@
       <RowDefinition Height="Auto" />
       <RowDefinition Height="Auto" />
     </Grid.RowDefinitions>
-    <Border Grid.Row="0" Style="{StaticResource PageHeaderStyle}" Padding="16,10,16,10">
+    <Border Grid.Row="0" Style="{StaticResource PageHeaderStyle}" Padding="14,5,14,5">
       <Grid>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <StackPanel Grid.Column="0" Orientation="Horizontal">
-          <Border Width="40" Height="40" CornerRadius="12" Margin="0,0,12,0">
-            <Border.Background>
-              <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                <GradientStop Color="#FECACA" Offset="0" />
-                <GradientStop Color="#FED7AA" Offset="1" />
-              </LinearGradientBrush>
-            </Border.Background>
-            <fa:IconBlock Icon="Gavel" Foreground="#DC2626" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center" />
-          </Border>
-          <StackPanel VerticalAlignment="Center">
-            <TextBlock Text="Blotter Cases &amp; Mediation" Style="{StaticResource HeadingTextStyle}" FontSize="15" />
-            <TextBlock Name="recordCountLabel" Text="Loading blotter case registry..." Style="{StaticResource SubtitleTextStyle}" FontSize="11" Margin="0,1,0,0" />
-            <WrapPanel Margin="0,3,0,0">
-              <Border Style="{StaticResource BlotterHeroChipStyle}">
-                <StackPanel Orientation="Horizontal">
-                  <fa:IconBlock Icon="Eye" FontSize="10" Foreground="#EA580C" VerticalAlignment="Center" />
-                  <TextBlock Name="headerVisibleLabel" Text="0 visible now" Style="{StaticResource BlotterHeroChipTextStyle}" Margin="5,0,0,0" />
-                </StackPanel>
-              </Border>
-              <Border Style="{StaticResource BlotterHeroChipStyle}">
-                <StackPanel Orientation="Horizontal">
-                  <fa:IconBlock Icon="Clock" FontSize="10" Foreground="#DC2626" VerticalAlignment="Center" />
-                  <TextBlock Name="headerActiveLabel" Text="0 active / pending" Style="{StaticResource BlotterHeroChipTextStyle}" Margin="5,0,0,0" />
-                </StackPanel>
-              </Border>
-              <Border Style="{StaticResource BlotterHeroChipStyle}">
-                <StackPanel Orientation="Horizontal">
-                  <fa:IconBlock Icon="Tags" FontSize="10" Foreground="#C2410C" VerticalAlignment="Center" />
-                  <TextBlock Name="headerTypeLabel" Text="0 incident type(s)" Style="{StaticResource BlotterHeroChipTextStyle}" Margin="5,0,0,0" />
-                </StackPanel>
-              </Border>
-            </WrapPanel>
+        <StackPanel Grid.Column="0">
+          <StackPanel Orientation="Horizontal">
+            <fa:IconBlock Icon="Gavel" Foreground="#DC2626" FontSize="13" VerticalAlignment="Center" Margin="0,0,8,0" />
+            <TextBlock Text="Blotter Cases &amp; Mediation" FontSize="13" FontWeight="Bold" Foreground="{StaticResource Slate900Brush}" VerticalAlignment="Center" />
+            <TextBlock Name="recordCountLabel" Text="" Style="{StaticResource SubtitleTextStyle}" VerticalAlignment="Center" Margin="8,0,0,0" FontSize="10" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal" Margin="21,2,0,0">
+            <TextBlock Text="Total:" FontSize="9" Foreground="{StaticResource Slate500Brush}" VerticalAlignment="Center" Margin="0,0,3,0" />
+            <TextBlock Name="totalCasesMetric" Text="0" FontSize="11" FontWeight="Bold" Foreground="{StaticResource Slate900Brush}" VerticalAlignment="Center" Margin="0,0,10,0" />
+            <TextBlock Text="Visible:" FontSize="9" Foreground="{StaticResource Slate500Brush}" VerticalAlignment="Center" Margin="0,0,3,0" />
+            <TextBlock Name="visibleCasesMetric" Text="0" FontSize="11" FontWeight="Bold" Foreground="{StaticResource Slate900Brush}" VerticalAlignment="Center" Margin="0,0,10,0" />
+            <TextBlock Text="Active:" FontSize="9" Foreground="#B45309" VerticalAlignment="Center" Margin="0,0,3,0" />
+            <TextBlock Name="ongoingCasesMetric" Text="0" FontSize="11" FontWeight="Bold" Foreground="#B45309" VerticalAlignment="Center" Margin="0,0,10,0" />
+            <TextBlock Text="Resolved:" FontSize="9" Foreground="#15803D" VerticalAlignment="Center" Margin="0,0,3,0" />
+            <TextBlock Name="resolvedCasesMetric" Text="0" FontSize="11" FontWeight="Bold" Foreground="#15803D" VerticalAlignment="Center" />
+            <TextBlock Name="headerVisibleLabel" Visibility="Collapsed" />
+            <TextBlock Name="headerActiveLabel" Visibility="Collapsed" />
+            <TextBlock Name="headerTypeLabel" Visibility="Collapsed" />
           </StackPanel>
         </StackPanel>
         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-          <Button Name="btnExportCsv" Style="{StaticResource BlotterCompactButtonStyle}" Margin="0,0,6,0" MinWidth="100">
+          <Button Name="btnExportCsv" Style="{StaticResource BlotterCompactButtonStyle}" Margin="0,0,6,0" MinWidth="90" Height="26">
             <StackPanel Orientation="Horizontal">
               <fa:IconBlock Icon="FileExport" FontSize="10" Margin="0,0,5,0" VerticalAlignment="Center" />
               <TextBlock Text="Export CSV" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
-          <Button Content="File New Case" Style="{StaticResource BlotterCompactPrimaryButtonStyle}" MinWidth="132" Click="BtnAdd_Click" />
+          <Button Content="File New Case" Style="{StaticResource BlotterCompactPrimaryButtonStyle}" MinWidth="110" Height="26" Click="BtnAdd_Click" />
         </StackPanel>
       </Grid>
     </Border>
-    <WrapPanel Grid.Row="1" Margin="16,8,16,0">
-      <Border Style="{StaticResource BlotterMetricCardStyle}" Width="180" Margin="0,0,8,0">
-        <Grid>
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
-          </Grid.ColumnDefinitions>
-          <Border Width="28" Height="28" CornerRadius="9" Background="#FEF2F2" Margin="0,0,10,0">
-            <fa:IconBlock Icon="Gavel" Foreground="#DC2626" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" />
-          </Border>
-          <StackPanel Grid.Column="1">
-            <TextBlock Text="Total Cases" Style="{StaticResource BlotterMetricLabelStyle}" />
-            <TextBlock Name="totalCasesMetric" Text="0" Style="{StaticResource BlotterMetricValueStyle}" />
-          </StackPanel>
-        </Grid>
-      </Border>
-      <Border Style="{StaticResource BlotterMetricCardStyle}" Width="180" Margin="0,0,8,0">
-        <Grid>
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
-          </Grid.ColumnDefinitions>
-          <Border Width="28" Height="28" CornerRadius="9" Background="#FFF7ED" Margin="0,0,10,0">
-            <fa:IconBlock Icon="Filter" Foreground="#EA580C" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" />
-          </Border>
-          <StackPanel Grid.Column="1">
-            <TextBlock Text="Visible Results" Style="{StaticResource BlotterMetricLabelStyle}" />
-            <TextBlock Name="visibleCasesMetric" Text="0" Style="{StaticResource BlotterMetricValueStyle}" />
-          </StackPanel>
-        </Grid>
-      </Border>
-      <Border Style="{StaticResource BlotterMetricCardStyle}" Width="180" Margin="0,0,8,0">
-        <Grid>
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
-          </Grid.ColumnDefinitions>
-          <Border Width="28" Height="28" CornerRadius="9" Background="#FEF3C7" Margin="0,0,10,0">
-            <fa:IconBlock Icon="ExclamationCircle" Foreground="#B45309" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" />
-          </Border>
-          <StackPanel Grid.Column="1">
-            <TextBlock Text="Active / Pending" Style="{StaticResource BlotterMetricLabelStyle}" />
-            <TextBlock Name="ongoingCasesMetric" Text="0" Style="{StaticResource BlotterMetricValueStyle}" />
-          </StackPanel>
-        </Grid>
-      </Border>
-      <Border Style="{StaticResource BlotterMetricCardStyle}" Width="180">
-        <Grid>
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
-          </Grid.ColumnDefinitions>
-          <Border Width="28" Height="28" CornerRadius="9" Background="#DCFCE7" Margin="0,0,10,0">
-            <fa:IconBlock Icon="CheckCircle" Foreground="#15803D" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" />
-          </Border>
-          <StackPanel Grid.Column="1">
-            <TextBlock Text="Resolved / Closed" Style="{StaticResource BlotterMetricLabelStyle}" />
-            <TextBlock Name="resolvedCasesMetric" Text="0" Style="{StaticResource BlotterMetricValueStyle}" />
-          </StackPanel>
-        </Grid>
-      </Border>
-    </WrapPanel>
-    <Border Grid.Row="2" Style="{StaticResource BlotterSurfaceCardStyle}" Margin="16,8,16,0" Padding="12">
+    <Border Grid.Row="2" Background="#FFFFFF" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="0,0,0,1" Margin="0" Padding="10,4">
       <Grid>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="2.2*" />
@@ -300,36 +223,31 @@
             </Grid>
           </Grid>
         </Border>
-        <ComboBox Name="timeFilterCombo" Grid.Column="2" Height="36" Width="130" VerticalAlignment="Center" Style="{StaticResource StyledComboBoxStyle}" SelectionChanged="TimeFilter_SelectionChanged">
+        <ComboBox Name="timeFilterCombo" Grid.Column="2" Height="28" Width="110" VerticalAlignment="Center" Style="{StaticResource StyledComboBoxStyle}" SelectionChanged="TimeFilter_SelectionChanged">
           <ComboBoxItem Content="All Time" IsSelected="True" />
           <ComboBoxItem Content="This Week" />
           <ComboBoxItem Content="This Month" />
           <ComboBoxItem Content="This Year" />
         </ComboBox>
-        <ComboBox Name="caseTypeFilterCombo" Grid.Column="4" Height="36" Width="170" VerticalAlignment="Center" Style="{StaticResource StyledComboBoxStyle}" SelectionChanged="CaseTypeFilter_SelectionChanged">
+        <ComboBox Name="caseTypeFilterCombo" Grid.Column="4" Height="28" Width="140" VerticalAlignment="Center" Style="{StaticResource StyledComboBoxStyle}" SelectionChanged="CaseTypeFilter_SelectionChanged">
           <ComboBoxItem Content="All Case Types" IsSelected="True" />
         </ComboBox>
-        <ComboBox Name="statusFilterCombo" Grid.Column="6" Height="36" Width="138" VerticalAlignment="Center" Style="{StaticResource StyledComboBoxStyle}" SelectionChanged="StatusFilter_SelectionChanged">
+        <ComboBox Name="statusFilterCombo" Grid.Column="6" Height="28" Width="110" VerticalAlignment="Center" Style="{StaticResource StyledComboBoxStyle}" SelectionChanged="StatusFilter_SelectionChanged">
           <ComboBoxItem Content="All Status" IsSelected="True" />
           <ComboBoxItem Content="ONGOING" />
           <ComboBoxItem Content="SETTLED" />
           <ComboBoxItem Content="REFERRED" />
           <ComboBoxItem Content="CLOSED" />
         </ComboBox>
-        <Border Grid.Column="8" Background="#FFFBEB" BorderBrush="#FDE68A" BorderThickness="1" CornerRadius="999" Padding="10,6" VerticalAlignment="Center">
-          <WrapPanel VerticalAlignment="Center">
-            <fa:IconBlock Icon="InfoCircle" FontSize="10" Foreground="#C2410C" VerticalAlignment="Center" />
-            <TextBlock Name="toolbarInsightLabel" Text="Showing the full blotter queue." FontWeight="Bold" FontSize="10.5" Foreground="#92400E" Margin="6,0,0,0" VerticalAlignment="Center" />
-            <TextBlock Name="activeFilterLabel" Text="Filters: All search terms, all case types, all statuses, all time." Style="{StaticResource SmallTextStyle}" Foreground="#B45309" FontSize="9.5" Margin="6,0,0,0" VerticalAlignment="Center" TextWrapping="Wrap" />
-          </WrapPanel>
-        </Border>
-        <Button Grid.Column="10" Style="{StaticResource BlotterCompactButtonStyle}" Click="BtnClearFilters_Click">
+        <TextBlock Grid.Column="8" Name="toolbarInsightLabel" Visibility="Collapsed" />
+        <TextBlock Name="activeFilterLabel" Visibility="Collapsed" />
+        <Button Grid.Column="10" Style="{StaticResource BlotterCompactButtonStyle}" Height="26" Click="BtnClearFilters_Click">
           <StackPanel Orientation="Horizontal">
             <fa:IconBlock Icon="TimesCircle" FontSize="10" Margin="0,0,5,0" VerticalAlignment="Center" />
             <TextBlock Text="Clear Filters" VerticalAlignment="Center" />
           </StackPanel>
         </Button>
-        <Button Grid.Column="12" Style="{StaticResource BlotterCompactButtonStyle}" MinWidth="0" Padding="10,0" Click="BtnRefresh_Click">
+        <Button Grid.Column="12" Style="{StaticResource BlotterCompactButtonStyle}" MinWidth="0" Height="26" Padding="8,0" Click="BtnRefresh_Click">
           <StackPanel Orientation="Horizontal">
             <fa:IconBlock Icon="SyncAlt" FontSize="10" Margin="0,0,5,0" VerticalAlignment="Center" />
             <TextBlock Text="Refresh Queue" VerticalAlignment="Center" />
@@ -337,27 +255,24 @@
         </Button>
       </Grid>
     </Border>
-    <Border Grid.Row="3" Style="{StaticResource BlotterSurfaceCardStyle}" Margin="20,14,20,0" ClipToBounds="True">
+    <Border Grid.Row="3" Style="{StaticResource BlotterSurfaceCardStyle}" Margin="10,4,10,0" ClipToBounds="True" CornerRadius="8">
       <Grid>
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto" />
           <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Border Grid.Row="0" Background="#FCFDFE" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="0,0,0,1" Padding="16,14">
+        <Border Grid.Row="0" Background="#FCFDFE" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="0,0,0,1" Padding="10,6">
           <Grid>
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="*" />
               <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <StackPanel Grid.Column="0">
-              <TextBlock Text="Case Registry" FontFamily="{StaticResource CenturyGothic}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource Slate900Brush}" />
-              <TextBlock Name="tableSummaryLabel" Text="0 case(s) ready for review and mediation actions." Style="{StaticResource SmallTextStyle}" Margin="0,4,0,0" />
+            <StackPanel Grid.Column="0" Orientation="Horizontal">
+              <TextBlock Text="Case Registry" FontSize="12" FontWeight="Bold" Foreground="{StaticResource Slate900Brush}" VerticalAlignment="Center" />
+              <TextBlock Name="tableSummaryLabel" Text="" Style="{StaticResource SmallTextStyle}" Margin="8,0,0,0" VerticalAlignment="Center" FontSize="10" />
             </StackPanel>
-            <Border Grid.Column="1" Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1" CornerRadius="999" Padding="10,5" VerticalAlignment="Center">
-              <StackPanel Orientation="Horizontal">
-                <fa:IconBlock Icon="InfoCircle" FontSize="11" Foreground="#DC2626" VerticalAlignment="Center" />
-                <TextBlock Text=" Select a case to unlock actions" Style="{StaticResource SmallTextStyle}" Foreground="#B91C1C" FontWeight="Bold" />
-              </StackPanel>
+            <Border Grid.Column="1" Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1" CornerRadius="999" Padding="8,3" VerticalAlignment="Center">
+              <TextBlock Text="Select a case to unlock actions" FontSize="9" Foreground="#B91C1C" FontWeight="SemiBold" />
             </Border>
           </Grid>
         </Border>

@@ -55,8 +55,8 @@
   <FontFamily x:Key="CenturyGothic">Century Gothic</FontFamily>
   <FontFamily x:Key="TrebuchetMs">Trebuchet MS</FontFamily>
   <FontFamily x:Key="SegoeUi">Segoe UI</FontFamily>
-  <sys:Double x:Key="TitleFontSize" xmlns:sys="clr-namespace:System;assembly=mscorlib">22</sys:Double>
-  <sys:Double x:Key="HeadingFontSize" xmlns:sys="clr-namespace:System;assembly=mscorlib">16</sys:Double>
+  <sys:Double x:Key="TitleFontSize" xmlns:sys="clr-namespace:System;assembly=mscorlib">16</sys:Double>
+  <sys:Double x:Key="HeadingFontSize" xmlns:sys="clr-namespace:System;assembly=mscorlib">14</sys:Double>
   <sys:Double x:Key="BodyFontSize" xmlns:sys="clr-namespace:System;assembly=mscorlib">13</sys:Double>
   <sys:Double x:Key="LabelFontSize" xmlns:sys="clr-namespace:System;assembly=mscorlib">12</sys:Double>
   <sys:Double x:Key="SmallFontSize" xmlns:sys="clr-namespace:System;assembly=mscorlib">11</sys:Double>
@@ -115,18 +115,26 @@
     <Setter Property="FontSize" Value="{StaticResource BodyFontSize}" />
   </Style>
   <ControlTemplate x:Key="FlatButtonTemplate" TargetType="{x:Type Button}">
-    <Border Name="border" Background="{TemplateBinding Control.Background}" BorderBrush="{TemplateBinding Control.BorderBrush}" BorderThickness="{TemplateBinding Control.BorderThickness}" CornerRadius="6" SnapsToDevicePixels="True">
+    <Border Name="border" Background="{TemplateBinding Control.Background}" BorderBrush="{TemplateBinding Control.BorderBrush}" BorderThickness="{TemplateBinding Control.BorderThickness}" CornerRadius="8" SnapsToDevicePixels="True">
+      <Border.RenderTransform>
+        <ScaleTransform ScaleX="1" ScaleY="1" CenterX="0.5" CenterY="0.5" />
+      </Border.RenderTransform>
       <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Control.Padding}" />
     </Border>
     <ControlTemplate.Triggers>
       <Trigger Property="UIElement.IsMouseOver" Value="True">
-        <Setter TargetName="border" Property="UIElement.Opacity" Value="0.88" />
+        <Setter TargetName="border" Property="UIElement.Opacity" Value="0.9" />
       </Trigger>
       <Trigger Property="ButtonBase.IsPressed" Value="True">
-        <Setter TargetName="border" Property="UIElement.Opacity" Value="0.72" />
+        <Setter TargetName="border" Property="UIElement.Opacity" Value="0.75" />
+        <Setter TargetName="border" Property="Border.RenderTransform">
+          <Setter.Value>
+            <ScaleTransform ScaleX="0.97" ScaleY="0.97" />
+          </Setter.Value>
+        </Setter>
       </Trigger>
       <Trigger Property="UIElement.IsEnabled" Value="False">
-        <Setter TargetName="border" Property="UIElement.Opacity" Value="0.45" />
+        <Setter TargetName="border" Property="UIElement.Opacity" Value="0.4" />
       </Trigger>
     </ControlTemplate.Triggers>
   </ControlTemplate>
@@ -144,18 +152,27 @@
     <Setter Property="Template" Value="{StaticResource FlatButtonTemplate}" />
   </Style>
   <ControlTemplate x:Key="OutlinedButtonTemplate" TargetType="{x:Type Button}">
-    <Border Name="border" Background="{TemplateBinding Control.Background}" BorderBrush="{TemplateBinding Control.BorderBrush}" BorderThickness="{TemplateBinding Control.BorderThickness}" CornerRadius="6" SnapsToDevicePixels="True">
+    <Border Name="border" Background="{TemplateBinding Control.Background}" BorderBrush="{TemplateBinding Control.BorderBrush}" BorderThickness="{TemplateBinding Control.BorderThickness}" CornerRadius="8" SnapsToDevicePixels="True">
+      <Border.RenderTransform>
+        <ScaleTransform ScaleX="1" ScaleY="1" />
+      </Border.RenderTransform>
       <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Control.Padding}" />
     </Border>
     <ControlTemplate.Triggers>
       <Trigger Property="UIElement.IsMouseOver" Value="True">
-        <Setter TargetName="border" Property="Border.Background" Value="{StaticResource Slate100Brush}" />
+        <Setter TargetName="border" Property="Border.Background" Value="#F1F5F9" />
+        <Setter TargetName="border" Property="Border.BorderBrush" Value="{StaticResource Slate500Brush}" />
       </Trigger>
       <Trigger Property="ButtonBase.IsPressed" Value="True">
-        <Setter TargetName="border" Property="Border.Background" Value="{StaticResource Slate300Brush}" />
+        <Setter TargetName="border" Property="Border.Background" Value="{StaticResource Slate200Brush}" />
+        <Setter TargetName="border" Property="Border.RenderTransform">
+          <Setter.Value>
+            <ScaleTransform ScaleX="0.97" ScaleY="0.97" />
+          </Setter.Value>
+        </Setter>
       </Trigger>
       <Trigger Property="UIElement.IsEnabled" Value="False">
-        <Setter TargetName="border" Property="UIElement.Opacity" Value="0.45" />
+        <Setter TargetName="border" Property="UIElement.Opacity" Value="0.4" />
       </Trigger>
     </ControlTemplate.Triggers>
   </ControlTemplate>
@@ -362,32 +379,44 @@
   <Style x:Key="StyledTextBoxStyle" TargetType="{x:Type TextBox}">
     <Setter Property="Background" Value="#FFFFFFFF" />
     <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
-    <Setter Property="BorderBrush" Value="{StaticResource Slate300Brush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Slate200Brush}" />
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
     <Setter Property="FontSize" Value="{StaticResource BodyFontSize}" />
-    <Setter Property="Height" Value="38" />
+    <Setter Property="Height" Value="40" />
     <Setter Property="TextBoxBase.CaretBrush" Value="{StaticResource Slate900Brush}" />
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type TextBox}">
-          <Border Name="border" Background="{TemplateBinding Control.Background}" BorderBrush="{TemplateBinding Control.BorderBrush}" BorderThickness="{TemplateBinding Control.BorderThickness}" CornerRadius="6" SnapsToDevicePixels="True">
+          <Border Name="border" Background="{TemplateBinding Control.Background}" BorderBrush="{TemplateBinding Control.BorderBrush}" BorderThickness="{TemplateBinding Control.BorderThickness}" CornerRadius="8" SnapsToDevicePixels="True">
+            <Border.Effect>
+              <DropShadowEffect BlurRadius="0" ShadowDepth="0" Opacity="0" Color="#4DA3FF" />
+            </Border.Effect>
             <Grid>
               <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="10" />
+                <ColumnDefinition Width="12" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="10" />
+                <ColumnDefinition Width="12" />
               </Grid.ColumnDefinitions>
               <ScrollViewer Name="PART_ContentHost" Grid.Column="1" VerticalAlignment="Center" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" Focusable="False" />
             </Grid>
           </Border>
           <ControlTemplate.Triggers>
+            <Trigger Property="UIElement.IsMouseOver" Value="True">
+              <Setter TargetName="border" Property="Border.BorderBrush" Value="{StaticResource Slate400Brush}" />
+            </Trigger>
             <Trigger Property="UIElement.IsFocused" Value="True">
               <Setter TargetName="border" Property="Border.BorderBrush" Value="{StaticResource AccentBlueBrush}" />
               <Setter TargetName="border" Property="Border.BorderThickness" Value="2" />
+              <Setter TargetName="border" Property="UIElement.Effect">
+                <Setter.Value>
+                  <DropShadowEffect BlurRadius="8" ShadowDepth="0" Opacity="0.15" Color="#4DA3FF" />
+                </Setter.Value>
+              </Setter>
             </Trigger>
             <Trigger Property="IsEnabled" Value="False">
-              <Setter TargetName="border" Property="UIElement.Opacity" Value="0.55" />
+              <Setter TargetName="border" Property="UIElement.Opacity" Value="0.5" />
+              <Setter TargetName="border" Property="Border.Background" Value="{StaticResource Slate50Brush}" />
             </Trigger>
           </ControlTemplate.Triggers>
         </ControlTemplate>
@@ -397,28 +426,39 @@
   <Style x:Key="StyledPasswordBoxStyle" TargetType="{x:Type PasswordBox}">
     <Setter Property="Background" Value="#FFFFFFFF" />
     <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
-    <Setter Property="BorderBrush" Value="{StaticResource Slate300Brush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Slate200Brush}" />
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
     <Setter Property="FontSize" Value="{StaticResource BodyFontSize}" />
-    <Setter Property="Height" Value="38" />
+    <Setter Property="Height" Value="40" />
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type PasswordBox}">
-          <Border Name="border" Background="{TemplateBinding Control.Background}" BorderBrush="{TemplateBinding Control.BorderBrush}" BorderThickness="{TemplateBinding Control.BorderThickness}" CornerRadius="6" SnapsToDevicePixels="True">
+          <Border Name="border" Background="{TemplateBinding Control.Background}" BorderBrush="{TemplateBinding Control.BorderBrush}" BorderThickness="{TemplateBinding Control.BorderThickness}" CornerRadius="8" SnapsToDevicePixels="True">
+            <Border.Effect>
+              <DropShadowEffect BlurRadius="0" ShadowDepth="0" Opacity="0" Color="#4DA3FF" />
+            </Border.Effect>
             <Grid>
               <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="10" />
+                <ColumnDefinition Width="12" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="10" />
+                <ColumnDefinition Width="12" />
               </Grid.ColumnDefinitions>
               <ScrollViewer Name="PART_ContentHost" Grid.Column="1" VerticalAlignment="Center" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" Focusable="False" />
             </Grid>
           </Border>
           <ControlTemplate.Triggers>
+            <Trigger Property="UIElement.IsMouseOver" Value="True">
+              <Setter TargetName="border" Property="Border.BorderBrush" Value="{StaticResource Slate400Brush}" />
+            </Trigger>
             <Trigger Property="UIElement.IsFocused" Value="True">
               <Setter TargetName="border" Property="Border.BorderBrush" Value="{StaticResource AccentBlueBrush}" />
               <Setter TargetName="border" Property="Border.BorderThickness" Value="2" />
+              <Setter TargetName="border" Property="UIElement.Effect">
+                <Setter.Value>
+                  <DropShadowEffect BlurRadius="8" ShadowDepth="0" Opacity="0.15" Color="#4DA3FF" />
+                </Setter.Value>
+              </Setter>
             </Trigger>
           </ControlTemplate.Triggers>
         </ControlTemplate>
@@ -438,29 +478,38 @@
   </Style>
   <Style x:Key="CardStyle" TargetType="{x:Type Border}">
     <Setter Property="Background" Value="#FFFFFFFF" />
-    <Setter Property="Border.CornerRadius" Value="10" />
+    <Setter Property="Border.CornerRadius" Value="14" />
     <Setter Property="Border.Padding" Value="20" />
+    <Setter Property="BorderBrush" Value="#F1F5F9" />
+    <Setter Property="BorderThickness" Value="1" />
     <Setter Property="UIElement.Effect">
       <Setter.Value>
-        <DropShadowEffect BlurRadius="14" ShadowDepth="3" Opacity="0.1" Direction="270" />
+        <DropShadowEffect BlurRadius="16" ShadowDepth="2" Opacity="0.06" Direction="270" />
       </Setter.Value>
     </Setter>
   </Style>
   <Style x:Key="SectionCardStyle" TargetType="{x:Type Border}">
     <Setter Property="Background" Value="#FFFFFFFF" />
-    <Setter Property="Border.CornerRadius" Value="8" />
-    <Setter Property="Border.Padding" Value="16" />
-    <Setter Property="BorderBrush" Value="{StaticResource Slate100Brush}" />
+    <Setter Property="Border.CornerRadius" Value="12" />
+    <Setter Property="Border.Padding" Value="18" />
+    <Setter Property="BorderBrush" Value="#F1F5F9" />
     <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="UIElement.Effect">
+      <Setter.Value>
+        <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.04" Direction="270" />
+      </Setter.Value>
+    </Setter>
   </Style>
   <Style x:Key="StatCardStyle" TargetType="{x:Type Border}">
     <Setter Property="Background" Value="#FFFFFFFF" />
-    <Setter Property="Border.CornerRadius" Value="10" />
+    <Setter Property="Border.CornerRadius" Value="14" />
     <Setter Property="Border.Padding" Value="18,14" />
     <Setter Property="Margin" Value="0,0,8,8" />
+    <Setter Property="BorderBrush" Value="#F1F5F9" />
+    <Setter Property="BorderThickness" Value="1" />
     <Setter Property="UIElement.Effect">
       <Setter.Value>
-        <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.09" Direction="270" />
+        <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.05" Direction="270" />
       </Setter.Value>
     </Setter>
   </Style>
@@ -485,36 +534,42 @@
     <Setter Property="FontWeight" Value="Bold" />
     <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
     <Setter Property="FontSize" Value="{StaticResource BodyFontSize}" />
-    <Setter Property="Height" Value="38" />
-    <Setter Property="Padding" Value="12,0" />
-    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Height" Value="40" />
+    <Setter Property="Padding" Value="14,0" />
+    <Setter Property="BorderThickness" Value="0,0,1,0" />
+    <Setter Property="BorderBrush" Value="#FF2A2F3A" />
   </Style>
   <Style x:Key="StyledDataGridRowStyle" TargetType="{x:Type DataGridRow}">
     <Setter Property="Background" Value="#FFFFFFFF" />
     <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
     <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="FrameworkElement.Cursor" Value="Hand" />
     <Style.Triggers>
       <Trigger Property="DataGridRow.IsSelected" Value="True">
         <Setter Property="Background" Value="#EFF6FF" />
         <Setter Property="Foreground" Value="#1D4ED8" />
         <Setter Property="FontWeight" Value="SemiBold" />
       </Trigger>
-      <Trigger Property="UIElement.IsMouseOver" Value="True">
-        <Setter Property="Background" Value="{StaticResource Slate50Brush}" />
-      </Trigger>
+      <MultiTrigger>
+        <MultiTrigger.Conditions>
+          <Condition Property="UIElement.IsMouseOver" Value="True" />
+          <Condition Property="DataGridRow.IsSelected" Value="False" />
+        </MultiTrigger.Conditions>
+        <Setter Property="Background" Value="#F8FAFC" />
+      </MultiTrigger>
     </Style.Triggers>
   </Style>
   <Style x:Key="SlimScrollBarThumb" TargetType="{x:Type Thumb}">
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type Thumb}">
-          <Border CornerRadius="4" Background="{StaticResource Slate300Brush}" />
+          <Border CornerRadius="4" Background="#B0CBD5E1" />
         </ControlTemplate>
       </Setter.Value>
     </Setter>
   </Style>
   <Style x:Key="SlimScrollBarStyle" TargetType="{x:Type ScrollBar}">
-    <Setter Property="Width" Value="6" />
+    <Setter Property="Width" Value="7" />
     <Setter Property="Background" Value="#00FFFFFF" />
     <Setter Property="Template">
       <Setter.Value>
@@ -580,24 +635,24 @@
     <Setter Property="UIElement.Opacity" Value="0.95" />
   </Style>
   <ControlTemplate x:Key="NavItemTemplate" TargetType="{x:Type RadioButton}">
-    <Border Name="border" CornerRadius="14" Background="#00FFFFFF" Margin="10,3,10,0" BorderThickness="1" BorderBrush="#00FFFFFF">
+    <Border Name="border" CornerRadius="10" Background="#00FFFFFF" Margin="10,2,10,0" BorderThickness="1" BorderBrush="#00FFFFFF">
       <Grid>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="4" />
           <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <Rectangle Name="activeIndicator" Grid.Column="0" Fill="#00FFFFFF" RadiusX="2" RadiusY="2" VerticalAlignment="Center" Height="16" HorizontalAlignment="Left" Margin="-1,0,0,0" />
-        <ContentPresenter Grid.Column="1" Margin="14,11,16,11" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextElement.Foreground="{TemplateBinding Control.Foreground}" TextElement.FontFamily="{TemplateBinding Control.FontFamily}" TextElement.FontSize="{TemplateBinding Control.FontSize}" TextElement.FontWeight="{TemplateBinding Control.FontWeight}" />
+        <Rectangle Name="activeIndicator" Grid.Column="0" Fill="#00FFFFFF" RadiusX="2" RadiusY="2" VerticalAlignment="Center" Height="18" HorizontalAlignment="Left" Margin="-1,0,0,0" />
+        <ContentPresenter Grid.Column="1" Margin="14,10,16,10" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextElement.Foreground="{TemplateBinding Control.Foreground}" TextElement.FontFamily="{TemplateBinding Control.FontFamily}" TextElement.FontSize="{TemplateBinding Control.FontSize}" TextElement.FontWeight="{TemplateBinding Control.FontWeight}" />
       </Grid>
     </Border>
     <ControlTemplate.Triggers>
       <Trigger Property="UIElement.IsMouseOver" Value="True">
         <Setter TargetName="border" Property="Border.Background" Value="{StaticResource SidebarHoverBrush}" />
-        <Setter TargetName="border" Property="Border.BorderBrush" Value="#27486F" />
+        <Setter TargetName="border" Property="Border.BorderBrush" Value="#1E3A5F" />
       </Trigger>
       <Trigger Property="ToggleButton.IsChecked" Value="True">
         <Setter TargetName="border" Property="Border.Background" Value="{StaticResource SidebarActiveBrush}" />
-        <Setter TargetName="border" Property="Border.BorderBrush" Value="#60A5FA" />
+        <Setter TargetName="border" Property="Border.BorderBrush" Value="#3B82F6" />
         <Setter TargetName="activeIndicator" Property="Shape.Fill" Value="{StaticResource SidebarAccentBrush}" />
       </Trigger>
       <Trigger Property="UIElement.IsEnabled" Value="False">
@@ -630,18 +685,13 @@
         </LinearGradientBrush>
       </Setter.Value>
     </Setter>
-    <Setter Property="Border.Padding" Value="24,20,24,18" />
-    <Setter Property="BorderBrush" Value="{StaticResource Slate100Brush}" />
+    <Setter Property="Border.Padding" Value="12,5,12,5" />
+    <Setter Property="BorderBrush" Value="#F1F5F9" />
     <Setter Property="BorderThickness" Value="0,0,0,1" />
-    <Setter Property="UIElement.Effect">
-      <Setter.Value>
-        <DropShadowEffect BlurRadius="10" ShadowDepth="1" Opacity="0.04" Direction="270" />
-      </Setter.Value>
-    </Setter>
   </Style>
   <Style x:Key="ToolbarBorderStyle" TargetType="{x:Type Border}">
     <Setter Property="Background" Value="#FFFFFFFF" />
-    <Setter Property="Border.Padding" Value="24,10" />
+    <Setter Property="Border.Padding" Value="12,4" />
     <Setter Property="BorderBrush" Value="{StaticResource Slate100Brush}" />
     <Setter Property="BorderThickness" Value="0,0,0,1" />
   </Style>
@@ -653,13 +703,46 @@
   </Style>
   <Style x:Key="KpiCardStyle" TargetType="{x:Type Border}">
     <Setter Property="Background" Value="#FFFFFFFF" />
-    <Setter Property="Border.CornerRadius" Value="10" />
+    <Setter Property="Border.CornerRadius" Value="8" />
     <Setter Property="ClipToBounds" Value="True" />
-    <Setter Property="Margin" Value="0,0,12,0" />
-    <Setter Property="UIElement.Effect">
+    <Setter Property="Margin" Value="0,0,8,0" />
+    <Setter Property="BorderBrush" Value="#E2E8F0" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <Style x:Key="{x:Type ToolTip}" TargetType="{x:Type ToolTip}">
+    <Setter Property="Background" Value="#1E293B" />
+    <Setter Property="Foreground" Value="#F8FAFC" />
+    <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+    <Setter Property="FontSize" Value="11.5" />
+    <Setter Property="Padding" Value="10,6" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Template">
       <Setter.Value>
-        <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.07" Direction="270" />
+        <ControlTemplate TargetType="{x:Type ToolTip}">
+          <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+            <Border.Effect>
+              <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.2" Direction="270" />
+            </Border.Effect>
+            <ContentPresenter />
+          </Border>
+        </ControlTemplate>
       </Setter.Value>
     </Setter>
+  </Style>
+  <Style x:Key="BadgeStyle" TargetType="{x:Type Border}">
+    <Setter Property="Background" Value="#EF4444" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="MinWidth" Value="20" />
+    <Setter Property="Height" Value="20" />
+    <Setter Property="Padding" Value="5,2" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style x:Key="BadgeTextStyle" TargetType="{x:Type TextBlock}">
+    <Setter Property="Foreground" Value="#FFFFFFFF" />
+    <Setter Property="FontSize" Value="10" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
   </Style>
 </ResourceDictionary>

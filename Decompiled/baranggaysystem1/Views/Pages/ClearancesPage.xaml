@@ -153,70 +153,52 @@
       <RowDefinition Height="Auto" />
       <RowDefinition Height="Auto" />
     </Grid.RowDefinitions>
-    <Border Grid.Row="0" Style="{StaticResource PageHeaderStyle}" Padding="22,12,22,10">
+    <Border Grid.Row="0" Style="{StaticResource PageHeaderStyle}" Padding="14,5,14,5">
       <Grid>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <StackPanel Grid.Column="0" Orientation="Horizontal">
-          <Border Width="40" Height="40" CornerRadius="12" Background="#FFFEF3C7" Margin="0,0,14,0">
-            <fa:IconBlock Icon="Certificate" Foreground="#D97706" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
-          </Border>
-          <StackPanel VerticalAlignment="Center">
-            <TextBlock Text="Clearance &amp; Certification Queue" FontSize="15" FontWeight="Bold" Foreground="{StaticResource Slate900Brush}" FontFamily="{StaticResource CenturyGothic}" />
-            <TextBlock Name="recordCountLabel" Text="Monitoring document requests from submission to release." Style="{StaticResource SubtitleTextStyle}" Margin="0,2,0,0" FontWeight="SemiBold" />
-            <WrapPanel Margin="0,10,0,0" VerticalAlignment="Center">
-              <Border Style="{StaticResource QueueStatCardStyle}">
-                <StackPanel>
-                  <TextBlock Text="Visible Queue" Style="{StaticResource QueueStatLabelStyle}" />
-                  <TextBlock Name="visibleQueueMetric" Text="0" Style="{StaticResource QueueStatValueStyle}" />
-                </StackPanel>
-              </Border>
-              <Border Style="{StaticResource QueueStatCardStyle}">
-                <StackPanel>
-                  <TextBlock Text="Pending Action" Style="{StaticResource QueueStatLabelStyle}" />
-                  <TextBlock Name="pendingQueueMetric" Text="0" Style="{StaticResource QueueStatValueStyle}" />
-                </StackPanel>
-              </Border>
-              <Border Style="{StaticResource QueueStatCardStyle}">
-                <StackPanel>
-                  <TextBlock Text="Released" Style="{StaticResource QueueStatLabelStyle}" />
-                  <TextBlock Name="releasedQueueMetric" Text="0" Style="{StaticResource QueueStatValueStyle}" />
-                </StackPanel>
-              </Border>
-              <Border Style="{StaticResource QueueStatCardStyle}" Margin="0,0,0,8">
-                <StackPanel>
-                  <TextBlock Text="Needs Follow-up" Style="{StaticResource QueueStatLabelStyle}" />
-                  <TextBlock Name="attentionQueueMetric" Text="0" Style="{StaticResource QueueStatValueStyle}" />
-                </StackPanel>
-              </Border>
-            </WrapPanel>
+        <StackPanel Grid.Column="0">
+          <StackPanel Orientation="Horizontal">
+            <fa:IconBlock Icon="Certificate" Foreground="#D97706" FontSize="13" VerticalAlignment="Center" Margin="0,0,8,0" />
+            <TextBlock Text="Clearance &amp; Certification Queue" FontSize="13" FontWeight="Bold" Foreground="{StaticResource Slate900Brush}" VerticalAlignment="Center" />
+            <TextBlock Name="recordCountLabel" Text="" Style="{StaticResource SubtitleTextStyle}" VerticalAlignment="Center" Margin="8,0,0,0" FontSize="10" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal" Margin="21,2,0,0">
+            <TextBlock Text="Queue:" FontSize="9" Foreground="{StaticResource Slate500Brush}" VerticalAlignment="Center" Margin="0,0,3,0" />
+            <TextBlock Name="visibleQueueMetric" Text="0" FontSize="11" FontWeight="Bold" Foreground="{StaticResource Slate900Brush}" VerticalAlignment="Center" Margin="0,0,10,0" />
+            <TextBlock Text="Pending:" FontSize="9" Foreground="#B45309" VerticalAlignment="Center" Margin="0,0,3,0" />
+            <TextBlock Name="pendingQueueMetric" Text="0" FontSize="11" FontWeight="Bold" Foreground="#B45309" VerticalAlignment="Center" Margin="0,0,10,0" />
+            <TextBlock Text="Released:" FontSize="9" Foreground="#15803D" VerticalAlignment="Center" Margin="0,0,3,0" />
+            <TextBlock Name="releasedQueueMetric" Text="0" FontSize="11" FontWeight="Bold" Foreground="#15803D" VerticalAlignment="Center" Margin="0,0,10,0" />
+            <TextBlock Text="Follow-up:" FontSize="9" Foreground="#DC2626" VerticalAlignment="Center" Margin="0,0,3,0" />
+            <TextBlock Name="attentionQueueMetric" Text="0" FontSize="11" FontWeight="Bold" Foreground="#DC2626" VerticalAlignment="Center" />
           </StackPanel>
         </StackPanel>
-        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
-          <Button Style="{StaticResource GhostButtonStyle}" Margin="0,0,8,0" MinWidth="126" Height="32" Padding="10,0" Click="BtnVerify_Click">
+        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+          <Button Style="{StaticResource GhostButtonStyle}" Margin="0,0,4,0" Height="26" Padding="6,0" Click="BtnVerify_Click">
             <StackPanel Orientation="Horizontal">
-              <fa:IconBlock Icon="ShieldAlt" FontSize="10" Margin="0,0,6,0" VerticalAlignment="Center" />
-              <TextBlock Text="Verify Document" VerticalAlignment="Center" FontSize="11" />
+              <fa:IconBlock Icon="ShieldAlt" FontSize="10" Margin="0,0,4,0" VerticalAlignment="Center" />
+              <TextBlock Text="Verify" VerticalAlignment="Center" FontSize="10" />
             </StackPanel>
           </Button>
-          <Button Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,8,0" MinWidth="108" Height="32" Padding="10,0">
+          <Button Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,4,0" Height="26" Padding="6,0">
             <StackPanel Orientation="Horizontal">
-              <fa:IconBlock Icon="Download" FontSize="10" Margin="0,0,6,0" VerticalAlignment="Center" />
-              <TextBlock Text="Export CSV" VerticalAlignment="Center" FontSize="11" />
+              <fa:IconBlock Icon="Download" FontSize="10" Margin="0,0,4,0" VerticalAlignment="Center" />
+              <TextBlock Text="Export" VerticalAlignment="Center" FontSize="10" />
             </StackPanel>
           </Button>
-          <Button Style="{StaticResource PrimaryButtonStyle}" MinWidth="126" Height="32" Padding="10,0" Click="BtnAdd_Click">
+          <Button Style="{StaticResource PrimaryButtonStyle}" Height="26" Padding="8,0" Click="BtnAdd_Click">
             <StackPanel Orientation="Horizontal">
-              <fa:IconBlock Icon="Plus" FontSize="10" Margin="0,0,6,0" VerticalAlignment="Center" />
-              <TextBlock Text="New Request" VerticalAlignment="Center" Foreground="#FFFFFFFF" FontSize="11" />
+              <fa:IconBlock Icon="Plus" FontSize="10" Margin="0,0,4,0" VerticalAlignment="Center" />
+              <TextBlock Text="New Request" VerticalAlignment="Center" Foreground="#FFFFFFFF" FontSize="10" />
             </StackPanel>
           </Button>
         </StackPanel>
       </Grid>
     </Border>
-    <Border Grid.Row="1" Style="{StaticResource ToolbarBorderStyle}" Padding="22,8">
+    <Border Grid.Row="1" Style="{StaticResource ToolbarBorderStyle}" Padding="14,4">
       <Grid>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="300" />

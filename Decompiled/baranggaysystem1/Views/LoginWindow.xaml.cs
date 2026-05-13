@@ -137,7 +137,7 @@ public partial class LoginWindow : Window
 
 	private async Task RefreshConnectionStatusAfterDelayAsync()
 	{
-		await Task.Delay(1800);
+		await Task.Delay(500);
 		if (base.IsLoaded && !_isConnectionRefreshRunning)
 		{
 			DatabaseConnectionOption selectedConnectionOption = GetSelectedConnectionOption();
@@ -487,4 +487,9 @@ public partial class LoginWindow : Window
 		};
 		Hide();
 		reg.Show();
+	}
+
+	private void BtnForgotPassword_Click(object sender, RoutedEventArgs e)
+	{
+		helper.SessionSecurityIntegration.OpenPasswordReset(this);
 	}}

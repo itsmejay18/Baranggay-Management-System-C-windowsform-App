@@ -1,0 +1,132 @@
+<UserControl x:Class="baranggaysystem1.Views.Controls.SearchFilterBar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:fa="clr-namespace:FontAwesome.Sharp;assembly=FontAwesome.Sharp">
+
+    <!--
+    Reusable search and filter bar for module list pages.
+    Provides consistent search UX with debounced input, filter chips, and action buttons.
+    
+    Usage:
+      <controls:SearchFilterBar 
+          x:Name="searchBar"
+          Placeholder="Search residents by name, ID, or contact..."
+          SearchChanged="OnSearchChanged" />
+    -->
+
+    <Border Background="White"
+            CornerRadius="8"
+            Padding="8,6"
+            BorderBrush="#E2E8F0"
+            BorderThickness="1"
+            Margin="0,0,0,6">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Search input -->
+            <Border Grid.Column="0"
+                    Background="#F8FAFC"
+                    CornerRadius="6"
+                    Padding="10,6">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <fa:IconBlock Icon="Search"
+                                  FontSize="13"
+                                  Foreground="#94A3B8"
+                                  VerticalAlignment="Center"
+                                  Margin="0,0,10,0" />
+
+                    <TextBox x:Name="searchTextBox"
+                             Grid.Column="1"
+                             FontSize="13"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             VerticalContentAlignment="Center"
+                             TextChanged="SearchTextBox_TextChanged"
+                             KeyDown="SearchTextBox_KeyDown" />
+
+                    <!-- Placeholder text -->
+                    <TextBlock x:Name="placeholderText"
+                               Grid.Column="1"
+                               Text="Search..."
+                               FontSize="13"
+                               Foreground="#94A3B8"
+                               VerticalAlignment="Center"
+                               IsHitTestVisible="False"
+                               Visibility="Visible" />
+
+                    <!-- Clear button -->
+                    <Button x:Name="clearButton"
+                            Grid.Column="2"
+                            Content="✕"
+                            FontSize="11"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Foreground="#94A3B8"
+                            Cursor="Hand"
+                            Visibility="Collapsed"
+                            Click="ClearButton_Click"
+                            Margin="8,0,0,0"
+                            ToolTip="Clear search" />
+                </Grid>
+            </Border>
+
+            <!-- Action buttons area -->
+            <StackPanel x:Name="actionsPanel"
+                        Grid.Column="1"
+                        Orientation="Horizontal"
+                        Margin="12,0,0,0">
+                <!-- Filter toggle -->
+                <Button x:Name="filterToggle"
+                        Padding="12,7"
+                        FontSize="12"
+                        Background="Transparent"
+                        Foreground="#64748B"
+                        BorderBrush="#E2E8F0"
+                        BorderThickness="1"
+                        Cursor="Hand"
+                        Click="FilterToggle_Click"
+                        Visibility="Collapsed"
+                        ToolTip="Toggle filters">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Name="filterBorder" Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="8"
+                                    Padding="{TemplateBinding Padding}">
+                                <StackPanel Orientation="Horizontal">
+                                    <fa:IconBlock Icon="Filter" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                    <TextBlock Text="Filters" VerticalAlignment="Center" FontWeight="SemiBold" />
+                                </StackPanel>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="filterBorder" Property="Background" Value="#F8FAFC" />
+                                    <Setter TargetName="filterBorder" Property="BorderBrush" Value="#CBD5E1" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <!-- Result count -->
+                <TextBlock x:Name="resultCountText"
+                           Text=""
+                           FontSize="11"
+                           Foreground="#94A3B8"
+                           VerticalAlignment="Center"
+                           Margin="12,0,0,0"
+                           Visibility="Collapsed" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

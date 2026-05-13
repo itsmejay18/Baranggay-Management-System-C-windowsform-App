@@ -15,8 +15,8 @@
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0" Orientation="Horizontal">
-          <Border Width="44" Height="44" CornerRadius="10" Background="#EFF6FF" Margin="0,0,14,0">
-            <fa:IconBlock Icon="Bullhorn" Foreground="#2563EB" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          <Border Width="24" Height="24" CornerRadius="10" Background="#EFF6FF" Margin="0,0,8,0">
+            <fa:IconBlock Icon="Bullhorn" Foreground="#2563EB" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" />
           </Border>
           <StackPanel VerticalAlignment="Center">
             <TextBlock Text="Announcements &amp; Projects" Style="{StaticResource HeadingTextStyle}" />
@@ -39,38 +39,38 @@
         <ColumnDefinition Width="*" />
         <ColumnDefinition Width="*" />
       </Grid.ColumnDefinitions>
-      <Border Grid.Column="0" Margin="0,0,10,0" Padding="16,14" Background="#FFFFFFFF" CornerRadius="10" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="1">
+      <Border Grid.Column="0" Margin="0,0,10,0" Padding="8,6" Background="#FFFFFFFF" CornerRadius="10" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="1">
         <StackPanel>
           <TextBlock Text="Total Announcements" Style="{StaticResource SmallTextStyle}" />
-          <TextBlock Name="totalAnnouncementsMetric" Text="0" FontSize="20" FontWeight="Bold" Margin="0,6,0,2" Foreground="{StaticResource Slate900Brush}" />
+          <TextBlock Name="totalAnnouncementsMetric" Text="0" FontSize="13" FontWeight="Bold" Margin="0,6,0,2" Foreground="{StaticResource Slate900Brush}" />
           <TextBlock Text="All notice records" Style="{StaticResource SmallTextStyle}" Opacity="0.7" />
         </StackPanel>
       </Border>
-      <Border Grid.Column="1" Margin="0,0,10,0" Padding="16,14" Background="#FFFFFFFF" CornerRadius="10" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="1">
+      <Border Grid.Column="1" Margin="0,0,10,0" Padding="8,6" Background="#FFFFFFFF" CornerRadius="10" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="1">
         <StackPanel>
           <TextBlock Text="Published" Style="{StaticResource SmallTextStyle}" />
-          <TextBlock Name="publishedAnnouncementsMetric" Text="0" FontSize="20" FontWeight="Bold" Margin="0,6,0,2" Foreground="#1D4ED8" />
+          <TextBlock Name="publishedAnnouncementsMetric" Text="0" FontSize="13" FontWeight="Bold" Margin="0,6,0,2" Foreground="#1D4ED8" />
           <TextBlock Text="Live announcements" Style="{StaticResource SmallTextStyle}" Opacity="0.7" />
         </StackPanel>
       </Border>
-      <Border Grid.Column="2" Margin="0,0,10,0" Padding="16,14" Background="#FFFFFFFF" CornerRadius="10" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="1">
+      <Border Grid.Column="2" Margin="0,0,10,0" Padding="8,6" Background="#FFFFFFFF" CornerRadius="10" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="1">
         <StackPanel>
           <TextBlock Text="Pinned Notices" Style="{StaticResource SmallTextStyle}" />
-          <TextBlock Name="pinnedAnnouncementsMetric" Text="0" FontSize="20" FontWeight="Bold" Margin="0,6,0,2" Foreground="#7C3AED" />
+          <TextBlock Name="pinnedAnnouncementsMetric" Text="0" FontSize="13" FontWeight="Bold" Margin="0,6,0,2" Foreground="#7C3AED" />
           <TextBlock Text="Prioritized dashboard posts" Style="{StaticResource SmallTextStyle}" Opacity="0.7" />
         </StackPanel>
       </Border>
-      <Border Grid.Column="3" Margin="0,0,10,0" Padding="16,14" Background="#FFFFFFFF" CornerRadius="10" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="1">
+      <Border Grid.Column="3" Margin="0,0,10,0" Padding="8,6" Background="#FFFFFFFF" CornerRadius="10" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="1">
         <StackPanel>
           <TextBlock Text="Total Initiatives" Style="{StaticResource SmallTextStyle}" />
-          <TextBlock Name="totalInitiativesMetric" Text="0" FontSize="20" FontWeight="Bold" Margin="0,6,0,2" Foreground="#0F766E" />
+          <TextBlock Name="totalInitiativesMetric" Text="0" FontSize="13" FontWeight="Bold" Margin="0,6,0,2" Foreground="#0F766E" />
           <TextBlock Text="Projects and programs tracked" Style="{StaticResource SmallTextStyle}" Opacity="0.7" />
         </StackPanel>
       </Border>
-      <Border Grid.Column="4" Padding="16,14" Background="#FFFFFFFF" CornerRadius="10" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="1">
+      <Border Grid.Column="4" Padding="8,6" Background="#FFFFFFFF" CornerRadius="10" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="1">
         <StackPanel>
           <TextBlock Text="Completed" Style="{StaticResource SmallTextStyle}" />
-          <TextBlock Name="completedInitiativesMetric" Text="0" FontSize="20" FontWeight="Bold" Margin="0,6,0,2" Foreground="#166534" />
+          <TextBlock Name="completedInitiativesMetric" Text="0" FontSize="13" FontWeight="Bold" Margin="0,6,0,2" Foreground="#166534" />
           <TextBlock Text="Initiatives marked complete" Style="{StaticResource SmallTextStyle}" Opacity="0.7" />
         </StackPanel>
       </Border>

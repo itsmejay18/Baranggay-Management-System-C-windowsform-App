@@ -1,0 +1,44 @@
+<UserControl x:Class="baranggaysystem1.Views.Controls.SyncStatusIndicator"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Height="32">
+
+    <Border x:Name="rootBorder"
+            Background="#FF2d2d44"
+            CornerRadius="16"
+            Padding="12,4"
+            Cursor="Hand"
+            MouseLeftButtonUp="OnClick"
+            ToolTip="Click to view sync details">
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <!-- Status icon -->
+            <TextBlock x:Name="statusIcon"
+                       Text="✓"
+                       FontSize="12"
+                       Foreground="#4CAF50"
+                       VerticalAlignment="Center"
+                       Margin="0,0,6,0" />
+
+            <!-- Status text -->
+            <TextBlock x:Name="statusText"
+                       Text="Connected"
+                       FontSize="11"
+                       Foreground="#AAB8C2"
+                       VerticalAlignment="Center" />
+
+            <!-- Pending badge -->
+            <Border x:Name="pendingBadge"
+                    Background="#FF6B6B"
+                    CornerRadius="8"
+                    Padding="6,2"
+                    Margin="6,0,0,0"
+                    Visibility="Collapsed">
+                <TextBlock x:Name="pendingCountText"
+                           Text="0"
+                           FontSize="10"
+                           FontWeight="Bold"
+                           Foreground="White" />
+            </Border>
+        </StackPanel>
+    </Border>
+</UserControl>

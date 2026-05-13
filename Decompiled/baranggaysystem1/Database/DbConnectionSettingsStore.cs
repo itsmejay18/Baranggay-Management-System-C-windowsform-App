@@ -323,7 +323,7 @@ internal static class DbConnectionSettingsStore
 	{
 		return new StoredDatabaseConnectionSettings
 		{
-			SelectedProfileKey = "localhost",
+			SelectedProfileKey = "sqlite",
 			CustomProfile = DatabaseConnectionProfile.CreateDefault()
 		};
 	}

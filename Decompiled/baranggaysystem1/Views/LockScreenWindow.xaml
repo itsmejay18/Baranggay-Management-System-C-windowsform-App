@@ -1,0 +1,122 @@
+<Window x:Class="baranggaysystem1.Views.LockScreenWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Session Locked"
+        WindowStartupLocation="CenterScreen"
+        WindowState="Maximized"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        Topmost="True"
+        AllowsTransparency="True"
+        Background="#CC1a1a2e">
+
+    <Grid>
+        <!-- Semi-transparent overlay -->
+        <Border Background="#E6000000" />
+
+        <!-- Lock screen content -->
+        <Border Background="#FF2d2d44"
+                CornerRadius="16"
+                Padding="48"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                MinWidth="420"
+                MaxWidth="500">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="30" Opacity="0.5" ShadowDepth="5" />
+            </Border.Effect>
+
+            <StackPanel>
+                <!-- Lock icon -->
+                <TextBlock Text="🔒"
+                           FontSize="48"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,16" />
+
+                <!-- Title -->
+                <TextBlock Text="Session Locked"
+                           FontSize="24"
+                           FontWeight="SemiBold"
+                           Foreground="White"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,8" />
+
+                <!-- Username display -->
+                <TextBlock x:Name="usernameLabel"
+                           Text="User"
+                           FontSize="16"
+                           Foreground="#AAB8C2"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,8" />
+
+                <!-- Lock message -->
+                <TextBlock x:Name="lockMessageLabel"
+                           Text="Session locked due to inactivity."
+                           FontSize="13"
+                           Foreground="#8899A6"
+                           HorizontalAlignment="Center"
+                           TextWrapping="Wrap"
+                           TextAlignment="Center"
+                           Margin="0,0,0,24" />
+
+                <!-- Password input -->
+                <TextBlock Text="Password"
+                           FontSize="12"
+                           Foreground="#AAB8C2"
+                           Margin="0,0,0,6" />
+                <PasswordBox x:Name="passwordBox"
+                             FontSize="14"
+                             Padding="12,10"
+                             Background="#FF3d3d5c"
+                             Foreground="White"
+                             BorderBrush="#FF5c5c8a"
+                             BorderThickness="1"
+                             KeyDown="PasswordBox_KeyDown" />
+
+                <!-- Error message -->
+                <TextBlock x:Name="errorLabel"
+                           Text=""
+                           FontSize="12"
+                           Foreground="#FF6B6B"
+                           Margin="0,8,0,0"
+                           Visibility="Collapsed"
+                           TextWrapping="Wrap" />
+
+                <!-- Buttons -->
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Center"
+                            Margin="0,24,0,0">
+                    <Button x:Name="unlockButton"
+                            Content="Unlock"
+                            Click="UnlockButton_Click"
+                            Padding="24,10"
+                            FontSize="14"
+                            FontWeight="SemiBold"
+                            Background="#4CAF50"
+                            Foreground="White"
+                            BorderThickness="0"
+                            Cursor="Hand"
+                            Margin="0,0,12,0" />
+
+                    <Button x:Name="logoutButton"
+                            Content="Log Out"
+                            Click="LogoutButton_Click"
+                            Padding="24,10"
+                            FontSize="14"
+                            Background="Transparent"
+                            Foreground="#FF6B6B"
+                            BorderBrush="#FF6B6B"
+                            BorderThickness="1"
+                            Cursor="Hand" />
+                </StackPanel>
+
+                <!-- Time info -->
+                <TextBlock Text="Locked for security. Your work is preserved."
+                           FontSize="11"
+                           Foreground="#657786"
+                           HorizontalAlignment="Center"
+                           Margin="0,20,0,0" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

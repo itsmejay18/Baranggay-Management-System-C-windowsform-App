@@ -115,8 +115,8 @@
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0" Orientation="Horizontal">
-          <Border Width="44" Height="44" CornerRadius="12" Background="#EDE9FE" Margin="0,0,14,0">
-            <fa:IconBlock Icon="PaperPlane" Foreground="#7C3AED" FontSize="19" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          <Border Width="24" Height="24" CornerRadius="12" Background="#EDE9FE" Margin="0,0,8,0">
+            <fa:IconBlock Icon="PaperPlane" Foreground="#7C3AED" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" />
           </Border>
           <StackPanel VerticalAlignment="Center">
             <TextBlock Text="Notification Outbox" Style="{StaticResource HeadingTextStyle}" />

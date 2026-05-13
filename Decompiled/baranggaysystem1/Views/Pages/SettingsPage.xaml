@@ -43,8 +43,8 @@
     </Grid.RowDefinitions>
     <Border Grid.Row="0" Style="{StaticResource PageHeaderStyle}">
       <StackPanel Orientation="Horizontal">
-        <Border Width="44" Height="44" CornerRadius="10" Background="{StaticResource Slate100Brush}" Margin="0,0,14,0">
-          <fa:IconBlock Icon="Cog" Foreground="{StaticResource Slate700Brush}" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        <Border Width="24" Height="24" CornerRadius="10" Background="{StaticResource Slate100Brush}" Margin="0,0,8,0">
+          <fa:IconBlock Icon="Cog" Foreground="{StaticResource Slate700Brush}" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" />
         </Border>
         <StackPanel VerticalAlignment="Center">
           <TextBlock Text="System Settings" Style="{StaticResource HeadingTextStyle}" />
@@ -61,7 +61,7 @@
               <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <StackPanel Grid.Column="0">
-              <TextBlock Text="Separated settings storage" FontSize="15" FontWeight="Bold" Foreground="{StaticResource Slate900Brush}" />
+              <TextBlock Text="Separated settings storage" FontSize="13" FontWeight="Bold" Foreground="{StaticResource Slate900Brush}" />
               <TextBlock Text="Branding and office details are saved in the active system configuration. The database connection profile stays separate on this computer, so connection changes do not overwrite your branding values." Style="{StaticResource SmallTextStyle}" Margin="0,6,0,0" TextWrapping="Wrap" MaxWidth="620" />
             </StackPanel>
             <WrapPanel Grid.Column="1" Margin="18,0,0,0" VerticalAlignment="Center">

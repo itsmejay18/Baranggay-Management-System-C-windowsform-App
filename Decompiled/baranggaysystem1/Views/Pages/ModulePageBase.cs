@@ -37,7 +37,7 @@ public class ModulePageBase : UserControl
 		Border border = new Border
 		{
 			Background = Brushes.White,
-			Padding = new Thickness(20.0, 14.0, 20.0, 14.0),
+			Padding = new Thickness(14.0, 8.0, 14.0, 8.0),
 			BorderBrush = (Brush)Application.Current.Resources["Slate100Brush"],
 			BorderThickness = new Thickness(0.0, 0.0, 0.0, 1.0)
 		};
@@ -83,7 +83,7 @@ public class ModulePageBase : UserControl
 		Border border2 = new Border
 		{
 			Background = (Brush)Application.Current.Resources["Slate100Brush"],
-			Padding = new Thickness(20.0, 16.0, 20.0, 16.0)
+			Padding = new Thickness(10.0, 8.0, 10.0, 8.0)
 		};
 		ContentArea = new Grid();
 		ContentArea.RowDefinitions.Add(new RowDefinition

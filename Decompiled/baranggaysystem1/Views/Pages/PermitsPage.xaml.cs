@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Markup;
+using baranggaysystem1.Database;
 using baranggaysystem1.helper;
 using baranggaysystem1.ViewModels;
 
@@ -53,7 +54,23 @@ public partial class PermitsPage : UserControl
 
 	private static DataTable FetchData()
 	{
-		return new DataTable();
+		return Database.DatabaseManagerAsync.LoadTableAsync(
+			@"SELECT c.certificate_id,
+			         COALESCE(r.first_name,'') || ' ' || COALESCE(r.last_name,'') AS resident_name,
+			         COALESCE(dt.name, 'Unknown') AS document_type,
+			         c.or_number,
+			         c.purpose,
+			         c.status,
+			         c.issued_at,
+			         c.expires_at,
+			         c.created_at
+			  FROM certificate c
+			  LEFT JOIN resident r ON r.resident_id = c.resident_id
+			  LEFT JOIN document_type dt ON dt.document_type_id = c.document_type_id
+			  WHERE c.barangay_id = @barangayId
+			    AND UPPER(COALESCE(dt.code,'')) IN ('BUS','PERMIT')
+			  ORDER BY c.created_at DESC",
+			cmd => { cmd.Parameters.AddWithValue("@barangayId", UserSession.BarangayId); }).GetAwaiter().GetResult();
 	}
 
 	private void ApplyDataToGrid(DataTable? table)
@@ -104,5 +121,5 @@ public partial class PermitsPage : UserControl
 
 	private void BtnAdd_Click(object sender, RoutedEventArgs e)
 	{
-		DialogService.Instance.ShowInfo("Permit processing is not yet implemented.");
+		DialogService.Instance.ShowInfo("To request a Business Permit, use the Clearances page and select 'Business Clearance' as the document type.");
 	}}

@@ -14,8 +14,8 @@
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0" Orientation="Horizontal">
-          <Border Width="44" Height="44" CornerRadius="10" Background="#FEF2F2" Margin="0,0,14,0">
-            <fa:IconBlock Icon="Key" Foreground="#EF4444" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          <Border Width="24" Height="24" CornerRadius="10" Background="#FEF2F2" Margin="0,0,8,0">
+            <fa:IconBlock Icon="Key" Foreground="#EF4444" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" />
           </Border>
           <StackPanel VerticalAlignment="Center">
             <TextBlock Text="Roles &amp; Permissions" Style="{StaticResource HeadingTextStyle}" />

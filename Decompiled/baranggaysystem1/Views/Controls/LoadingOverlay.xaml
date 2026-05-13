@@ -1,0 +1,70 @@
+<UserControl x:Class="baranggaysystem1.Views.Controls.LoadingOverlay"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Visibility="Collapsed">
+
+    <!--
+    Reusable loading overlay for pages and dialogs.
+    Shows a spinner with optional message text.
+    
+    Usage:
+      <controls:LoadingOverlay x:Name="loadingOverlay" />
+      
+    Code-behind:
+      loadingOverlay.Show("Loading residents...");
+      loadingOverlay.Hide();
+    -->
+
+    <Grid>
+        <!-- Semi-transparent backdrop with blur effect -->
+        <Border Background="#C8FFFFFF" />
+
+        <!-- Spinner content -->
+        <Border Background="White" CornerRadius="16" Padding="32,28" HorizontalAlignment="Center" VerticalAlignment="Center"
+                BorderBrush="#F1F5F9" BorderThickness="1">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="20" ShadowDepth="4" Opacity="0.08" Direction="270" />
+            </Border.Effect>
+            <StackPanel HorizontalAlignment="Center">
+                <!-- Animated spinner ring -->
+                <Grid Width="52" Height="52" HorizontalAlignment="Center" Margin="0,0,0,18">
+                    <Border Width="52" Height="52"
+                            BorderBrush="#E2E8F0"
+                            BorderThickness="4"
+                            CornerRadius="26" />
+
+                    <!-- Spinning arc (simulated with rotating border) -->
+                    <Border x:Name="spinnerArc"
+                            Width="52" Height="52"
+                            RenderTransformOrigin="0.5,0.5">
+                        <Border.RenderTransform>
+                            <RotateTransform x:Name="spinnerRotation" />
+                        </Border.RenderTransform>
+                        <Border Width="52" Height="52"
+                                BorderThickness="4,4,4,0"
+                                BorderBrush="#3B82F6"
+                                CornerRadius="26" />
+                    </Border>
+                </Grid>
+
+                <!-- Loading text -->
+                <TextBlock x:Name="loadingText"
+                           Text="Loading..."
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           Foreground="#1E293B"
+                           HorizontalAlignment="Center"
+                           FontFamily="Trebuchet MS" />
+
+                <!-- Sub-text -->
+                <TextBlock x:Name="subText"
+                           Text=""
+                           FontSize="11.5"
+                           Foreground="#94A3B8"
+                           HorizontalAlignment="Center"
+                           Margin="0,6,0,0"
+                           Visibility="Collapsed" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

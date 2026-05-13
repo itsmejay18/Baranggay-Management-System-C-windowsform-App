@@ -210,16 +210,59 @@ public sealed class OfflineSyncStatusService : INotifyPropertyChanged, IDisposab
 
             try
             {
-                // Use the existing OfflineSyncService to replay changes
-                OfflineSyncService.ReplayPendingChanges(
-                    onProgress: (current, total) =>
+                // Attempt to replay pending offline changes to the online database
+                var conn = DBConnection.GetConnection();
+                try
+                {
+                    ((System.Data.Common.DbConnection)(object)conn).Open();
+                    DBConnection.RegisterConnectivitySuccess();
+
+                    var offlineConn = OfflineDatabaseSupport.GetConnection();
+                    try
                     {
-                        SyncProgress = current;
-                        TotalToSync = total;
-                    },
-                    onItemSynced: () => synced++,
-                    onItemFailed: () => failed++
-                );
+                        using var readCmd = offlineConn.CreateCommand();
+                        ((System.Data.Common.DbCommand)(object)readCmd).CommandText =
+                            "SELECT sync_id, sql_statement FROM offline_sync_queue WHERE sync_status = 'pending' ORDER BY created_at ASC LIMIT @limit";
+                        readCmd.Parameters.AddWithValue("@limit", pending);
+
+                        using var reader = readCmd.ExecuteReader();
+                        var items = new System.Collections.Generic.List<(long Id, string Sql)>();
+                        while (((System.Data.Common.DbDataReader)(object)reader).Read())
+                        {
+                            items.Add((reader.GetInt64(0), reader.GetString(1)));
+                        }
+                        ((System.Data.Common.DbDataReader)(object)reader).Close();
+
+                        TotalToSync = items.Count;
+                        foreach (var (id, sql) in items)
+                        {
+                            try
+                            {
+                                var execCmd = new MySql.Data.MySqlClient.MySqlCommand(sql, conn);
+                                try
+                                {
+                                    ((System.Data.Common.DbCommand)(object)execCmd).ExecuteNonQuery();
+                                    synced++;
+                                    SyncProgress = synced;
+
+                                    // Mark as synced
+                                    using var markCmd = offlineConn.CreateCommand();
+                                    ((System.Data.Common.DbCommand)(object)markCmd).CommandText =
+                                        "UPDATE offline_sync_queue SET sync_status = 'synced', synced_at = datetime('now') WHERE sync_id = @id";
+                                    markCmd.Parameters.AddWithValue("@id", id);
+                                    ((System.Data.Common.DbCommand)(object)markCmd).ExecuteNonQuery();
+                                }
+                                finally { ((IDisposable)execCmd)?.Dispose(); }
+                            }
+                            catch
+                            {
+                                failed++;
+                            }
+                        }
+                    }
+                    finally { ((IDisposable)offlineConn)?.Dispose(); }
+                }
+                finally { ((IDisposable)conn)?.Dispose(); }
             }
             catch (Exception ex)
             {

@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -112,6 +113,18 @@ public partial class MainWindow : Window
 			base.Opacity = 0.0;
 			BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(0.0, 1.0, TimeSpan.FromMilliseconds(280.0)));
 			NavigatePage("Home");
+
+			// Initialize UX enhancements (keyboard shortcuts, command palette, toast, nav history)
+			UxEnhancementsIntegration.Initialize(this);
+
+			// Initialize session security (timeout, lock, forced password change)
+			SessionSecurityIntegration.OnLoginSuccess();
+
+			// Start notification dispatch timer (every 5 minutes)
+			var notifyTimer = new System.Windows.Threading.DispatcherTimer();
+			notifyTimer.Interval = TimeSpan.FromMinutes(5);
+			notifyTimer.Tick += delegate { Task.Run(() => OutboundNotificationService.TryRunScheduledAutomation(includeReminderQueue: true)); };
+			notifyTimer.Start();
 		};
 	}
 
@@ -224,6 +237,9 @@ public partial class MainWindow : Window
 		UpdateShellForRoute(route);
 		UpdateBreadcrumb(route);
 		SyncNavigationSelection(route);
+
+		// Record navigation for history (back/forward support)
+		UxEnhancementsIntegration.RecordNavigation(route, RouteToTitle(route));
 		if (uIElement is FrameworkElement frameworkElement)
 		{
 			frameworkElement.Opacity = 0.0;
@@ -273,6 +289,11 @@ public partial class MainWindow : Window
 	private void BtnNotify_Click(object sender, RoutedEventArgs e)
 	{
 		notificationPopup.IsOpen = !notificationPopup.IsOpen;
+	}
+
+	private void BtnLock_Click(object sender, RoutedEventArgs e)
+	{
+		SessionSecurityIntegration.LockSession();
 	}
 
 	private void BtnNotifyViewAll_Click(object sender, RoutedEventArgs e)

@@ -524,7 +524,8 @@ internal class DBConnection
 		//IL_001d: Expected O, but got Unknown
 		if (IsSqliteSelected())
 		{
-			throw new InvalidOperationException("The active database profile is SQLite. Use DbHelper, DatabaseManagerAsync, or OfflineDatabaseSupport for SQLite-backed operations.");
+			// Throw immediately so callers hit their offline fallback path without waiting for a TCP timeout
+			throw new InvalidOperationException("SQLite mode is active. Use DbHelper or DatabaseManagerAsync.");
 		}
 		return new MySqlConnection(ResolveConnectionString());
 	}

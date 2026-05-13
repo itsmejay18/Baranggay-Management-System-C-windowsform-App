@@ -24,14 +24,14 @@
   </FrameworkElement.Resources>
   <Grid>
     <Grid.ColumnDefinitions>
-      <ColumnDefinition Name="SidebarColumn" Width="286" />
+      <ColumnDefinition Name="SidebarColumn" Width="180" />
       <ColumnDefinition Width="*" />
     </Grid.ColumnDefinitions>
     <Border Name="SidebarRoot" Grid.Column="0" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource SidebarDividerBrush}" BorderThickness="0,0,1,0">
       <DockPanel>
-        <Border DockPanel.Dock="Top" Padding="15,24,15,24">
+        <Border DockPanel.Dock="Top" Padding="12,14,12,14">
           <StackPanel Orientation="Horizontal">
-            <Border Width="40" Height="40" CornerRadius="12" MinWidth="40">
+            <Border Width="34" Height="34" CornerRadius="10" MinWidth="34">
               <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                   <GradientStop Color="#60A5FA" Offset="0" />
@@ -39,28 +39,34 @@
                 </LinearGradientBrush>
               </Border.Background>
               <Grid>
-                <Image Name="sidebarBrandLogo" Stretch="Uniform" Margin="6" Visibility="Collapsed" RenderOptions.BitmapScalingMode="HighQuality" />
-                <fa:IconBlock Name="sidebarBrandIcon" Icon="University" Foreground="#FFFFFFFF" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <Image Name="sidebarBrandLogo" Stretch="Uniform" Margin="5" Visibility="Collapsed" RenderOptions.BitmapScalingMode="HighQuality" />
+                <fa:IconBlock Name="sidebarBrandIcon" Icon="University" Foreground="#FFFFFFFF" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Grid>
             </Border>
-            <StackPanel Margin="12,0,0,0" VerticalAlignment="Center" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}">
-              <TextBlock Text="PORTAL" FontSize="9" FontWeight="Bold" Foreground="#64748B" FontFamily="{StaticResource TrebuchetMs}" />
-              <TextBlock Name="sidebarBarangayName" Text="SAN JOSE" FontSize="15" FontWeight="Bold" Foreground="#FFFFFFFF" FontFamily="{StaticResource CenturyGothic}" />
+            <StackPanel Margin="10,0,0,0" VerticalAlignment="Center" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}">
+              <TextBlock Text="PORTAL" FontSize="8" FontWeight="Bold" Foreground="#4B6A94" FontFamily="{StaticResource TrebuchetMs}" />
+              <TextBlock Name="sidebarBarangayName" Text="SAN JOSE" FontSize="13" FontWeight="Bold" Foreground="#FFFFFFFF" FontFamily="{StaticResource CenturyGothic}" />
             </StackPanel>
           </StackPanel>
         </Border>
-        <Border DockPanel.Dock="Bottom" Padding="16,12" BorderBrush="{StaticResource SidebarDividerBrush}" BorderThickness="0,1,0,0">
+        <Border DockPanel.Dock="Bottom" Padding="12,10" BorderBrush="{StaticResource SidebarDividerBrush}" BorderThickness="0,1,0,0">
           <Grid>
             <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="36" />
+              <ColumnDefinition Width="30" />
               <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <Border Grid.Column="0" Width="36" Height="36" CornerRadius="18" Background="{StaticResource SidebarActiveBrush}">
-              <TextBlock Name="sidebarUserInitial" Text="A" FontSize="14" FontWeight="Bold" Foreground="#FFFFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            <Border Grid.Column="0" Width="30" Height="30" CornerRadius="15">
+              <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                  <GradientStop Color="#1E40AF" Offset="0" />
+                  <GradientStop Color="#3B82F6" Offset="1" />
+                </LinearGradientBrush>
+              </Border.Background>
+              <TextBlock Name="sidebarUserInitial" Text="A" FontSize="11" FontWeight="Bold" Foreground="#FFFFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
             </Border>
-            <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}">
-              <TextBlock Name="sidebarUsername" Text="Admin User" Foreground="#FFFFFFFF" FontSize="12" FontWeight="Bold" FontFamily="{StaticResource TrebuchetMs}" />
-              <TextBlock Name="sidebarRole" Text="Administrator" Foreground="{StaticResource SidebarGroupBrush}" FontSize="11" FontFamily="{StaticResource TrebuchetMs}" />
+            <StackPanel Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center" Visibility="{Binding ElementName=SidebarRoot, Path=ActualWidth, Converter={StaticResource WidthToVisibilityConverter}, ConverterParameter=170}">
+              <TextBlock Name="sidebarUsername" Text="Admin User" Foreground="#FFFFFFFF" FontSize="11" FontWeight="Bold" FontFamily="{StaticResource TrebuchetMs}" />
+              <TextBlock Name="sidebarRole" Text="Administrator" Foreground="{StaticResource SidebarGroupBrush}" FontSize="10" FontFamily="{StaticResource TrebuchetMs}" Margin="0,1,0,0" />
             </StackPanel>
           </Grid>
         </Border>
@@ -209,59 +215,65 @@
     </Border>
     <Grid Column="1">
       <Grid.RowDefinitions>
-        <RowDefinition Name="TopBarRow" Height="72" />
+        <RowDefinition Name="TopBarRow" Height="44" />
         <RowDefinition Height="*" />
-        <RowDefinition Name="StatusBarRow" Height="28" />
+        <RowDefinition Name="StatusBarRow" Height="24" />
       </Grid.RowDefinitions>
-      <Border Name="TopBarContainer" Grid.Row="0" Background="{StaticResource TopBarBgBrush}" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="0,0,0,1">
-        <Grid Margin="18,10,22,10">
+      <Border Name="TopBarContainer" Grid.Row="0" Background="{StaticResource TopBarBgBrush}" BorderBrush="#F1F5F9" BorderThickness="0,0,0,1">
+        <Grid Margin="12,4,16,4">
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
           </Grid.ColumnDefinitions>
-          <Button Name="btnToggleSidebar" Grid.Column="0" Style="{StaticResource IconButtonStyle}" Width="40" Height="40" Margin="0,0,14,0" Click="BtnToggleSidebar_Click">
-            <fa:IconBlock Icon="Bars" FontSize="16" Foreground="{StaticResource Slate600Brush}" />
+          <Button Name="btnToggleSidebar" Grid.Column="0" Style="{StaticResource IconButtonStyle}" Width="32" Height="32" Margin="0,0,10,0" Click="BtnToggleSidebar_Click" ToolTip="Toggle Sidebar">
+            <fa:IconBlock Icon="Bars" FontSize="14" Foreground="{StaticResource Slate600Brush}" />
           </Button>
-          <Border Grid.Column="1" Background="#FFFFFFFF" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="1" CornerRadius="18" Padding="16,8">
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-              <Border Width="30" Height="30" CornerRadius="15" Background="#DBEAFE" Margin="0,0,12,0">
-                <fa:IconBlock Icon="Compass" FontSize="13" Foreground="{StaticResource AccentBlueBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-              </Border>
-              <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBlock Name="breadcrumbRootLabel" Text="Home" Foreground="{StaticResource Slate500Brush}" FontSize="12" VerticalAlignment="Center" FontFamily="{StaticResource TrebuchetMs}" />
-                <TextBlock Name="breadcrumbSeparator" Text=" / " Foreground="{StaticResource Slate300Brush}" FontSize="12" VerticalAlignment="Center" />
-                <TextBlock Name="breadcrumbLabel" Text="Home" Foreground="{StaticResource Slate900Brush}" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" FontFamily="{StaticResource TrebuchetMs}" />
-              </StackPanel>
-            </StackPanel>
-          </Border>
-          <Border Grid.Column="2" Background="#FFFFFFFF" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="1" CornerRadius="18" Padding="10,6">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-              <Button Name="btnSearch" ToolTip="Global Search (Ctrl+K)" Style="{StaticResource IconButtonStyle}" Width="36" Height="36" Margin="0,0,6,0" Click="BtnSearch_Click">
-                <fa:IconBlock Icon="Search" FontSize="14" Foreground="{StaticResource Slate600Brush}" />
-              </Button>
-              <Button Name="btnEllie" ToolTip="Ellie AI Assistant" Style="{StaticResource IconButtonStyle}" Width="36" Height="36" Margin="0,0,6,0" Click="BtnEllie_Click">
-                <fa:IconBlock Icon="Robot" FontSize="14" Foreground="{StaticResource AccentBlueBrush}" />
-              </Button>
-              <Button Name="btnNotify" ToolTip="Notifications" Style="{StaticResource IconButtonStyle}" Width="36" Height="36" Margin="0,0,10,0" Click="BtnNotify_Click">
-                <fa:IconBlock Icon="Bell" FontSize="14" Foreground="{StaticResource Slate600Brush}" />
-              </Button>
-              <Border Width="1" Height="24" Background="{StaticResource Slate100Brush}" Margin="0,0,12,0" />
-              <Border Width="36" Height="36" CornerRadius="18" Background="{StaticResource AccentBlueBrush}" ToolTip="My Account" Cursor="Hand">
-                <TextBlock Name="topBarInitial" Text="A" FontSize="12" FontWeight="Bold" Foreground="#FFFFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
-              </Border>
-            </StackPanel>
-          </Border>
+          <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+            <fa:IconBlock Icon="Compass" FontSize="11" Foreground="{StaticResource AccentBlueBrush}" Margin="0,0,8,0" />
+            <TextBlock Name="breadcrumbRootLabel" Text="Home" Foreground="{StaticResource Slate400Brush}" FontSize="11" VerticalAlignment="Center" />
+            <TextBlock Name="breadcrumbSeparator" Text="  ›  " Foreground="{StaticResource Slate300Brush}" FontSize="12" VerticalAlignment="Center" />
+            <TextBlock Name="breadcrumbLabel" Text="Home" Foreground="{StaticResource Slate900Brush}" FontSize="12" FontWeight="Bold" VerticalAlignment="Center" />
+          </StackPanel>
+          <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+            <Button Name="btnSearch" ToolTip="Global Search (Ctrl+K)" Style="{StaticResource IconButtonStyle}" Width="30" Height="30" Margin="0,0,2,0" Click="BtnSearch_Click">
+              <fa:IconBlock Icon="Search" FontSize="12" Foreground="{StaticResource Slate600Brush}" />
+            </Button>
+            <Button Name="btnEllie" ToolTip="Ellie AI Assistant" Style="{StaticResource IconButtonStyle}" Width="30" Height="30" Margin="0,0,2,0" Click="BtnEllie_Click">
+              <fa:IconBlock Icon="Robot" FontSize="12" Foreground="{StaticResource AccentBlueBrush}" />
+            </Button>
+            <Button Name="btnNotify" ToolTip="Notifications" Style="{StaticResource IconButtonStyle}" Width="30" Height="30" Margin="0,0,2,0" Click="BtnNotify_Click">
+              <fa:IconBlock Icon="Bell" FontSize="12" Foreground="{StaticResource Slate600Brush}" />
+            </Button>
+            <Button Name="btnLock" ToolTip="Lock Session (Ctrl+L)" Style="{StaticResource IconButtonStyle}" Width="30" Height="30" Margin="0,0,8,0" Click="BtnLock_Click">
+              <fa:IconBlock Icon="Lock" FontSize="12" Foreground="{StaticResource Slate600Brush}" />
+            </Button>
+            <Border Width="30" Height="30" CornerRadius="15" ToolTip="My Account" Cursor="Hand">
+              <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                  <GradientStop Color="#60A5FA" Offset="0" />
+                  <GradientStop Color="#3B82F6" Offset="1" />
+                </LinearGradientBrush>
+              </Border.Background>
+              <TextBlock Name="topBarInitial" Text="A" FontSize="11" FontWeight="Bold" Foreground="#FFFFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Border>
+          </StackPanel>
         </Grid>
       </Border>
       <ContentControl Name="pageHost" Grid.Row="1" Background="{StaticResource PageBgBrush}" />
-      <Border Name="BottomStatusBar" Grid.Row="2" Background="{StaticResource StatusBarBgBrush}" Padding="16,0">
+      <Border Name="BottomStatusBar" Grid.Row="2" Background="{StaticResource StatusBarBgBrush}" Padding="12,0">
         <Grid>
           <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-            <Border Name="dbStatusDot" Width="7" Height="7" CornerRadius="4" Background="#22C55E" Margin="0,0,6,0" />
+            <Border Name="dbStatusDot" Width="8" Height="8" CornerRadius="4" Background="#22C55E" Margin="0,0,8,0">
+              <Border.Effect>
+                <DropShadowEffect BlurRadius="4" ShadowDepth="0" Opacity="0.4" Color="#22C55E" />
+              </Border.Effect>
+            </Border>
             <TextBlock Name="dbStatusLabel" Text="Connected" Style="{StaticResource StatusBarTextStyle}" />
-            <TextBlock Text="  |  " Style="{StaticResource StatusBarTextStyle}" />
+            <TextBlock Text="  ·  " Style="{StaticResource StatusBarTextStyle}" Foreground="#475569" />
             <TextBlock Name="barangayLabel" Text="Barangay San Jose" Style="{StaticResource StatusBarTextStyle}" />
+            <TextBlock Text="  ·  " Style="{StaticResource StatusBarTextStyle}" Foreground="#475569" />
+            <TextBlock Name="shortcutHintLabel" Text="Ctrl+Shift+P: Commands  ·  Ctrl+K: Search  ·  Ctrl+L: Lock" Style="{StaticResource StatusBarTextStyle}" Foreground="#475569" FontSize="10" />
           </StackPanel>
           <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
             <TextBlock Name="statusClock" Text="" Style="{StaticResource StatusBarTextStyle}" />
@@ -269,19 +281,21 @@
         </Grid>
       </Border>
       <Popup Name="notificationPopup" Grid.Row="0" Grid.RowSpan="2" Placement="Bottom" StaysOpen="False" AllowsTransparency="True" PlacementTarget="{Binding ElementName=btnNotify}">
-        <Border Background="#FFFFFFFF" CornerRadius="10" Width="340" Padding="0,0,0,8" MaxHeight="480">
+        <Border Background="#FFFFFFFF" CornerRadius="14" Width="360" Padding="0,0,0,8" MaxHeight="500">
           <UIElement.Effect>
-            <DropShadowEffect BlurRadius="20" ShadowDepth="4" Opacity="0.15" Direction="270" />
+            <DropShadowEffect BlurRadius="24" ShadowDepth="6" Opacity="0.12" Direction="270" />
           </UIElement.Effect>
           <DockPanel>
-            <Border DockPanel.Dock="Top" Padding="16,12" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="0,0,0,1">
+            <Border DockPanel.Dock="Top" Padding="18,14" BorderBrush="#F1F5F9" BorderThickness="0,0,0,1">
               <Grid>
-                <TextBlock Text="Notifications" Style="{StaticResource SectionHeaderTextStyle}" />
-                <Button Content="View all" Style="{StaticResource GhostButtonStyle}" HorizontalAlignment="Right" Height="Auto" MinWidth="0" Padding="4,2" FontSize="11" Foreground="{StaticResource AccentBlueBrush}" Click="BtnNotifyViewAll_Click" />
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Text="Notifications" Style="{StaticResource SectionHeaderTextStyle}" VerticalAlignment="Center" />
+                </StackPanel>
+                <Button Content="View all" Style="{StaticResource GhostButtonStyle}" HorizontalAlignment="Right" Height="Auto" MinWidth="0" Padding="6,3" FontSize="11" Foreground="{StaticResource AccentBlueBrush}" Click="BtnNotifyViewAll_Click" />
               </Grid>
             </Border>
             <ScrollViewer DockPanel.Dock="Bottom" VerticalScrollBarVisibility="Auto">
-              <StackPanel Name="notificationList" Margin="0,4" />
+              <StackPanel Name="notificationList" Margin="0,6" />
             </ScrollViewer>
           </DockPanel>
         </Border>

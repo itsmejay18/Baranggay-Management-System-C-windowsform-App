@@ -156,7 +156,7 @@
         </Grid>
       </StackPanel>
       <StackPanel Name="dashboardOverviewSection" Visibility="Collapsed">
-        <Border Margin="20,20,20,0" CornerRadius="16" ClipToBounds="True">
+        <Border Margin="20,20,20,0" CornerRadius="20" ClipToBounds="True">
           <Border.Background>
             <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
               <GradientStop Color="#1E293B" Offset="0" />
@@ -164,17 +164,17 @@
             </LinearGradientBrush>
           </Border.Background>
           <Grid>
-            <fa:IconBlock Icon="LayerGroup" Opacity="0.05" FontSize="300" Foreground="#FFFFFFFF" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-100,-100" />
-            <Grid Margin="32,28">
+            <fa:IconBlock Icon="LayerGroup" Opacity="0.04" FontSize="320" Foreground="#FFFFFFFF" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-100,-100" />
+            <Grid Margin="36,32">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
               </Grid.ColumnDefinitions>
               <StackPanel Grid.Column="0">
-                <Border Background="#3B82F6" HorizontalAlignment="Left" Padding="10,2" CornerRadius="4" Margin="0,0,0,12">
+                <Border Background="#3B82F6" HorizontalAlignment="Left" Padding="12,3" CornerRadius="6" Margin="0,0,0,14">
                   <TextBlock Name="welcomeGreeting" Text="GOOD MORNING, ADMINISTRATOR" Foreground="#FFFFFFFF" FontSize="10" FontWeight="Black" />
                 </Border>
-                <TextBlock Text="Barangay Dashboard" Foreground="#FFFFFFFF" FontSize="28" FontWeight="Bold" FontFamily="{StaticResource CenturyGothic}" />
+                <TextBlock Text="Barangay Dashboard" Foreground="#FFFFFFFF" FontSize="30" FontWeight="Bold" FontFamily="{StaticResource CenturyGothic}" />
                 <StackPanel Orientation="Horizontal" Margin="0,4,0,0" Visibility="Collapsed">
                   <fa:IconBlock Icon="CalendarAlt" Foreground="#94A3B8" FontSize="12" VerticalAlignment="Center" Margin="0,0,8,0" />
                   <TextBlock Name="welcomeDate" Text="Monday, April 14, 2026" Foreground="#94A3B8" FontSize="13" VerticalAlignment="Center" />
@@ -189,10 +189,10 @@
                 </Button>
                 <Border Background="#1E293B" BorderBrush="#475569" BorderThickness="1" Padding="16,10" CornerRadius="12">
                   <StackPanel Orientation="Horizontal">
-                    <Border Width="12" Height="12" CornerRadius="6" Background="#22C55E" Margin="0,0,10,0" VerticalAlignment="Center">
-                      <UIElement.Effect>
-                        <BlurEffect Radius="4" />
-                      </UIElement.Effect>
+                    <Border Width="10" Height="10" CornerRadius="5" Background="#22C55E" Margin="0,0,10,0" VerticalAlignment="Center">
+                      <Border.Effect>
+                        <DropShadowEffect BlurRadius="6" ShadowDepth="0" Opacity="0.5" Color="#22C55E" />
+                      </Border.Effect>
                     </Border>
                     <TextBlock Text="ONLINE" Foreground="#FFFFFFFF" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" />
                   </StackPanel>
@@ -210,47 +210,47 @@
             <ColumnDefinition Width="*" />
           </Grid.ColumnDefinitions>
           <Border Grid.Column="0" Margin="0,0,8,0" Style="{StaticResource KpiCardStyle}">
-            <StackPanel Margin="20">
-              <Border Width="56" Height="56" CornerRadius="14" Background="#F0FDF4" HorizontalAlignment="Left">
+            <StackPanel Margin="22">
+              <Border Width="58" Height="58" CornerRadius="16" Background="#F0FDF4" HorizontalAlignment="Left">
                 <fa:IconBlock Icon="Users" Foreground="#22C55E" FontSize="26" HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Border>
-              <TextBlock Text="Residents" Style="{StaticResource LabelTextStyle}" Margin="0,14,0,4" />
+              <TextBlock Text="Residents" Style="{StaticResource LabelTextStyle}" Margin="0,16,0,4" />
               <TextBlock Name="statResidentsValue" Text="0" Style="{StaticResource ValueTextStyle}" />
             </StackPanel>
           </Border>
           <Border Grid.Column="1" Margin="0,0,8,0" Style="{StaticResource KpiCardStyle}">
-            <StackPanel Margin="20">
-              <Border Width="56" Height="56" CornerRadius="14" Background="#EFF6FF" HorizontalAlignment="Left">
+            <StackPanel Margin="22">
+              <Border Width="58" Height="58" CornerRadius="16" Background="#EFF6FF" HorizontalAlignment="Left">
                 <fa:IconBlock Icon="UserCheck" Foreground="#3B82F6" FontSize="26" HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Border>
-              <TextBlock Text="Active" Style="{StaticResource LabelTextStyle}" Margin="0,14,0,4" />
+              <TextBlock Text="Active" Style="{StaticResource LabelTextStyle}" Margin="0,16,0,4" />
               <TextBlock Name="statActiveValue" Text="0" Style="{StaticResource ValueTextStyle}" />
             </StackPanel>
           </Border>
           <Border Grid.Column="2" Margin="0,0,8,0" Style="{StaticResource KpiCardStyle}">
-            <StackPanel Margin="20">
-              <Border Width="56" Height="56" CornerRadius="14" Background="#F5F3FF" HorizontalAlignment="Left">
+            <StackPanel Margin="22">
+              <Border Width="58" Height="58" CornerRadius="16" Background="#F5F3FF" HorizontalAlignment="Left">
                 <fa:IconBlock Icon="Home" Foreground="#8B5CF6" FontSize="26" HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Border>
-              <TextBlock Text="Households" Style="{StaticResource LabelTextStyle}" Margin="0,14,0,4" />
+              <TextBlock Text="Households" Style="{StaticResource LabelTextStyle}" Margin="0,16,0,4" />
               <TextBlock Name="statHouseholdsValue" Text="0" Style="{StaticResource ValueTextStyle}" />
             </StackPanel>
           </Border>
           <Border Grid.Column="3" Margin="0,0,8,0" Style="{StaticResource KpiCardStyle}">
-            <StackPanel Margin="20">
-              <Border Width="56" Height="56" CornerRadius="14" Background="#FFFBEB" HorizontalAlignment="Left">
+            <StackPanel Margin="22">
+              <Border Width="58" Height="58" CornerRadius="16" Background="#FFFBEB" HorizontalAlignment="Left">
                 <fa:IconBlock Icon="FileContract" Foreground="#F59E0B" FontSize="26" HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Border>
-              <TextBlock Text="Pending Docs" Style="{StaticResource LabelTextStyle}" Margin="0,14,0,4" />
+              <TextBlock Text="Pending Docs" Style="{StaticResource LabelTextStyle}" Margin="0,16,0,4" />
               <TextBlock Name="statCertsValue" Text="0" Style="{StaticResource ValueTextStyle}" />
             </StackPanel>
           </Border>
           <Border Name="kpiBlotter" Grid.Column="4" Style="{StaticResource KpiCardStyle}">
-            <StackPanel Margin="20">
-              <Border Width="56" Height="56" CornerRadius="14" Background="#FEF2F2" HorizontalAlignment="Left">
+            <StackPanel Margin="22">
+              <Border Width="58" Height="58" CornerRadius="16" Background="#FEF2F2" HorizontalAlignment="Left">
                 <fa:IconBlock Icon="Gavel" Foreground="#EF4444" FontSize="26" HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Border>
-              <TextBlock Text="Blotters" Style="{StaticResource LabelTextStyle}" Margin="0,14,0,4" />
+              <TextBlock Text="Blotters" Style="{StaticResource LabelTextStyle}" Margin="0,16,0,4" />
               <TextBlock Name="statBlotterValue" Text="0" Style="{StaticResource ValueTextStyle}" />
             </StackPanel>
           </Border>

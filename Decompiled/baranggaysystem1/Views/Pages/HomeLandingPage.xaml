@@ -21,20 +21,23 @@
       </Style>
       <Style x:Key="MetroTileTitleStyle" TargetType="{x:Type TextBlock}">
         <Setter Property="FontFamily" Value="{StaticResource CenturyGothic}" />
-        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontSize" Value="14" />
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="Foreground" Value="#FFFFFFFF" />
         <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
       </Style>
       <Style x:Key="MetroTileBodyStyle" TargetType="{x:Type TextBlock}">
         <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
-        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontSize" Value="11" />
         <Setter Property="Foreground" Value="#D8E0EA" />
         <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        <Setter Property="MaxHeight" Value="32" />
       </Style>
       <Style x:Key="MetroMetricValueStyle" TargetType="{x:Type TextBlock}">
         <Setter Property="FontFamily" Value="{StaticResource CenturyGothic}" />
-        <Setter Property="FontSize" Value="28" />
+        <Setter Property="FontSize" Value="24" />
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="Foreground" Value="#FFFFFFFF" />
       </Style>
@@ -70,9 +73,7 @@
   </FrameworkElement.Resources>
   <Grid Background="#0F1724">
     <Grid.RowDefinitions>
-      <RowDefinition Height="108" />
-      <RowDefinition Height="76" />
-      <RowDefinition Height="76" />
+      <RowDefinition Height="90" />
       <RowDefinition Height="*" />
     </Grid.RowDefinitions>
     <Grid Row="0">
@@ -130,10 +131,7 @@
         </Border>
       </Border>
     </Grid>
-    <Border Grid.Row="1" Background="#182332" BorderBrush="#243142" BorderThickness="0,0,0,1" />
-    <Border Grid.Row="2" Background="#202B3C" BorderBrush="#243142" BorderThickness="0,0,0,1" />
-    <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-      <Grid MinWidth="1280" Margin="0">
+    <Grid Grid.Row="1" Margin="0">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="*" />
@@ -143,9 +141,9 @@
           <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-          <RowDefinition Height="172" />
-          <RowDefinition Height="172" />
-          <RowDefinition Height="172" />
+          <RowDefinition Height="*" />
+          <RowDefinition Height="*" />
+          <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Button Name="tileDashboard" Grid.Row="0" Grid.Column="0" Style="{StaticResource MetroTileButtonStyle}" Background="#1D4ED8" Click="TileDashboard_Click">
           <Grid>
@@ -153,10 +151,10 @@
               <RowDefinition Height="Auto" />
               <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <fa:IconBlock Icon="ChartPie" FontSize="54" Foreground="#FFFFFFFF" HorizontalAlignment="Center" Margin="0,6,0,0" />
+            <fa:IconBlock Icon="ChartPie" FontSize="36" Foreground="#FFFFFFFF" HorizontalAlignment="Center" Margin="0,4,0,0" />
             <StackPanel Grid.Row="1" VerticalAlignment="Bottom">
               <TextBlock Text="Dashboard" Style="{StaticResource MetroTileTitleStyle}" />
-              <TextBlock Text="Alerts, KPIs, and quick actions." Margin="0,14,0,0" Style="{StaticResource MetroTileBodyStyle}" />
+              <TextBlock Text="Alerts, KPIs, and quick actions." Margin="0,4,0,0" Style="{StaticResource MetroTileBodyStyle}" />
             </StackPanel>
           </Grid>
         </Button>
@@ -166,10 +164,10 @@
               <RowDefinition Height="Auto" />
               <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <fa:IconBlock Icon="Users" FontSize="54" Foreground="#FFFFFFFF" HorizontalAlignment="Center" Margin="0,6,0,0" />
+            <fa:IconBlock Icon="Users" FontSize="36" Foreground="#FFFFFFFF" HorizontalAlignment="Center" Margin="0,4,0,0" />
             <StackPanel Grid.Row="1" VerticalAlignment="Bottom">
               <TextBlock Text="Residents" Style="{StaticResource MetroTileTitleStyle}" />
-              <TextBlock Name="txtResidentFootnote" Text="Resident files and account records." Margin="0,14,0,0" Style="{StaticResource MetroTileBodyStyle}" />
+              <TextBlock Name="txtResidentFootnote" Text="Resident files and account records." Margin="0,4,0,0" Style="{StaticResource MetroTileBodyStyle}" />
             </StackPanel>
           </Grid>
         </Button>
@@ -179,10 +177,10 @@
               <RowDefinition Height="Auto" />
               <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <fa:IconBlock Icon="Home" FontSize="54" Foreground="#FFFFFFFF" HorizontalAlignment="Center" Margin="0,6,0,0" />
+            <fa:IconBlock Icon="Home" FontSize="36" Foreground="#FFFFFFFF" HorizontalAlignment="Center" Margin="0,4,0,0" />
             <StackPanel Grid.Row="1" VerticalAlignment="Bottom">
               <TextBlock Text="Households" Style="{StaticResource MetroTileTitleStyle}" />
-              <TextBlock Name="txtHouseholdFootnote" Text="Family groups and address records." Margin="0,14,0,0" Style="{StaticResource MetroTileBodyStyle}" />
+              <TextBlock Name="txtHouseholdFootnote" Text="Family groups and address records." Margin="0,4,0,0" Style="{StaticResource MetroTileBodyStyle}" />
             </StackPanel>
           </Grid>
         </Button>
@@ -192,10 +190,10 @@
               <RowDefinition Height="Auto" />
               <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <fa:IconBlock Icon="Scroll" FontSize="54" Foreground="#FFFFFFFF" HorizontalAlignment="Center" Margin="0,6,0,0" />
+            <fa:IconBlock Icon="Scroll" FontSize="36" Foreground="#FFFFFFFF" HorizontalAlignment="Center" Margin="0,4,0,0" />
             <StackPanel Grid.Row="1" VerticalAlignment="Bottom">
               <TextBlock Text="Clearances" Style="{StaticResource MetroTileTitleStyle}" />
-              <TextBlock Text="Certificates and document requests." Margin="0,14,0,0" Style="{StaticResource MetroTileBodyStyle}" />
+              <TextBlock Text="Certificates and document requests." Margin="0,4,0,0" Style="{StaticResource MetroTileBodyStyle}" />
             </StackPanel>
           </Grid>
         </Button>
@@ -235,10 +233,10 @@
               <RowDefinition Height="Auto" />
               <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <fa:IconBlock Icon="BalanceScale" FontSize="54" Foreground="#FFFFFFFF" HorizontalAlignment="Center" Margin="0,6,0,0" />
+            <fa:IconBlock Icon="BalanceScale" FontSize="36" Foreground="#FFFFFFFF" HorizontalAlignment="Center" Margin="0,4,0,0" />
             <StackPanel Grid.Row="1" VerticalAlignment="Bottom">
               <TextBlock Text="Blotter" Style="{StaticResource MetroTileTitleStyle}" />
-              <TextBlock Text="Cases, incidents, and mediation." Margin="0,14,0,0" Style="{StaticResource MetroTileBodyStyle}" />
+              <TextBlock Text="Cases, incidents, and mediation." Margin="0,4,0,0" Style="{StaticResource MetroTileBodyStyle}" />
             </StackPanel>
           </Grid>
         </Button>
@@ -260,10 +258,10 @@
               <RowDefinition Height="Auto" />
               <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <fa:IconBlock Icon="CreditCard" FontSize="54" Foreground="#FFFFFFFF" HorizontalAlignment="Center" Margin="0,6,0,0" />
+            <fa:IconBlock Icon="CreditCard" FontSize="36" Foreground="#FFFFFFFF" HorizontalAlignment="Center" Margin="0,4,0,0" />
             <StackPanel Grid.Row="1" VerticalAlignment="Bottom">
               <TextBlock Text="Payments" Style="{StaticResource MetroTileTitleStyle}" />
-              <TextBlock Name="txtPaymentsFootnote" Text="Balances and receipts." Margin="0,14,0,0" Style="{StaticResource MetroTileBodyStyle}" />
+              <TextBlock Name="txtPaymentsFootnote" Text="Balances and receipts." Margin="0,4,0,0" Style="{StaticResource MetroTileBodyStyle}" />
             </StackPanel>
           </Grid>
         </Button>
@@ -273,10 +271,10 @@
               <RowDefinition Height="Auto" />
               <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <fa:IconBlock Icon="UserTie" FontSize="54" Foreground="#FFFFFFFF" HorizontalAlignment="Center" Margin="0,6,0,0" />
+            <fa:IconBlock Icon="UserTie" FontSize="36" Foreground="#FFFFFFFF" HorizontalAlignment="Center" Margin="0,4,0,0" />
             <StackPanel Grid.Row="1" VerticalAlignment="Bottom">
               <TextBlock Text="Officials" Style="{StaticResource MetroTileTitleStyle}" />
-              <TextBlock Text="Council and office roster." Margin="0,14,0,0" Style="{StaticResource MetroTileBodyStyle}" />
+              <TextBlock Text="Council and office roster." Margin="0,4,0,0" Style="{StaticResource MetroTileBodyStyle}" />
             </StackPanel>
           </Grid>
         </Button>
@@ -286,10 +284,10 @@
               <RowDefinition Height="Auto" />
               <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <fa:IconBlock Icon="Cog" FontSize="54" Foreground="#FFFFFFFF" HorizontalAlignment="Center" Margin="0,6,0,0" />
+            <fa:IconBlock Icon="Cog" FontSize="36" Foreground="#FFFFFFFF" HorizontalAlignment="Center" Margin="0,4,0,0" />
             <StackPanel Grid.Row="1" VerticalAlignment="Bottom">
               <TextBlock Text="Settings" Style="{StaticResource MetroTileTitleStyle}" />
-              <TextBlock Text="System configuration." Margin="0,14,0,0" Style="{StaticResource MetroTileBodyStyle}" />
+              <TextBlock Text="System configuration." Margin="0,4,0,0" Style="{StaticResource MetroTileBodyStyle}" />
             </StackPanel>
           </Grid>
         </Button>
@@ -299,10 +297,10 @@
               <RowDefinition Height="Auto" />
               <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <fa:IconBlock Icon="Key" FontSize="54" Foreground="#FFFFFFFF" HorizontalAlignment="Center" Margin="0,6,0,0" />
+            <fa:IconBlock Icon="Key" FontSize="36" Foreground="#FFFFFFFF" HorizontalAlignment="Center" Margin="0,4,0,0" />
             <StackPanel Grid.Row="1" VerticalAlignment="Bottom">
               <TextBlock Text="Access" Style="{StaticResource MetroTileTitleStyle}" />
-              <TextBlock Text="Roles and permissions." Margin="0,14,0,0" Style="{StaticResource MetroTileBodyStyle}" />
+              <TextBlock Text="Roles and permissions." Margin="0,4,0,0" Style="{StaticResource MetroTileBodyStyle}" />
             </StackPanel>
           </Grid>
         </Button>
@@ -318,7 +316,7 @@
             </StackPanel>
             <StackPanel Grid.Row="1" VerticalAlignment="Bottom">
               <TextBlock Text="Pending" Style="{StaticResource MetroTileTitleStyle}" />
-              <TextBlock Text="Awaiting review." Margin="0,14,0,0" Style="{StaticResource MetroTileBodyStyle}" />
+              <TextBlock Text="Awaiting review." Margin="0,4,0,0" Style="{StaticResource MetroTileBodyStyle}" />
             </StackPanel>
           </Grid>
         </Button>
@@ -334,7 +332,7 @@
             </StackPanel>
             <StackPanel Grid.Row="1" VerticalAlignment="Bottom">
               <TextBlock Text="Finance" Style="{StaticResource MetroTileTitleStyle}" />
-              <TextBlock Text="Collected this month." Margin="0,14,0,0" Style="{StaticResource MetroTileBodyStyle}" />
+              <TextBlock Text="Collected this month." Margin="0,4,0,0" Style="{StaticResource MetroTileBodyStyle}" />
             </StackPanel>
           </Grid>
         </Button>
@@ -344,14 +342,13 @@
               <RowDefinition Height="Auto" />
               <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <fa:IconBlock Icon="SignOutAlt" FontSize="54" Foreground="#FFFFFFFF" HorizontalAlignment="Center" Margin="0,6,0,0" />
+            <fa:IconBlock Icon="SignOutAlt" FontSize="36" Foreground="#FFFFFFFF" HorizontalAlignment="Center" Margin="0,4,0,0" />
             <StackPanel Grid.Row="1" VerticalAlignment="Bottom">
               <TextBlock Text="Exit" Style="{StaticResource MetroTileTitleStyle}" />
-              <TextBlock Text="Close the app." Margin="0,14,0,0" Style="{StaticResource MetroTileBodyStyle}" />
+              <TextBlock Text="Close the app." Margin="0,4,0,0" Style="{StaticResource MetroTileBodyStyle}" />
             </StackPanel>
           </Grid>
         </Button>
       </Grid>
-    </ScrollViewer>
   </Grid>
 </UserControl>

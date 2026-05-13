@@ -27,4 +27,15 @@
     <PackageReference Include="QRCoder" Version="1.7.0" />
     <PackageReference Include="QuestPDF" Version="2026.2.0" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="baranggaysystem1\Database\sqlite\offline_bootstrap.sql" Link="Database\sqlite\offline_bootstrap.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="baranggaysystem1\Database\sqlite\seed_demo_data.sql" Link="Database\sqlite\seed_demo_data.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="baranggaysystem1\Database\migrations\*" Link="Database\migrations\%(Filename)%(Extension)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>
