@@ -154,6 +154,34 @@ internal static class OfflineSyncService
 		}
 	}
 
+	public static int GetPendingCount()
+	{
+		try
+		{
+			if (!OfflineDatabaseSupport.EnsureInitialised())
+				return 0;
+			SqliteConnection connection = OfflineDatabaseSupport.GetConnection();
+			try
+			{
+				SqliteCommand val = connection.CreateCommand();
+				try
+				{
+					((DbCommand)(object)val).CommandText = "SELECT COUNT(*) FROM sync_queue;";
+					return Convert.ToInt32(((DbCommand)(object)val).ExecuteScalar() ?? ((object)0));
+				}
+				finally
+				{
+					((IDisposable)val)?.Dispose();
+				}
+			}
+			finally
+			{
+				((IDisposable)connection)?.Dispose();
+			}
+		}
+		catch { return 0; }
+	}
+
 	public static bool HasPendingChanges()
 	{
 		try

@@ -71,9 +71,68 @@ public partial class ResidentDetailsViewModel : ObservableObject
 	[ObservableProperty]
 	private LookupItem? _selectedPurok;
 
+	// New fields for enhanced form
+	[ObservableProperty]
+	private string _occupation = string.Empty;
+
+	[ObservableProperty]
+	private string _educationalAttainment = string.Empty;
+
+	[ObservableProperty]
+	private string _nationality = "Filipino";
+
+	[ObservableProperty]
+	private string _religion = string.Empty;
+
+	[ObservableProperty]
+	private string _bloodType = string.Empty;
+
+	[ObservableProperty]
+	private string _emailAddress = string.Empty;
+
+	[ObservableProperty]
+	private string _placeOfBirth = string.Empty;
+
+	[ObservableProperty]
+	private string _houseNo = string.Empty;
+
+	[ObservableProperty]
+	private string _street = string.Empty;
+
+	[ObservableProperty]
+	private string _philHealthNo = string.Empty;
+
+	[ObservableProperty]
+	private string _sssNo = string.Empty;
+
+	[ObservableProperty]
+	private string _tinNo = string.Empty;
+
+	[ObservableProperty]
+	private string _votersIdNo = string.Empty;
+
+	[ObservableProperty]
+	private DateTime? _dateOfResidency;
+
+	[ObservableProperty]
+	private string _householdRelationship = string.Empty;
+
+	private byte[]? _photoBytes;
+
 	public Action<bool>? CloseAction { get; set; }
 
 	public ObservableCollection<LookupItem> PurokOptions { get; } = new ObservableCollection<LookupItem>();
+
+	public string[] BloodTypeOptions { get; } = new[] { "", "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-" };
+
+	public string[] EducationOptions { get; } = new[] { "", "Elementary", "High School", "Vocational", "College", "Post-Graduate" };
+
+	public string[] HouseholdRelationshipOptions { get; } = new[] { "", "Head", "Spouse", "Son", "Daughter", "Parent", "Sibling", "Grandchild", "Relative", "Boarder" };
+
+	public void SetPhotoBytes(byte[] bytes)
+	{
+		_photoBytes = bytes;
+	}
 
 	public ResidentDetailsViewModel(ResidentDto? existingResident = null)
 	{
@@ -105,6 +164,23 @@ public partial class ResidentDetailsViewModel : ObservableObject
 			IsYouth = existingResident.IsYouth;
 			IsIndigent = existingResident.IsIndigent;
 			PurokId = existingResident.PurokId;
+			// New fields
+			Occupation = existingResident.Occupation;
+			EducationalAttainment = existingResident.EducationalAttainment;
+			Nationality = existingResident.Nationality;
+			Religion = existingResident.Religion;
+			BloodType = existingResident.BloodType;
+			EmailAddress = existingResident.EmailAddress;
+			PlaceOfBirth = existingResident.PlaceOfBirth;
+			HouseNo = existingResident.HouseNo;
+			Street = existingResident.Street;
+			PhilHealthNo = existingResident.PhilHealthNo;
+			SssNo = existingResident.SssNo;
+			TinNo = existingResident.TinNo;
+			VotersIdNo = existingResident.VotersIdNo;
+			DateOfResidency = existingResident.DateOfResidency;
+			HouseholdRelationship = existingResident.HouseholdRelationship;
+			_photoBytes = existingResident.PhotoBytes;
 		}
 		LoadPurokOptionsAsync(_originalRecord.PurokId);
 	}
@@ -145,8 +221,24 @@ public partial class ResidentDetailsViewModel : ObservableObject
 			BarangayId = _dataService.BarangayId,
 			PurokId = PurokId,
 			HouseholdId = _originalRecord.HouseholdId,
-			PhotoBytes = _originalRecord.PhotoBytes,
-			Status = (string.IsNullOrWhiteSpace(_originalRecord.Status) ? "ACTIVE" : _originalRecord.Status)
+			PhotoBytes = _photoBytes ?? _originalRecord.PhotoBytes,
+			Status = (string.IsNullOrWhiteSpace(_originalRecord.Status) ? "ACTIVE" : _originalRecord.Status),
+			// New fields
+			Occupation = Occupation.Trim(),
+			EducationalAttainment = EducationalAttainment,
+			Nationality = Nationality.Trim(),
+			Religion = Religion.Trim(),
+			BloodType = BloodType,
+			EmailAddress = EmailAddress.Trim(),
+			PlaceOfBirth = PlaceOfBirth.Trim(),
+			HouseNo = HouseNo.Trim(),
+			Street = Street.Trim(),
+			PhilHealthNo = PhilHealthNo.Trim(),
+			SssNo = SssNo.Trim(),
+			TinNo = TinNo.Trim(),
+			VotersIdNo = VotersIdNo.Trim(),
+			DateOfResidency = DateOfResidency,
+			HouseholdRelationship = HouseholdRelationship
 		};
 		try
 		{

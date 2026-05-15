@@ -1,0 +1,173 @@
+<nav:FullscreenFormBase x:Class="baranggaysystem1.Views.Panels.BlotterFormPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:fa="clr-namespace:FontAwesome.Sharp;assembly=FontAwesome.Sharp"
+             xmlns:controls="clr-namespace:baranggaysystem1.Views.Controls"
+             xmlns:nav="clr-namespace:baranggaysystem1.ViewModels.Navigation">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Validation Panel -->
+        <controls:FormValidationPanel x:Name="validationPanel" Grid.Row="0" Margin="0,0,0,8" Visibility="Collapsed" />
+
+        <!-- Tabbed Form Content -->
+        <TabControl Grid.Row="1" Margin="0" Padding="0" BorderThickness="0">
+            <TabControl.Resources>
+                <Style TargetType="TabItem">
+                    <Setter Property="Padding" Value="14,8" />
+                    <Setter Property="FontSize" Value="12" />
+                    <Setter Property="FontWeight" Value="SemiBold" />
+                </Style>
+            </TabControl.Resources>
+
+            <!-- Tab 1: Case Details -->
+            <TabItem Header="Case Details">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20,16">
+                    <StackPanel>
+                        <!-- Complainant Section -->
+                        <TextBlock Text="Complainant" FontWeight="SemiBold" FontSize="13" Margin="0,0,0,8" />
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Search Resident *" Style="{StaticResource LabelTextStyle}" />
+                                <TextBox x:Name="txtComplainantSearch" Style="{StaticResource StyledTextBoxStyle}"
+                                         TextChanged="ComplainantSearch_TextChanged" />
+                            </StackPanel>
+                            <Button Grid.Column="2" Content="Search" Padding="12,6" Margin="0,18,0,0"
+                                    MinHeight="32" Click="BtnSearchComplainant_Click" VerticalAlignment="Bottom" />
+                        </Grid>
+                        <ListBox x:Name="lstComplainantResults" MaxHeight="120" Margin="0,0,0,8"
+                                 DisplayMemberPath="FullName" SelectionChanged="ComplainantResult_SelectionChanged"
+                                 Visibility="Collapsed" />
+                        <Border Background="#F1F5F9" CornerRadius="6" Padding="10" Margin="0,0,0,12">
+                            <StackPanel>
+                                <TextBlock x:Name="lblComplainantName" Text="No complainant selected" FontWeight="SemiBold" FontSize="12" />
+                                <TextBlock x:Name="lblComplainantAddress" Text="Use search to find a resident." FontSize="11" Foreground="#64748B" Margin="0,2,0,0" />
+                            </StackPanel>
+                        </Border>
+
+                        <Separator Margin="0,4,0,12" Background="{StaticResource Slate100Brush}" />
+
+                        <!-- Respondent Section -->
+                        <TextBlock Text="Respondent" FontWeight="SemiBold" FontSize="13" Margin="0,0,0,8" />
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="120" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Respondent Name *" Style="{StaticResource LabelTextStyle}" />
+                                <TextBox x:Name="txtRespondentName" Style="{StaticResource StyledTextBoxStyle}" TextChanged="Field_Changed" LostFocus="Field_LostFocus" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Resident ID" Style="{StaticResource LabelTextStyle}" />
+                                <TextBox x:Name="txtRespondentResidentId" Style="{StaticResource StyledTextBoxStyle}" TextChanged="Field_Changed" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Separator Margin="0,4,0,12" Background="{StaticResource Slate100Brush}" />
+
+                        <!-- Incident Info -->
+                        <TextBlock Text="Incident Information" FontWeight="SemiBold" FontSize="13" Margin="0,0,0,8" />
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="100" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Incident Type *" Style="{StaticResource LabelTextStyle}" />
+                                <TextBox x:Name="txtIncidentType" Style="{StaticResource StyledTextBoxStyle}" TextChanged="Field_Changed" LostFocus="Field_LostFocus" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Incident Date *" Style="{StaticResource LabelTextStyle}" />
+                                <DatePicker x:Name="dpIncidentDate" Padding="4" Height="32" SelectedDateChanged="DateField_Changed" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="4">
+                                <TextBlock Text="Time (HH:mm)" Style="{StaticResource LabelTextStyle}" />
+                                <TextBox x:Name="txtIncidentTime" Style="{StaticResource StyledTextBoxStyle}" TextChanged="Field_Changed" />
+                            </StackPanel>
+                        </Grid>
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Incident Location" Style="{StaticResource LabelTextStyle}" />
+                                <TextBox x:Name="txtIncidentLocation" Style="{StaticResource StyledTextBoxStyle}" TextChanged="Field_Changed" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Witnesses" Style="{StaticResource LabelTextStyle}" />
+                                <TextBox x:Name="txtWitnesses" Style="{StaticResource StyledTextBoxStyle}" TextChanged="Field_Changed" />
+                            </StackPanel>
+                        </Grid>
+                        <StackPanel Margin="0,0,0,12">
+                            <TextBlock Text="Incident Details *" Style="{StaticResource LabelTextStyle}" />
+                            <TextBox x:Name="txtIncidentDetails" Style="{StaticResource StyledTextBoxStyle}"
+                                     AcceptsReturn="True" TextWrapping="Wrap" MinHeight="80" MaxHeight="160"
+                                     VerticalScrollBarVisibility="Auto" TextChanged="Field_Changed" LostFocus="Field_LostFocus" />
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Tab 2: Actions & Resolution -->
+            <TabItem Header="Actions &amp; Resolution">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20,16">
+                    <StackPanel>
+                        <StackPanel Margin="0,0,0,12">
+                            <TextBlock Text="Action Taken" Style="{StaticResource LabelTextStyle}" />
+                            <TextBox x:Name="txtActionTaken" Style="{StaticResource StyledTextBoxStyle}"
+                                     AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" MaxHeight="120"
+                                     VerticalScrollBarVisibility="Auto" TextChanged="Field_Changed" />
+                        </StackPanel>
+                        <StackPanel Margin="0,0,0,12">
+                            <TextBlock Text="Resolution Details" Style="{StaticResource LabelTextStyle}" />
+                            <TextBox x:Name="txtResolutionDetails" Style="{StaticResource StyledTextBoxStyle}"
+                                     AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" MaxHeight="120"
+                                     VerticalScrollBarVisibility="Auto" TextChanged="Field_Changed" />
+                        </StackPanel>
+
+                        <Separator Margin="0,4,0,12" Background="{StaticResource Slate100Brush}" />
+
+                        <TextBlock Text="Status &amp; Closure" FontWeight="SemiBold" FontSize="13" Margin="0,0,0,8" />
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Current Status" Style="{StaticResource LabelTextStyle}" />
+                                <ComboBox x:Name="cmbStatus" Style="{StaticResource StyledComboBoxStyle}" Padding="6" SelectionChanged="ComboField_Changed" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Referral Destination" Style="{StaticResource LabelTextStyle}" />
+                                <TextBox x:Name="txtReferralDestination" Style="{StaticResource StyledTextBoxStyle}" TextChanged="Field_Changed" />
+                            </StackPanel>
+                        </Grid>
+                        <StackPanel Margin="0,0,0,12">
+                            <TextBlock Text="Closure Notes" Style="{StaticResource LabelTextStyle}" />
+                            <TextBox x:Name="txtClosureNotes" Style="{StaticResource StyledTextBoxStyle}"
+                                     AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" MaxHeight="120"
+                                     VerticalScrollBarVisibility="Auto" TextChanged="Field_Changed" />
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</nav:FullscreenFormBase>

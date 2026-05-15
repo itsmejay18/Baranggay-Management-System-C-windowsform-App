@@ -12,11 +12,14 @@ using baranggaysystem1.helper;
 using baranggaysystem1.Models;
 using baranggaysystem1.Services;
 using baranggaysystem1.ViewModels;
+using baranggaysystem1.ViewModels.Navigation;
+using baranggaysystem1.Views.Controls;
 using baranggaysystem1.Views.Dialogs;
+using FontAwesome.Sharp;
 
 namespace baranggaysystem1.Views.Pages;
 
-public partial class RolePermissionsPage : UserControl
+public partial class RolePermissionsPage : UserControl, IRefreshable
 {
 	private readonly RolePermissionService _service = new RolePermissionService();
 
@@ -180,10 +183,25 @@ public partial class RolePermissionsPage : UserControl
 			return;
 		}
 		RolePermissionWindow rolePermissionWindow = new RolePermissionWindow(_service.CreateNewRoleDraft());
-		if (DialogService.Instance.ShowDialog(rolePermissionWindow).GetValueOrDefault())
+		var adapter = new DialogContentAdapter(rolePermissionWindow);
+
+		var saveButton = FullscreenToolbarHelper.CreateToolbarButton("Save Role", IconChar.Save,
+			(s, args) =>
+			{
+				NavigationService.Instance.NavigateBackFromFullscreen("RolePermissions", refreshOnReturn: true);
+			});
+
+		NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
 		{
-			await LoadAsync(rolePermissionWindow.SavedRoleId);
-		}
+			Title = "Create New Role",
+			Subtitle = "Define a new role with specific permissions",
+			OriginRoute = "RolePermissions",
+			Content = adapter,
+			Icon = IconChar.UserShield,
+			ToolbarItems = new List<UIElement> { saveButton },
+			ShowSideToolbar = false,
+			OnSaved = () => RefreshData()
+		});
 	}
 
 	private async void BtnEdit_Click(object sender, RoutedEventArgs e)
@@ -214,10 +232,25 @@ public partial class RolePermissionsPage : UserControl
 				return;
 			}
 			RolePermissionWindow rolePermissionWindow = new RolePermissionWindow(rolePermissionEditorModel);
-			if (DialogService.Instance.ShowDialog(rolePermissionWindow).GetValueOrDefault())
+			var adapter = new DialogContentAdapter(rolePermissionWindow);
+
+			var saveButton = FullscreenToolbarHelper.CreateToolbarButton("Save Changes", IconChar.Save,
+				(s, args) =>
+				{
+					NavigationService.Instance.NavigateBackFromFullscreen("RolePermissions", refreshOnReturn: true);
+				});
+
+			NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
 			{
-				await LoadAsync(rolePermissionWindow.SavedRoleId);
-			}
+				Title = $"Edit Role - {selectedRole.Name}",
+				Subtitle = "Modify role permissions and settings",
+				OriginRoute = "RolePermissions",
+				Content = adapter,
+				Icon = IconChar.Edit,
+				ToolbarItems = new List<UIElement> { saveButton },
+				ShowSideToolbar = false,
+				OnSaved = () => RefreshData()
+			});
 		}
 		catch (Exception ex)
 		{
@@ -254,4 +287,17 @@ public partial class RolePermissionsPage : UserControl
 				DialogService.Instance.ShowError(ex.Message, "Roles & Permissions");
 			}
 		}
-	}}
+	}
+
+	#region IRefreshable Implementation
+
+	/// <summary>
+	/// Refreshes the page data after returning from a fullscreen view.
+	/// </summary>
+	public void RefreshData()
+	{
+		_ = LoadAsync();
+	}
+
+	#endregion
+}

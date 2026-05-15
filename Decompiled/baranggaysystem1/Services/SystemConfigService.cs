@@ -1,4 +1,5 @@
 using System;
+using System.Data;
 using System.IO;
 using System.Windows;
 using System.Windows.Media.Imaging;
@@ -30,11 +31,15 @@ public static class SystemConfigService
 
 	private const int MaxLogoBytes = 2097152;
 
+	private static volatile bool _tableEnsured;
+
 	public static void EnsureTable()
 	{
+		if (_tableEnsured) return;
 		try
 		{
 			DbHelper.ExecuteNonQuery("\n                    CREATE TABLE IF NOT EXISTS system_config (\n                        config_key   VARCHAR(80) NOT NULL PRIMARY KEY,\n                        config_value TEXT       NULL,\n                        updated_at   DATETIME   NOT NULL DEFAULT CURRENT_TIMESTAMP\n                    );");
+			_tableEnsured = true;
 		}
 		catch (Exception ex)
 		{
@@ -72,14 +77,46 @@ public static class SystemConfigService
 	public static SystemBrandingSettings LoadBrandingSettings()
 	{
 		EnsureTable();
-		return new SystemBrandingSettings
+		try
 		{
-			SystemName = Get("system_name", "Barangay Management System"),
-			BarangayName = Get("barangay_name", "Barangay San Jose"),
-			Municipality = Get("municipality", "Municipality"),
-			Province = Get("province", "Province"),
-			Region = Get("region", "Region")
-		};
+			// Batch-load all branding keys in a single query for performance
+			var settings = new SystemBrandingSettings
+			{
+				SystemName = "Barangay Management System",
+				BarangayName = "Barangay San Jose",
+				Municipality = "Municipality",
+				Province = "Province",
+				Region = "Region"
+			};
+			var table = DbHelper.LoadTable(
+				"SELECT config_key, config_value FROM system_config WHERE config_key IN ('system_name','barangay_name','municipality','province','region')");
+			foreach (System.Data.DataRow row in table.Rows)
+			{
+				string key = row["config_key"]?.ToString() ?? "";
+				string val = row["config_value"]?.ToString() ?? "";
+				if (string.IsNullOrEmpty(val)) continue;
+				switch (key)
+				{
+					case "system_name": settings.SystemName = val; break;
+					case "barangay_name": settings.BarangayName = val; break;
+					case "municipality": settings.Municipality = val; break;
+					case "province": settings.Province = val; break;
+					case "region": settings.Region = val; break;
+				}
+			}
+			return settings;
+		}
+		catch
+		{
+			return new SystemBrandingSettings
+			{
+				SystemName = "Barangay Management System",
+				BarangayName = "Barangay San Jose",
+				Municipality = "Municipality",
+				Province = "Province",
+				Region = "Region"
+			};
+		}
 	}
 
 	public static void SaveBrandingSettings(SystemBrandingSettings settings)
@@ -104,12 +141,35 @@ public static class SystemConfigService
 	public static SystemOfficeSettings LoadOfficeSettings()
 	{
 		EnsureTable();
-		return new SystemOfficeSettings
+		try
 		{
-			OfficeAddress = Get("office_address"),
-			ContactNumber = Get("contact_number"),
-			OfficialEmail = Get("official_email")
-		};
+			// Batch-load all office keys in a single query for performance
+			var settings = new SystemOfficeSettings
+			{
+				OfficeAddress = "",
+				ContactNumber = "",
+				OfficialEmail = ""
+			};
+			var table = DbHelper.LoadTable(
+				"SELECT config_key, config_value FROM system_config WHERE config_key IN ('office_address','contact_number','official_email')");
+			foreach (System.Data.DataRow row in table.Rows)
+			{
+				string key = row["config_key"]?.ToString() ?? "";
+				string val = row["config_value"]?.ToString() ?? "";
+				if (string.IsNullOrEmpty(val)) continue;
+				switch (key)
+				{
+					case "office_address": settings.OfficeAddress = val; break;
+					case "contact_number": settings.ContactNumber = val; break;
+					case "official_email": settings.OfficialEmail = val; break;
+				}
+			}
+			return settings;
+		}
+		catch
+		{
+			return SystemOfficeSettings.CreateDefault();
+		}
 	}
 
 	public static void SaveOfficeSettings(SystemOfficeSettings settings)

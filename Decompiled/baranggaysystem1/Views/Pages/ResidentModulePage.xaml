@@ -162,7 +162,16 @@
             <fa:IconBlock Icon="Users" Foreground="#FF16A34A" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center" />
           </Border>
           <StackPanel VerticalAlignment="Center">
-            <TextBlock Name="pageTitleText" Text="Resident Records" FontSize="15" FontWeight="Bold" Foreground="{StaticResource Slate900Brush}" FontFamily="{StaticResource CenturyGothic}" />
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Name="pageTitleText" Text="Resident Records" FontSize="15" FontWeight="Bold" Foreground="{StaticResource Slate900Brush}" FontFamily="{StaticResource CenturyGothic}" />
+              <!-- Registry filter tabs inline -->
+              <StackPanel Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
+                <RadioButton Name="filterAll" Content="All" GroupName="RegistryFilter" IsChecked="True" Style="{StaticResource RibbonRadioTabStyle}" Checked="RegistryFilter_Changed" />
+                <RadioButton Name="filterSoloParent" Content="Solo Parent" GroupName="RegistryFilter" Style="{StaticResource RibbonRadioTabStyle}" Checked="RegistryFilter_Changed" />
+                <RadioButton Name="filterYouth" Content="Youth" GroupName="RegistryFilter" Style="{StaticResource RibbonRadioTabStyle}" Checked="RegistryFilter_Changed" />
+                <RadioButton Name="filterIndigent" Content="Indigent" GroupName="RegistryFilter" Style="{StaticResource RibbonRadioTabStyle}" Checked="RegistryFilter_Changed" />
+              </StackPanel>
+            </StackPanel>
             <TextBlock Name="recordCountLabel" Text="Loading records..." Style="{StaticResource SubtitleTextStyle}" Margin="0,1,0,0" FontWeight="SemiBold" />
             <WrapPanel Margin="0,4,0,0" VerticalAlignment="Center">
               <TextBlock Name="totalResidentsMetric" Text="0 residents" Style="{StaticResource SmallTextStyle}" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource Slate700Brush}" />
@@ -262,7 +271,42 @@
         </Border>
         <Grid Row="1">
           <DataGrid Name="mainGrid" Margin="10,8,10,10" Style="{StaticResource StyledDataGridStyle}" ColumnHeaderStyle="{StaticResource StyledDataGridColumnHeaderStyle}" RowStyle="{StaticResource ResidentDataGridRowStyle}" CellStyle="{StaticResource ResidentDataGridCellStyle}" AutoGenerateColumns="False" IsReadOnly="True" AlternationCount="2" RowHeight="58" HeadersVisibility="Column" CanUserAddRows="False" SelectionChanged="MainGrid_SelectionChanged">
+            <DataGrid.ContextMenu>
+              <ContextMenu>
+                <MenuItem Header="Edit Resident" Click="BtnEdit_Click">
+                  <MenuItem.Icon><fa:IconBlock Icon="Edit" FontSize="12" /></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="File Blotter" Click="BtnContextBlotter_Click">
+                  <MenuItem.Icon><fa:IconBlock Icon="Gavel" FontSize="12" /></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Blotter History" Click="BtnContextBlotterHistory_Click">
+                  <MenuItem.Icon><fa:IconBlock Icon="History" FontSize="12" /></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Issue Certificate" Click="BtnContextCert_Click">
+                  <MenuItem.Icon><fa:IconBlock Icon="FileContract" FontSize="12" /></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Open Household" Click="BtnContextHousehold_Click">
+                  <MenuItem.Icon><fa:IconBlock Icon="Home" FontSize="12" /></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Record Payment" Click="BtnContextPayment_Click">
+                  <MenuItem.Icon><fa:IconBlock Icon="MoneyBillWave" FontSize="12" /></MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <MenuItem Header="Delete Resident" Click="BtnDelete_Click" Foreground="#B91C1C">
+                  <MenuItem.Icon><fa:IconBlock Icon="Trash" FontSize="12" Foreground="#B91C1C" /></MenuItem.Icon>
+                </MenuItem>
+              </ContextMenu>
+            </DataGrid.ContextMenu>
             <DataGrid.Columns>
+              <DataGridTemplateColumn Header="" Width="48">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <Border Width="36" Height="36" CornerRadius="18" Background="#F1F5F9" VerticalAlignment="Center" HorizontalAlignment="Center">
+                      <TextBlock Text="{Binding full_name, Converter={StaticResource NullToVisibilityConverter}}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource Slate600Brush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
               <DataGridTemplateColumn Header="Resident" Width="2.4*">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate>

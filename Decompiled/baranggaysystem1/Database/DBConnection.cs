@@ -15,7 +15,7 @@ internal class DBConnection
 
 	private const string DefaultPassword = "";
 
-	private const string BootstrapConnectionString = "server=srv1237.hstgr.io;port=3306;database=u621755393_CBaranggayMana;user id=u621755393_cbaranggay;password=Dssc@2026;SslMode=Disabled;AllowPublicKeyRetrieval=true;AllowUserVariables=true;ConnectionTimeout=5";
+	private const string BootstrapConnectionString = "server=srv1237.hstgr.io;port=3306;database=u621755393_CBaranggayMana;user id=u621755393_cbaranggay;password=Dssc@2026;SslMode=Disabled;AllowPublicKeyRetrieval=true;AllowUserVariables=true;ConnectionTimeout=2";
 
 	private const string EnvDbConnection = "BARANGAY_DB_CONNECTION";
 
@@ -25,13 +25,13 @@ internal class DBConnection
 
 	private const uint AlternatePort = 3307u;
 
-	private const uint ConnectionTimeoutSeconds = 15u;
+	private const uint ConnectionTimeoutSeconds = 3u;
 
 	private const uint MinimumHealthyMaxPoolSize = 25u;
 
 	private const uint ConnectionLifeTimeSeconds = 180u;
 
-	private static readonly TimeSpan ConnectivityFailureCooldown = TimeSpan.FromSeconds(45.0);
+	private static readonly TimeSpan ConnectivityFailureCooldown = TimeSpan.FromSeconds(120.0);
 
 	private static readonly object SyncRoot = new object();
 
@@ -50,6 +50,14 @@ internal class DBConnection
 			if (!string.IsNullOrWhiteSpace(resolvedConnectionString))
 			{
 				return resolvedConnectionString;
+			}
+			// If we recently failed, don't waste time trying again
+			if (lastConnectivityFailureUtc.HasValue && DateTime.UtcNow - lastConnectivityFailureUtc.Value < ConnectivityFailureCooldown)
+			{
+				// Return whatever we have cached or a dummy that will fail fast
+				if (!string.IsNullOrWhiteSpace(runtimeConnectionString))
+					return runtimeConnectionString;
+				return "server=localhost;port=3306;database=barangay_system;user id=root;password=;ConnectionTimeout=1";
 			}
 		}
 		string text = null;
@@ -163,9 +171,9 @@ internal class DBConnection
 			MySqlConnectionStringBuilder val = new MySqlConnectionStringBuilder(text, false);
 			val.AllowUserVariables = true;
 			val.AllowPublicKeyRetrieval = true;
-			if (val.ConnectionTimeout == 0 || val.ConnectionTimeout < 15)
+			if (val.ConnectionTimeout == 0 || val.ConnectionTimeout < 3)
 			{
-				val.ConnectionTimeout = 15u;
+				val.ConnectionTimeout = 3u;
 			}
 			val.Pooling = true;
 			if (val.MinimumPoolSize > 1)
@@ -220,7 +228,7 @@ internal class DBConnection
 			SslMode = (MySqlSslMode)0,
 			AllowPublicKeyRetrieval = true,
 			AllowUserVariables = true,
-			ConnectionTimeout = 15u
+			ConnectionTimeout = 3u
 		}).ConnectionString;
 	}
 
@@ -274,7 +282,7 @@ internal class DBConnection
 			if (ShouldRetryOpen(ex))
 			{
 				TryClearPools();
-				Thread.Sleep(150);
+				Thread.Sleep(50);
 				try
 				{
 					MySqlConnection val2 = new MySqlConnection(connectionString);
@@ -489,7 +497,7 @@ internal class DBConnection
 			SslMode = (MySqlSslMode)(useSsl ? 1 : 0),
 			AllowPublicKeyRetrieval = true,
 			AllowUserVariables = true,
-			ConnectionTimeout = 15u
+			ConnectionTimeout = 3u
 		}).ConnectionString);
 	}
 
@@ -514,7 +522,7 @@ internal class DBConnection
 			SslMode = (MySqlSslMode)(useSsl ? 1 : 0),
 			AllowPublicKeyRetrieval = true,
 			AllowUserVariables = true,
-			ConnectionTimeout = 15u
+			ConnectionTimeout = 3u
 		}).ConnectionString);
 	}
 

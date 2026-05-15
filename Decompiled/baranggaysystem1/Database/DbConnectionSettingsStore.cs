@@ -14,7 +14,7 @@ internal static class DbConnectionSettingsStore
 {
 	private const uint DefaultPort = 3306u;
 
-	private const uint ConnectionTimeoutSeconds = 5u;
+	private const uint ConnectionTimeoutSeconds = 3u;
 
 	private const string SettingsFileName = "db.connection.json";
 

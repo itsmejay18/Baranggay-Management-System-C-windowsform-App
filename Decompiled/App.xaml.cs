@@ -229,6 +229,13 @@ public partial class App : Application
 				}
 				else
 				{
+					// Auto-create database if it doesn't exist
+					if (DbConnectionSettingsStore.TryLoad(out DatabaseConnectionProfile profile))
+					{
+						string connStr = DbConnectionSettingsStore.BuildConnectionString(profile);
+						DatabaseAutoCreator.TryEnsureReady(connStr, profile);
+					}
+
 					SchemaGuard.EnsureDatabaseReady();
 					DBConnection.SetRuntimeSqliteSelection(isSelected: false);
 					OfflineDatabaseSupport.ActivateOnlineMode();

@@ -10,11 +10,15 @@ using System.Windows.Controls;
 using System.Windows.Markup;
 using baranggaysystem1.helper;
 using baranggaysystem1.ViewModels;
+using baranggaysystem1.ViewModels.Navigation;
+using baranggaysystem1.Views.Controls;
 using baranggaysystem1.Views.Dialogs;
+using baranggaysystem1.Views.Panels;
+using FontAwesome.Sharp;
 
 namespace baranggaysystem1.Views.Pages;
 
-public partial class ResidentModulePage : UserControl
+public partial class ResidentModulePage : UserControl, IRefreshable
 {
 	private sealed class RegistryPageConfig
 	{
@@ -232,11 +236,16 @@ public partial class ResidentModulePage : UserControl
 	private void UpdateSummaryMetrics()
 	{
 		int value2 = _data?.Rows.Count ?? 0;
-		int value3 = _data?.AsEnumerable().Count((DataRow row) => string.Equals(GetCellText(row, "status_display"), "Active", StringComparison.OrdinalIgnoreCase)) ?? 0;
-		int value4 = (from row in _data?.AsEnumerable()
-			select GetCellText(row, "purok_display") into value
-			where !string.IsNullOrWhiteSpace(value)
-			select value).Distinct<string>(StringComparer.OrdinalIgnoreCase).Count();
+		int value3 = 0;
+		int value4 = 0;
+		if (_data != null)
+		{
+			value3 = _data.AsEnumerable().Count((DataRow row) => string.Equals(GetCellText(row, "status_display"), "Active", StringComparison.OrdinalIgnoreCase));
+			value4 = (from row in _data.AsEnumerable()
+				select GetCellText(row, "purok_display") into value
+				where !string.IsNullOrWhiteSpace(value)
+				select value).Distinct<string>(StringComparer.OrdinalIgnoreCase).Count();
+		}
 		totalResidentsMetric.Text = $"{value2:N0} {_pageConfig.TotalMetricLabel}";
 		activeResidentsMetric.Text = $"{value3:N0} active";
 		purokResidentsMetric.Text = $"{value4:N0} puroks";
@@ -281,6 +290,26 @@ public partial class ResidentModulePage : UserControl
 	private void Filter_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
 		ApplyFilters();
+	}
+
+	private async void RegistryFilter_Changed(object sender, RoutedEventArgs e)
+	{
+		if (!IsLoaded) return;
+
+		string categoryKey = "ALL";
+		if (filterSoloParent?.IsChecked == true) categoryKey = "SOLO_PARENT";
+		else if (filterYouth?.IsChecked == true) categoryKey = "YOUTH";
+		else if (filterIndigent?.IsChecked == true) categoryKey = "INDIGENT";
+
+		try
+		{
+			_data = await _dataService.LoadResidentsByCategoryAsync(categoryKey, null, null, null, null);
+			ApplyDataToGrid(_data);
+		}
+		catch (Exception ex)
+		{
+			AppLogger.LogError("Registry filter change failed.", ex);
+		}
 	}
 
 	private void MainGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -405,11 +434,31 @@ public partial class ResidentModulePage : UserControl
 			DialogService.Instance.ShowWarning("Please select a resident to edit.");
 			return;
 		}
-		ResidentDetailsWindow window = new ResidentDetailsWindow(CreateResidentDto(dataRowView.Row));
-		if (DialogService.Instance.ShowDialog(window).GetValueOrDefault())
+		var residentDto = CreateResidentDto(dataRowView.Row);
+		var editForm = new ResidentFormPanel(FormMode.Edit, residentDto);
+
+		var saveButton = CreateFullscreenToolbarButton("Save Changes", IconChar.Save,
+			async (s, args) =>
+			{
+				if (await editForm.TrySaveAsync())
+				{
+					NavigationService.Instance.NavigateBackFromFullscreen(
+						"ResidentWorkspace", refreshOnReturn: true);
+				}
+			});
+
+		string residentName = GetCellText(dataRowView.Row, "full_name");
+		NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
 		{
-			LoadAsync();
-		}
+			Title = $"Edit: {residentName}",
+			Subtitle = "Update the resident information below",
+			OriginRoute = "ResidentWorkspace",
+			Content = editForm,
+			Icon = IconChar.UserEdit,
+			ToolbarItems = new List<UIElement> { saveButton },
+			ShowSideToolbar = false,
+			OnSaved = () => RefreshData()
+		});
 	}
 
 	private void BtnAdd_Click(object sender, RoutedEventArgs e)
@@ -419,12 +468,30 @@ public partial class ResidentModulePage : UserControl
 			DialogService.Instance.ShowWarning("You do not have permission to add resident records.");
 			return;
 		}
-		ResidentDto residentDto = CreateResidentTemplateForRegistry();
-		ResidentDetailsWindow window = ((residentDto == null) ? new ResidentDetailsWindow() : new ResidentDetailsWindow(residentDto));
-		if (DialogService.Instance.ShowDialog(window).GetValueOrDefault())
+		ResidentDto? residentDto = CreateResidentTemplateForRegistry();
+		var addForm = new ResidentFormPanel(FormMode.Create, residentDto);
+
+		var saveButton = CreateFullscreenToolbarButton("Save Resident", IconChar.Save,
+			async (s, args) =>
+			{
+				if (await addForm.TrySaveAsync())
+				{
+					NavigationService.Instance.NavigateBackFromFullscreen(
+						"ResidentWorkspace", refreshOnReturn: true);
+				}
+			});
+
+		NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
 		{
-			LoadAsync();
-		}
+			Title = "Add New Resident",
+			Subtitle = "Fill in the resident information below",
+			OriginRoute = "ResidentWorkspace",
+			Content = addForm,
+			Icon = IconChar.UserPlus,
+			ToolbarItems = new List<UIElement> { saveButton },
+			ShowSideToolbar = false,
+			OnSaved = () => RefreshData()
+		});
 	}
 
 	private ResidentDto CreateResidentDto(DataRow row)
@@ -584,4 +651,140 @@ public partial class ResidentModulePage : UserControl
 				NoRecordsFooterLabel = "No resident records available."
 			}, 
 		};
-	}}
+	}
+
+	#region IRefreshable Implementation
+
+	/// <summary>
+	/// Refreshes the page data after returning from a fullscreen view.
+	/// Implements IRefreshable to support automatic data refresh on back navigation.
+	/// Requirement 2.6: Module page refreshes data via IRefreshable.RefreshData().
+	/// </summary>
+	public void RefreshData()
+	{
+		_ = LoadAsync();
+	}
+
+	#endregion
+
+	#region Fullscreen View Helpers
+
+	/// <summary>
+	/// Opens a fullscreen detail view for the selected resident with side toolbar actions.
+	/// Requirement 5.7: Side toolbar for detail views with multiple actions.
+	/// </summary>
+	private void BtnViewDetails_Click(object sender, RoutedEventArgs e)
+	{
+		if (!(mainGrid.SelectedItem is DataRowView dataRowView))
+		{
+			DialogService.Instance.ShowWarning("Please select a resident to view.");
+			return;
+		}
+
+		var residentDto = CreateResidentDto(dataRowView.Row);
+		var detailPanel = new ResidentDetailPanel(residentDto);
+
+		string residentName = GetCellText(dataRowView.Row, "full_name");
+
+		var toolbarItems = new List<UIElement>();
+
+		if (Permissions.CanUpdateResidents)
+		{
+			toolbarItems.Add(CreateFullscreenToolbarButton("Edit", IconChar.Edit, (s, args) =>
+			{
+				// Navigate back first, then open edit
+				NavigationService.Instance.NavigateBackFromFullscreen("ResidentWorkspace", refreshOnReturn: false);
+				BtnEdit_Click(s, args);
+			}));
+		}
+
+		toolbarItems.Add(CreateFullscreenToolbarButton("Certificate", IconChar.FileContract, (s, args) =>
+		{
+			var certWindow = new CertificationWindow(detailPanel.ResidentId, residentName);
+			certWindow.Owner = Window.GetWindow((DependencyObject)(object)this);
+			certWindow.ShowDialog();
+		}));
+
+		toolbarItems.Add(CreateFullscreenToolbarButton("Payment", IconChar.MoneyBill, (s, args) =>
+		{
+			var paymentWindow = new PaymentWindow(detailPanel.ResidentId, residentName);
+			paymentWindow.Owner = Window.GetWindow((DependencyObject)(object)this);
+			paymentWindow.ShowDialog();
+		}));
+
+		toolbarItems.Add(CreateFullscreenToolbarButton("Blotter", IconChar.Gavel, (s, args) =>
+		{
+			var blotterWindow = new BlotterDetailsWindow(new BlotterDto
+			{
+				RespondentResidentId = detailPanel.ResidentId,
+				RespondentName = residentName
+			});
+			blotterWindow.Owner = Window.GetWindow((DependencyObject)(object)this);
+			blotterWindow.ShowDialog();
+		}));
+
+		string purokDisplay = GetCellText(dataRowView.Row, "purok_display");
+		string statusDisplay = GetCellText(dataRowView.Row, "status_display");
+		string subtitle = $"ID #{residentDto.Id}";
+		if (!string.IsNullOrWhiteSpace(purokDisplay))
+			subtitle += $" • {purokDisplay}";
+		if (!string.IsNullOrWhiteSpace(statusDisplay))
+			subtitle += $" • {statusDisplay}";
+
+		NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
+		{
+			Title = residentName,
+			Subtitle = subtitle,
+			OriginRoute = "ResidentWorkspace",
+			Content = detailPanel,
+			Icon = IconChar.User,
+			ToolbarItems = toolbarItems,
+			ShowSideToolbar = true
+		});
+	}
+
+	/// <summary>
+	/// Creates a styled toolbar button for use in fullscreen view toolbars.
+	/// </summary>
+	private static Button CreateFullscreenToolbarButton(string label, IconChar icon, RoutedEventHandler clickHandler)
+	{
+		var iconBlock = new IconBlock
+		{
+			Icon = icon,
+			FontSize = 14,
+			Margin = new Thickness(0, 0, 6, 0),
+			VerticalAlignment = VerticalAlignment.Center
+		};
+
+		var textBlock = new TextBlock
+		{
+			Text = label,
+			VerticalAlignment = VerticalAlignment.Center,
+			FontSize = 12
+		};
+
+		var panel = new StackPanel
+		{
+			Orientation = Orientation.Horizontal
+		};
+		panel.Children.Add(iconBlock);
+		panel.Children.Add(textBlock);
+
+		var button = new Button
+		{
+			Content = panel,
+			Padding = new Thickness(12, 6, 12, 6),
+			Margin = new Thickness(0, 0, 4, 0),
+			MinHeight = 32,
+			Cursor = System.Windows.Input.Cursors.Hand
+		};
+
+		// Set accessibility name (Requirement 5.4)
+		System.Windows.Automation.AutomationProperties.SetName(button, label);
+
+		button.Click += clickHandler;
+		return button;
+	}
+
+	#endregion
+}

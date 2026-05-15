@@ -168,12 +168,23 @@ public partial class DashboardPage : UserControl
 		}
 	}
 
-	private async Task<(int residents, int active, int households, int certs, int blotter)> FetchStats()
+	private async Task<(int residents, int active, int households, int certs, int blotter, int meetings, int bookings, int shifts)> FetchStats()
 	{
-		return (residents: await DatabaseManagerAsync.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM resident WHERE is_deleted=0 OR is_deleted IS NULL"), active: await DatabaseManagerAsync.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM resident WHERE status='ACTIVE' AND (is_deleted=0 OR is_deleted IS NULL)"), households: await DatabaseManagerAsync.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM household"), certs: await DatabaseManagerAsync.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM document_request WHERE status='SUBMITTED'"), blotter: await DatabaseManagerAsync.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM case_record WHERE UPPER(status) IN ('OPEN','ONGOING')"));
+		var residentsTask = DatabaseManagerAsync.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM resident WHERE is_deleted=0 OR is_deleted IS NULL");
+		var activeTask = DatabaseManagerAsync.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM resident WHERE status='ACTIVE' AND (is_deleted=0 OR is_deleted IS NULL)");
+		var householdsTask = DatabaseManagerAsync.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM household");
+		var certsTask = DatabaseManagerAsync.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM document_request WHERE status='SUBMITTED'");
+		var blotterTask = DatabaseManagerAsync.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM case_record WHERE UPPER(status) IN ('OPEN','ONGOING')");
+		var meetingsTask = DatabaseManagerAsync.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM barangay_meeting WHERE UPPER(status)='SCHEDULED'");
+		var bookingsTask = DatabaseManagerAsync.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM facility_booking WHERE UPPER(status)='PENDING'");
+		var shiftsTask = DatabaseManagerAsync.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM tanod_shift WHERE DATE(shift_date) = DATE('now')");
+		await Task.WhenAll(residentsTask, activeTask, householdsTask, certsTask, blotterTask,
+			meetingsTask, bookingsTask, shiftsTask);
+		return (residentsTask.Result, activeTask.Result, householdsTask.Result, certsTask.Result,
+			blotterTask.Result, meetingsTask.Result, bookingsTask.Result, shiftsTask.Result);
 	}
 
-	private void UpdateStatCards((int residents, int active, int households, int certs, int blotter) stats)
+	private void UpdateStatCards((int residents, int active, int households, int certs, int blotter, int meetings, int bookings, int shifts) stats)
 	{
 		statResidentsValue.Text = stats.residents.ToString("N0");
 		statActiveValue.Text = stats.active.ToString("N0");

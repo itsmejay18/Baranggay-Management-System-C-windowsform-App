@@ -1,7 +1,11 @@
 using System;
 using System.Windows;
+using System.Windows.Input;
 using baranggaysystem1.Services;
+using baranggaysystem1.ViewModels;
+using baranggaysystem1.ViewModels.Navigation;
 using baranggaysystem1.Views;
+using baranggaysystem1.Views.Controls;
 
 namespace baranggaysystem1.helper;
 
@@ -12,6 +16,13 @@ namespace baranggaysystem1.helper;
 internal static class SessionSecurityIntegration
 {
     private static bool _initialized;
+
+    /// <summary>
+    /// Stores the focused element before session lock so it can be restored after unlock.
+    /// Used to restore focus to the previously active field in fullscreen views.
+    /// Requirement 10.1: Restore focus to previously active field after re-authentication.
+    /// </summary>
+    private static IInputElement? _focusedElementBeforeLock;
 
     /// <summary>
     /// Initialize session security after successful login.
@@ -56,12 +67,24 @@ internal static class SessionSecurityIntegration
 
     /// <summary>
     /// Show the lock screen (called when session times out).
+    /// Retains all unsaved form field values during session lock by keeping the
+    /// fullscreen view controls in the visual tree (hidden behind the modal lock screen).
+    /// After successful re-authentication, restores focus to the previously active field.
+    /// On logout, discards in-memory form data and navigates to login.
+    /// 
+    /// Requirements: 10.1, 10.2
     /// </summary>
     private static void OnSessionLocked()
     {
         Application.Current?.Dispatcher.Invoke(() =>
         {
             UserSession.IsSessionLocked = true;
+
+            // Requirement 10.1: Save the currently focused element before showing the lock screen.
+            // The form field values are retained in memory because the lock screen is a modal
+            // overlay — the main window's visual tree (including any active fullscreen view
+            // with form data) remains intact behind the lock screen.
+            _focusedElementBeforeLock = Keyboard.FocusedElement;
 
             var lockScreen = new LockScreenWindow
             {
@@ -70,14 +93,106 @@ internal static class SessionSecurityIntegration
 
             bool? result = lockScreen.ShowDialog();
 
-            if (result != true || !lockScreen.WasUnlocked)
+            if (result == true && lockScreen.WasUnlocked)
             {
-                // User chose to log out
+                // Requirement 10.1: Restore focus to previously active field after
+                // successful re-authentication via the LockScreenWindow.
+                RestoreFocusAfterUnlock();
+            }
+            else
+            {
+                // Requirement 10.2: User chose to log out from the LockScreenWindow.
+                // Discard in-memory form data and navigate to login without submitting
+                // any pending changes.
+                DiscardFullscreenFormData();
                 OnLogout();
-                // Navigate back to login
                 NavigateToLogin();
             }
         });
+    }
+
+    /// <summary>
+    /// Restores keyboard focus to the element that was focused before the session was locked.
+    /// Requirement 10.1: Restore focus to previously active field after re-authentication.
+    /// </summary>
+    private static void RestoreFocusAfterUnlock()
+    {
+        if (_focusedElementBeforeLock == null)
+        {
+            return;
+        }
+
+        // Use Dispatcher.BeginInvoke to restore focus after the lock screen window
+        // has fully closed and the main window has regained activation.
+        Application.Current?.Dispatcher.BeginInvoke(
+            System.Windows.Threading.DispatcherPriority.Input,
+            new Action(() =>
+            {
+                try
+                {
+                    // Verify the element is still in the visual tree and focusable
+                    if (_focusedElementBeforeLock is UIElement uiElement
+                        && uiElement.IsVisible
+                        && uiElement.Focusable)
+                    {
+                        Keyboard.Focus(_focusedElementBeforeLock);
+                    }
+                    else if (_focusedElementBeforeLock is FrameworkElement fe
+                             && fe.IsLoaded
+                             && fe.Focusable)
+                    {
+                        Keyboard.Focus(_focusedElementBeforeLock);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    AppLogger.LogWarning("Failed to restore focus after session unlock.", ex);
+                }
+                finally
+                {
+                    _focusedElementBeforeLock = null;
+                }
+            }));
+    }
+
+    /// <summary>
+    /// Discards in-memory form data from any active fullscreen view.
+    /// Called when the user logs out from the LockScreenWindow.
+    /// Requirement 10.2: Discard the in-memory form data and navigate to login
+    /// without submitting any pending changes.
+    /// </summary>
+    private static void DiscardFullscreenFormData()
+    {
+        try
+        {
+            var nav = NavigationService.Instance;
+            var currentView = nav.CurrentView;
+
+            if (currentView is FullscreenViewHost host)
+            {
+                // If the content is a FullscreenFormBase, discard all in-memory form data
+                // to prevent any accidental submission on logout.
+                // Requirement 10.2: Discard in-memory form data without submitting pending changes.
+                if (host.ContentArea is FullscreenFormBase form)
+                {
+                    form.DiscardFormData();
+                }
+
+                // Clear the host-level unsaved changes flag
+                host.SetUnsavedChanges(false);
+            }
+
+            // Clear the page cache to release all in-memory page state
+            nav.ClearCache();
+        }
+        catch (Exception ex)
+        {
+            AppLogger.LogWarning("Error discarding fullscreen form data on logout.", ex);
+        }
+        finally
+        {
+            _focusedElementBeforeLock = null;
+        }
     }
 
     /// <summary>
@@ -126,15 +241,17 @@ internal static class SessionSecurityIntegration
 
     /// <summary>
     /// Navigate back to login screen (after logout from lock screen).
+    /// Requirement 10.2: Navigate to the login screen without submitting any pending changes.
     /// </summary>
     private static void NavigateToLogin()
     {
-        // Close main window and show login
         if (Application.Current?.MainWindow != null)
         {
-            var loginWindow = new Window(); // Replace with actual LoginWindow type
-            Application.Current.MainWindow.Close();
-            // The login window should be shown by the application startup logic
+            var mainWindow = Application.Current.MainWindow;
+            var loginWindow = new LoginWindow();
+            loginWindow.Show();
+            Application.Current.MainWindow = loginWindow;
+            mainWindow.Close();
         }
     }
 

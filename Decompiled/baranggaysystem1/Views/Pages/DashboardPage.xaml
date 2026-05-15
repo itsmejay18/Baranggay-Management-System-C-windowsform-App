@@ -164,17 +164,17 @@
             </LinearGradientBrush>
           </Border.Background>
           <Grid>
-            <fa:IconBlock Icon="LayerGroup" Opacity="0.04" FontSize="320" Foreground="#FFFFFFFF" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-100,-100" />
-            <Grid Margin="36,32">
+            <fa:IconBlock Icon="LayerGroup" Opacity="0.04" FontSize="180" Foreground="#FFFFFFFF" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-60,-60" />
+            <Grid Margin="24,14">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
               </Grid.ColumnDefinitions>
               <StackPanel Grid.Column="0">
-                <Border Background="#3B82F6" HorizontalAlignment="Left" Padding="12,3" CornerRadius="6" Margin="0,0,0,14">
-                  <TextBlock Name="welcomeGreeting" Text="GOOD MORNING, ADMINISTRATOR" Foreground="#FFFFFFFF" FontSize="10" FontWeight="Black" />
+                <Border Background="#3B82F6" HorizontalAlignment="Left" Padding="10,2" CornerRadius="5" Margin="0,0,0,8">
+                  <TextBlock Name="welcomeGreeting" Text="GOOD MORNING, ADMINISTRATOR" Foreground="#FFFFFFFF" FontSize="9" FontWeight="Black" />
                 </Border>
-                <TextBlock Text="Barangay Dashboard" Foreground="#FFFFFFFF" FontSize="30" FontWeight="Bold" FontFamily="{StaticResource CenturyGothic}" />
+                <TextBlock Text="Barangay Dashboard" Foreground="#FFFFFFFF" FontSize="20" FontWeight="Bold" FontFamily="{StaticResource CenturyGothic}" />
                 <StackPanel Orientation="Horizontal" Margin="0,4,0,0" Visibility="Collapsed">
                   <fa:IconBlock Icon="CalendarAlt" Foreground="#94A3B8" FontSize="12" VerticalAlignment="Center" Margin="0,0,8,0" />
                   <TextBlock Name="welcomeDate" Text="Monday, April 14, 2026" Foreground="#94A3B8" FontSize="13" VerticalAlignment="Center" />

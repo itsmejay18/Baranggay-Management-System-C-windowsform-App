@@ -269,6 +269,23 @@
         </Border>
         <Grid Row="1">
           <DataGrid Name="mainGrid" Margin="10,8,10,10" Style="{StaticResource StyledDataGridStyle}" ColumnHeaderStyle="{StaticResource StyledDataGridColumnHeaderStyle}" RowStyle="{StaticResource QueueDataGridRowStyle}" CellStyle="{StaticResource QueueDataGridCellStyle}" AutoGenerateColumns="False" IsReadOnly="True" AlternationCount="2" RowHeight="78" HeadersVisibility="Column" CanUserAddRows="False" SelectionChanged="MainGrid_SelectionChanged">
+            <DataGrid.ContextMenu>
+              <ContextMenu>
+                <MenuItem Header="Release and Print" Click="BtnIssue_Click">
+                  <MenuItem.Icon><fa:IconBlock Icon="Stamp" FontSize="12" /></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Print Preview" Click="BtnPrintPreview_Click">
+                  <MenuItem.Icon><fa:IconBlock Icon="Eye" FontSize="12" /></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Verification &amp; QR" Click="BtnVerifySelected_Click">
+                  <MenuItem.Icon><fa:IconBlock Icon="Qrcode" FontSize="12" /></MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <MenuItem Header="Cancel Request" Click="BtnCancel_Click" Foreground="#B91C1C">
+                  <MenuItem.Icon><fa:IconBlock Icon="Times" FontSize="12" Foreground="#B91C1C" /></MenuItem.Icon>
+                </MenuItem>
+              </ContextMenu>
+            </DataGrid.ContextMenu>
             <DataGrid.Columns>
               <DataGridTemplateColumn Header="Request" Width="1.45*">
                 <DataGridTemplateColumn.CellTemplate>
@@ -367,6 +384,12 @@
               <StackPanel Orientation="Horizontal">
                 <fa:IconBlock Icon="Stamp" FontSize="12" Margin="0,0,8,0" VerticalAlignment="Center" />
                 <TextBlock Name="btnReleaseLabel" Text="Release and Print" VerticalAlignment="Center" Foreground="#FFFFFFFF" />
+              </StackPanel>
+            </Button>
+            <Button Name="btnPreview" Style="{StaticResource ActionButtonStyle}" Margin="0,0,8,8" Click="BtnPrintPreview_Click">
+              <StackPanel Orientation="Horizontal">
+                <fa:IconBlock Icon="Eye" FontSize="12" Margin="0,0,8,0" VerticalAlignment="Center" />
+                <TextBlock Text="Print Preview" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
             <Button Name="btnCancel" Style="{StaticResource ActionButtonStyle}" Margin="0,0,8,8" Click="BtnCancel_Click">

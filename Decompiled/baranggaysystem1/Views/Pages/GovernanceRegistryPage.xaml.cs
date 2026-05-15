@@ -12,11 +12,14 @@ using System.Windows.Markup;
 using baranggaysystem1.helper;
 using baranggaysystem1.Services;
 using baranggaysystem1.ViewModels;
+using baranggaysystem1.ViewModels.Navigation;
+using baranggaysystem1.Views.Controls;
 using baranggaysystem1.Views.Dialogs;
+using FontAwesome.Sharp;
 
 namespace baranggaysystem1.Views.Pages;
 
-public partial class GovernanceRegistryPage : UserControl
+public partial class GovernanceRegistryPage : UserControl, IRefreshable
 {
 	private enum GovernanceSection
 	{
@@ -347,20 +350,48 @@ public partial class GovernanceRegistryPage : UserControl
 		if (_activeSection == GovernanceSection.Projects)
 		{
 			ProjectWindow window = new ProjectWindow();
-			if (DialogService.Instance.ShowDialog(window).GetValueOrDefault())
+			var adapter = new DialogContentAdapter(window);
+
+			var saveButton = FullscreenToolbarHelper.CreateToolbarButton("Save Project", IconChar.Save,
+				(s, args) =>
+				{
+					NavigationService.Instance.NavigateBackFromFullscreen("GovernanceRegistry", refreshOnReturn: true);
+				});
+
+			NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
 			{
-				DialogService.Instance.ShowInfo("Project or program record saved successfully.");
-				await LoadAsync();
-			}
+				Title = "New Project / Program",
+				Subtitle = "Create a new community initiative record",
+				OriginRoute = "GovernanceRegistry",
+				Content = adapter,
+				Icon = IconChar.ProjectDiagram,
+				ToolbarItems = new List<UIElement> { saveButton },
+				ShowSideToolbar = false,
+				OnSaved = () => RefreshData()
+			});
 		}
 		else
 		{
 			AnnouncementWindow window2 = new AnnouncementWindow();
-			if (DialogService.Instance.ShowDialog(window2).GetValueOrDefault())
+			var adapter = new DialogContentAdapter(window2);
+
+			var saveButton = FullscreenToolbarHelper.CreateToolbarButton("Save Announcement", IconChar.Save,
+				(s, args) =>
+				{
+					NavigationService.Instance.NavigateBackFromFullscreen("GovernanceRegistry", refreshOnReturn: true);
+				});
+
+			NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
 			{
-				DialogService.Instance.ShowInfo("Announcement saved successfully.");
-				await LoadAsync();
-			}
+				Title = "Create Announcement",
+				Subtitle = "Draft a new community announcement",
+				OriginRoute = "GovernanceRegistry",
+				Content = adapter,
+				Icon = IconChar.Bullhorn,
+				ToolbarItems = new List<UIElement> { saveButton },
+				ShowSideToolbar = false,
+				OnSaved = () => RefreshData()
+			});
 		}
 	}
 
@@ -373,20 +404,48 @@ public partial class GovernanceRegistryPage : UserControl
 		else if (_activeSection == GovernanceSection.Projects)
 		{
 			ProjectWindow window = new ProjectWindow(ToProjectRecord(row));
-			if (DialogService.Instance.ShowDialog(window).GetValueOrDefault())
+			var adapter = new DialogContentAdapter(window);
+
+			var saveButton = FullscreenToolbarHelper.CreateToolbarButton("Save Changes", IconChar.Save,
+				(s, args) =>
+				{
+					NavigationService.Instance.NavigateBackFromFullscreen("GovernanceRegistry", refreshOnReturn: true);
+				});
+
+			NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
 			{
-				DialogService.Instance.ShowInfo("Project or program record updated successfully.");
-				await LoadAsync();
-			}
+				Title = "Edit Project / Program",
+				Subtitle = ReadString(row.Row, "name"),
+				OriginRoute = "GovernanceRegistry",
+				Content = adapter,
+				Icon = IconChar.Edit,
+				ToolbarItems = new List<UIElement> { saveButton },
+				ShowSideToolbar = false,
+				OnSaved = () => RefreshData()
+			});
 		}
 		else
 		{
 			AnnouncementWindow window2 = new AnnouncementWindow(ToAnnouncementRecord(row));
-			if (DialogService.Instance.ShowDialog(window2).GetValueOrDefault())
+			var adapter = new DialogContentAdapter(window2);
+
+			var saveButton = FullscreenToolbarHelper.CreateToolbarButton("Save Changes", IconChar.Save,
+				(s, args) =>
+				{
+					NavigationService.Instance.NavigateBackFromFullscreen("GovernanceRegistry", refreshOnReturn: true);
+				});
+
+			NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
 			{
-				DialogService.Instance.ShowInfo("Announcement updated successfully.");
-				await LoadAsync();
-			}
+				Title = "Edit Announcement",
+				Subtitle = ReadString(row.Row, "title"),
+				OriginRoute = "GovernanceRegistry",
+				Content = adapter,
+				Icon = IconChar.Edit,
+				ToolbarItems = new List<UIElement> { saveButton },
+				ShowSideToolbar = false,
+				OnSaved = () => RefreshData()
+			});
 		}
 	}
 
@@ -763,4 +822,17 @@ public partial class GovernanceRegistryPage : UserControl
 			OutcomeSummary = ReadString(row.Row, "outcome_summary"),
 			CreatedAt = ReadDateTime(row.Row, "created_at")
 		};
-	}}
+	}
+
+	#region IRefreshable Implementation
+
+	/// <summary>
+	/// Refreshes the page data after returning from a fullscreen view.
+	/// </summary>
+	public void RefreshData()
+	{
+		_ = LoadAsync();
+	}
+
+	#endregion
+}

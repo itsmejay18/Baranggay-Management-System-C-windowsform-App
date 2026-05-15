@@ -12,11 +12,14 @@ using System.Windows.Markup;
 using baranggaysystem1.helper;
 using baranggaysystem1.Services;
 using baranggaysystem1.ViewModels;
+using baranggaysystem1.ViewModels.Navigation;
+using baranggaysystem1.Views.Controls;
 using baranggaysystem1.Views.Dialogs;
+using FontAwesome.Sharp;
 
 namespace baranggaysystem1.Views.Pages;
 
-public partial class AyudaPage : UserControl
+public partial class AyudaPage : UserControl, IRefreshable
 {
 	private readonly AyudaService _ayudaService = new AyudaService();
 
@@ -244,10 +247,25 @@ public partial class AyudaPage : UserControl
 	private async void BtnAddProgram_Click(object sender, RoutedEventArgs e)
 	{
 		AyudaProgramWindow window = new AyudaProgramWindow();
-		if (DialogService.Instance.ShowDialog(window).GetValueOrDefault())
+		var adapter = new DialogContentAdapter(window);
+
+		var saveButton = FullscreenToolbarHelper.CreateToolbarButton("Save Program", IconChar.Save,
+			(s, args) =>
+			{
+				NavigationService.Instance.NavigateBackFromFullscreen("Ayuda", refreshOnReturn: true);
+			});
+
+		NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
 		{
-			await LoadAsync();
-		}
+			Title = "New Ayuda Program",
+			Subtitle = "Create a new ayuda budget program",
+			OriginRoute = "Ayuda",
+			Content = adapter,
+			Icon = IconChar.HandHoldingHeart,
+			ToolbarItems = new List<UIElement> { saveButton },
+			ShowSideToolbar = false,
+			OnSaved = () => RefreshData()
+		});
 	}
 
 	private async void BtnEditProgram_Click(object sender, RoutedEventArgs e)
@@ -258,10 +276,26 @@ public partial class AyudaPage : UserControl
 			return;
 		}
 		AyudaProgramWindow window = new AyudaProgramWindow(Convert.ToInt32(dataRowView["program_id"], CultureInfo.InvariantCulture));
-		if (DialogService.Instance.ShowDialog(window).GetValueOrDefault())
+		var adapter = new DialogContentAdapter(window);
+
+		var saveButton = FullscreenToolbarHelper.CreateToolbarButton("Save Changes", IconChar.Save,
+			(s, args) =>
+			{
+				NavigationService.Instance.NavigateBackFromFullscreen("Ayuda", refreshOnReturn: true);
+			});
+
+		string programName = Convert.ToString(dataRowView["program_name"], CultureInfo.InvariantCulture) ?? "Program";
+		NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
 		{
-			await LoadAsync();
-		}
+			Title = "Edit Ayuda Program",
+			Subtitle = programName,
+			OriginRoute = "Ayuda",
+			Content = adapter,
+			Icon = IconChar.Edit,
+			ToolbarItems = new List<UIElement> { saveButton },
+			ShowSideToolbar = false,
+			OnSaved = () => RefreshData()
+		});
 	}
 
 	private async void BtnDeleteProgram_Click(object sender, RoutedEventArgs e)
@@ -302,10 +336,25 @@ public partial class AyudaPage : UserControl
 			initialProgramId = Convert.ToInt32(dataRowView2["program_id"], CultureInfo.InvariantCulture);
 		}
 		AyudaReleaseWindow window = new AyudaReleaseWindow(initialProgramId);
-		if (DialogService.Instance.ShowDialog(window).GetValueOrDefault())
+		var adapter = new DialogContentAdapter(window);
+
+		var saveButton = FullscreenToolbarHelper.CreateToolbarButton("Save Release", IconChar.Save,
+			(s, args) =>
+			{
+				NavigationService.Instance.NavigateBackFromFullscreen("Ayuda", refreshOnReturn: true);
+			});
+
+		NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
 		{
-			await LoadAsync();
-		}
+			Title = "New Ayuda Release",
+			Subtitle = "Record a new ayuda distribution",
+			OriginRoute = "Ayuda",
+			Content = adapter,
+			Icon = IconChar.HandHoldingUsd,
+			ToolbarItems = new List<UIElement> { saveButton },
+			ShowSideToolbar = false,
+			OnSaved = () => RefreshData()
+		});
 	}
 
 	private async void BtnEditRelease_Click(object sender, RoutedEventArgs e)
@@ -317,10 +366,26 @@ public partial class AyudaPage : UserControl
 		}
 		int value = Convert.ToInt32(dataRowView["release_id"], CultureInfo.InvariantCulture);
 		AyudaReleaseWindow window = new AyudaReleaseWindow(null, value);
-		if (DialogService.Instance.ShowDialog(window).GetValueOrDefault())
+		var adapter = new DialogContentAdapter(window);
+
+		var saveButton = FullscreenToolbarHelper.CreateToolbarButton("Save Changes", IconChar.Save,
+			(s, args) =>
+			{
+				NavigationService.Instance.NavigateBackFromFullscreen("Ayuda", refreshOnReturn: true);
+			});
+
+		string residentName = Convert.ToString(dataRowView["resident_name"], CultureInfo.InvariantCulture) ?? "Release";
+		NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
 		{
-			await LoadAsync();
-		}
+			Title = "Edit Ayuda Release",
+			Subtitle = residentName,
+			OriginRoute = "Ayuda",
+			Content = adapter,
+			Icon = IconChar.Edit,
+			ToolbarItems = new List<UIElement> { saveButton },
+			ShowSideToolbar = false,
+			OnSaved = () => RefreshData()
+		});
 	}
 
 	private async void BtnDeleteRelease_Click(object sender, RoutedEventArgs e)
@@ -457,4 +522,17 @@ public partial class AyudaPage : UserControl
 	{
 		return value.Replace("'", "''").Replace("[", "[[]").Replace("%", "[%]")
 			.Replace("*", "[*]");
-	}}
+	}
+
+	#region IRefreshable Implementation
+
+	/// <summary>
+	/// Refreshes the page data after returning from a fullscreen view.
+	/// </summary>
+	public void RefreshData()
+	{
+		_ = LoadAsync();
+	}
+
+	#endregion
+}

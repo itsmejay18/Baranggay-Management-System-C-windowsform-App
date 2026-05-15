@@ -1,0 +1,271 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+  <!-- ============================================================
+       FullscreenViewStyles.xaml
+       Styles for the Fullscreen Data Table View pattern.
+       Uses existing Slate palette, CornerRadius 14, CardStyle DropShadowEffect.
+       Requirements: 7.3, 9.1, 9.2
+       ============================================================ -->
+
+  <!-- === Entrance / Exit Animation Storyboards === -->
+
+  <!-- Entrance: opacity fade + slide up, completes within 350ms -->
+  <Storyboard x:Key="FullscreenEntranceStoryboard">
+    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                     From="0" To="1"
+                     Duration="0:0:0.3">
+      <DoubleAnimation.EasingFunction>
+        <CubicEase EasingMode="EaseOut" />
+      </DoubleAnimation.EasingFunction>
+    </DoubleAnimation>
+    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                     From="20" To="0"
+                     Duration="0:0:0.35">
+      <DoubleAnimation.EasingFunction>
+        <CubicEase EasingMode="EaseOut" />
+      </DoubleAnimation.EasingFunction>
+    </DoubleAnimation>
+  </Storyboard>
+
+  <!-- Exit: opacity fade out, completes within 200ms -->
+  <Storyboard x:Key="FullscreenExitStoryboard">
+    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                     From="1" To="0"
+                     Duration="0:0:0.2">
+      <DoubleAnimation.EasingFunction>
+        <CubicEase EasingMode="EaseIn" />
+      </DoubleAnimation.EasingFunction>
+    </DoubleAnimation>
+    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                     From="0" To="12"
+                     Duration="0:0:0.2">
+      <DoubleAnimation.EasingFunction>
+        <CubicEase EasingMode="EaseIn" />
+      </DoubleAnimation.EasingFunction>
+    </DoubleAnimation>
+  </Storyboard>
+
+  <!-- === FullscreenHostBorderStyle === -->
+  <!-- Outer container: CornerRadius 14, CardStyle DropShadowEffect (BlurRadius 16, ShadowDepth 2, Opacity 0.06) -->
+  <Style x:Key="FullscreenHostBorderStyle" TargetType="{x:Type Border}">
+    <Setter Property="Background" Value="#FFFFFFFF" />
+    <Setter Property="CornerRadius" Value="14" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="BorderBrush" Value="#F1F5F9" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="SnapsToDevicePixels" Value="True" />
+    <Setter Property="RenderTransform">
+      <Setter.Value>
+        <TranslateTransform Y="0" />
+      </Setter.Value>
+    </Setter>
+    <Setter Property="Effect">
+      <Setter.Value>
+        <DropShadowEffect BlurRadius="16" ShadowDepth="2" Opacity="0.06" Direction="270" />
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- === FullscreenBackButtonStyle === -->
+  <!-- Back button: minimum 44x44 tap target, ghost-style with hover/press states -->
+  <Style x:Key="FullscreenBackButtonStyle" TargetType="{x:Type Button}">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{StaticResource Slate700Brush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="MinWidth" Value="44" />
+    <Setter Property="MinHeight" Value="44" />
+    <Setter Property="Width" Value="44" />
+    <Setter Property="Height" Value="44" />
+    <Setter Property="Padding" Value="8" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="ToolTip" Value="Go Back" />
+    <Setter Property="AutomationProperties.Name" Value="Back" />
+    <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type Button}">
+          <Border Name="border"
+                  Background="{TemplateBinding Background}"
+                  CornerRadius="8"
+                  Width="{TemplateBinding Width}"
+                  Height="{TemplateBinding Height}"
+                  SnapsToDevicePixels="True">
+            <ContentPresenter HorizontalAlignment="Center"
+                              VerticalAlignment="Center" />
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="border" Property="Background" Value="{StaticResource Slate100Brush}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+              <Setter TargetName="border" Property="Background" Value="{StaticResource Slate200Brush}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter TargetName="border" Property="Opacity" Value="0.4" />
+            </Trigger>
+            <Trigger Property="IsFocused" Value="True">
+              <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentBlueBrush}" />
+              <Setter TargetName="border" Property="BorderThickness" Value="2" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- === FullscreenTitleStyle === -->
+  <!-- View title: large, bold, Century Gothic, Slate900 -->
+  <Style x:Key="FullscreenTitleStyle" TargetType="{x:Type TextBlock}">
+    <Setter Property="FontFamily" Value="{StaticResource CenturyGothic}" />
+    <Setter Property="FontSize" Value="18" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    <Setter Property="Margin" Value="8,0,0,0" />
+  </Style>
+
+  <!-- === FullscreenSubtitleStyle === -->
+  <!-- View subtitle: smaller, regular weight, Slate500 -->
+  <Style x:Key="FullscreenSubtitleStyle" TargetType="{x:Type TextBlock}">
+    <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="Foreground" Value="{StaticResource Slate500Brush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    <Setter Property="Margin" Value="12,0,0,0" />
+  </Style>
+
+  <!-- === FullscreenToolbarPanelStyle === -->
+  <!-- Horizontal top toolbar panel -->
+  <Style x:Key="FullscreenToolbarPanelStyle" TargetType="{x:Type StackPanel}">
+    <Setter Property="Orientation" Value="Horizontal" />
+    <Setter Property="HorizontalAlignment" Value="Right" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Margin" Value="0,0,8,0" />
+  </Style>
+
+  <!-- === FullscreenSideToolbarStyle === -->
+  <!-- Vertical side toolbar panel -->
+  <Style x:Key="FullscreenSideToolbarStyle" TargetType="{x:Type StackPanel}">
+    <Setter Property="Orientation" Value="Vertical" />
+    <Setter Property="VerticalAlignment" Value="Top" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="Margin" Value="0,8,0,0" />
+    <Setter Property="Width" Value="160" />
+  </Style>
+
+  <!-- === FullscreenContentPresenterStyle === -->
+  <!-- Content area: occupies 80-90% of available height -->
+  <Style x:Key="FullscreenContentPresenterStyle" TargetType="{x:Type ContentPresenter}">
+    <Setter Property="Margin" Value="20,8,20,20" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="VerticalAlignment" Value="Stretch" />
+  </Style>
+
+  <!-- === FullscreenSaveButtonStyle === -->
+  <!-- Save button: primary action, Slate900 background, white text -->
+  <Style x:Key="FullscreenSaveButtonStyle" TargetType="{x:Type Button}">
+    <Setter Property="Background" Value="{StaticResource Slate900Brush}" />
+    <Setter Property="Foreground" Value="#FFFFFFFF" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="Height" Value="36" />
+    <Setter Property="MinWidth" Value="96" />
+    <Setter Property="Padding" Value="16,0" />
+    <Setter Property="Margin" Value="6,0" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type Button}">
+          <Border Name="border"
+                  Background="{TemplateBinding Background}"
+                  CornerRadius="8"
+                  SnapsToDevicePixels="True"
+                  Padding="{TemplateBinding Padding}">
+            <Border.RenderTransform>
+              <ScaleTransform ScaleX="1" ScaleY="1" />
+            </Border.RenderTransform>
+            <ContentPresenter HorizontalAlignment="Center"
+                              VerticalAlignment="Center" />
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="border" Property="Opacity" Value="0.9" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+              <Setter TargetName="border" Property="Opacity" Value="0.75" />
+              <Setter TargetName="border" Property="RenderTransform">
+                <Setter.Value>
+                  <ScaleTransform ScaleX="0.97" ScaleY="0.97" />
+                </Setter.Value>
+              </Setter>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter TargetName="border" Property="Opacity" Value="0.4" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- === FullscreenCancelButtonStyle === -->
+  <!-- Cancel button: secondary/outlined style, white background, Slate border -->
+  <Style x:Key="FullscreenCancelButtonStyle" TargetType="{x:Type Button}">
+    <Setter Property="Background" Value="#FFFFFFFF" />
+    <Setter Property="Foreground" Value="{StaticResource Slate900Brush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Slate300Brush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="Height" Value="36" />
+    <Setter Property="MinWidth" Value="96" />
+    <Setter Property="Padding" Value="16,0" />
+    <Setter Property="Margin" Value="6,0" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type Button}">
+          <Border Name="border"
+                  Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="8"
+                  SnapsToDevicePixels="True"
+                  Padding="{TemplateBinding Padding}">
+            <Border.RenderTransform>
+              <ScaleTransform ScaleX="1" ScaleY="1" />
+            </Border.RenderTransform>
+            <ContentPresenter HorizontalAlignment="Center"
+                              VerticalAlignment="Center" />
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="border" Property="Background" Value="#F1F5F9" />
+              <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource Slate500Brush}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+              <Setter TargetName="border" Property="Background" Value="{StaticResource Slate200Brush}" />
+              <Setter TargetName="border" Property="RenderTransform">
+                <Setter.Value>
+                  <ScaleTransform ScaleX="0.97" ScaleY="0.97" />
+                </Setter.Value>
+              </Setter>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter TargetName="border" Property="Opacity" Value="0.4" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+</ResourceDictionary>

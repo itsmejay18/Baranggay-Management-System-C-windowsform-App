@@ -12,11 +12,14 @@ using System.Windows.Markup;
 using baranggaysystem1.helper;
 using baranggaysystem1.Services;
 using baranggaysystem1.ViewModels;
+using baranggaysystem1.ViewModels.Navigation;
+using baranggaysystem1.Views.Controls;
 using baranggaysystem1.Views.Dialogs;
+using FontAwesome.Sharp;
 
 namespace baranggaysystem1.Views.Pages;
 
-public partial class PaymentsPage : UserControl
+public partial class PaymentsPage : UserControl, IRefreshable
 {
 	private readonly PaymentLedgerService _paymentLedgerService = new PaymentLedgerService();
 
@@ -201,10 +204,25 @@ public partial class PaymentsPage : UserControl
 	private async void BtnAdd_Click(object sender, RoutedEventArgs e)
 	{
 		PaymentWindow window = new PaymentWindow();
-		if (DialogService.Instance.ShowDialog(window).GetValueOrDefault())
+		var adapter = new DialogContentAdapter(window);
+
+		var saveButton = FullscreenToolbarHelper.CreateToolbarButton("Save Payment", IconChar.Save,
+			(s, args) =>
+			{
+				NavigationService.Instance.NavigateBackFromFullscreen("ResidentPayments", refreshOnReturn: true);
+			});
+
+		NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
 		{
-			await LoadAsync();
-		}
+			Title = "Record New Payment",
+			Subtitle = "Process a new payment transaction",
+			OriginRoute = "ResidentPayments",
+			Content = adapter,
+			Icon = IconChar.MoneyBill,
+			ToolbarItems = new List<UIElement> { saveButton },
+			ShowSideToolbar = false,
+			OnSaved = () => RefreshData()
+		});
 	}
 
 	private void BtnPrintOR_Click(object sender, RoutedEventArgs e)
@@ -236,4 +254,17 @@ public partial class PaymentsPage : UserControl
 	{
 		return value.Replace("'", "''").Replace("[", "[[]").Replace("%", "[%]")
 			.Replace("*", "[*]");
-	}}
+	}
+
+	#region IRefreshable Implementation
+
+	/// <summary>
+	/// Refreshes the page data after returning from a fullscreen view.
+	/// </summary>
+	public void RefreshData()
+	{
+		_ = LoadAsync();
+	}
+
+	#endregion
+}

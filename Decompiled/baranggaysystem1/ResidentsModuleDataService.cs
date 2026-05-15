@@ -318,13 +318,7 @@ internal sealed class ResidentsModuleDataService
 
 	public async Task<DataTable> LoadResidentsByCategoryAsync(string categoryKey, string? searchText, int? purokId, string? sexFilter, string? statusFilter, CancellationToken cancellationToken = default(CancellationToken))
 	{
-		if (!OfflineDatabaseSupport.IsOffline && !DBConnection.ShouldThrottleOnlineAccess(includeOfflineMode: false))
-		{
-			await Task.Run(delegate
-			{
-				SchemaGuard.EnsureDatabaseReady();
-			}, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-		}
+		// SchemaGuard already validated at startup — skip redundant check for read operations
 		string normalizedCategory = NormalizeCategoryKey(categoryKey);
 		string trimmedSearch = (searchText ?? string.Empty).Trim();
 		string searchLike = "%" + trimmedSearch + "%";

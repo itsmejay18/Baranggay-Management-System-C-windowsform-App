@@ -12,11 +12,14 @@ using System.Windows.Controls;
 using System.Windows.Markup;
 using baranggaysystem1.helper;
 using baranggaysystem1.ViewModels;
+using baranggaysystem1.ViewModels.Navigation;
 using baranggaysystem1.Views.Dialogs;
+using baranggaysystem1.Views.Panels;
+using FontAwesome.Sharp;
 
 namespace baranggaysystem1.Views.Pages;
 
-public partial class BlotterPage : UserControl
+public partial class BlotterPage : UserControl, IRefreshable
 {
 	private readonly BlotterRepository _repository = new BlotterRepository();
 
@@ -438,34 +441,162 @@ public partial class BlotterPage : UserControl
 		await LoadAsync();
 	}
 
-	private async void BtnEdit_Click(object sender, RoutedEventArgs e)
+	private void BtnEdit_Click(object sender, RoutedEventArgs e)
 	{
-		await OpenSelectedCaseAsync();
+		OpenSelectedCaseFullscreen();
 	}
 
-	private async Task OpenSelectedCaseAsync()
+	private void OpenSelectedCaseFullscreen()
 	{
 		if (!(mainGrid.SelectedItem is DataRowView dataRowView))
 		{
 			DialogService.Instance.ShowWarning("Please select a case first.");
 			return;
 		}
+
 		int caseId = Convert.ToInt32(dataRowView["case_id"]);
-		BlotterDetailsWindow blotterDetailsWindow = new BlotterDetailsWindow(new BlotterDto
+		string caseNo = Convert.ToString(dataRowView["case_no"]) ?? string.Empty;
+		string status = Convert.ToString(dataRowView["status_display"]) ?? "ONGOING";
+
+		var editForm = new BlotterFormPanel(FormMode.Edit, new BlotterDto
 		{
 			CaseId = caseId,
-			CaseNo = (Convert.ToString(dataRowView["case_no"]) ?? string.Empty),
-			Status = (Convert.ToString(dataRowView["status_display"]) ?? "ONGOING")
+			CaseNo = caseNo,
+			Status = status
 		});
-		blotterDetailsWindow.Owner = Window.GetWindow((DependencyObject)(object)this);
-		blotterDetailsWindow.ShowDialog();
-		await LoadAsync();
+
+		var toolbarItems = new List<UIElement>();
+
+		toolbarItems.Add(CreateFullscreenToolbarButton("Save Changes", IconChar.Save,
+			async (s, args) =>
+			{
+				if (await editForm.TrySaveAsync())
+				{
+					NavigationService.Instance.NavigateBackFromFullscreen(
+						"ResidentCases", refreshOnReturn: true);
+				}
+			}));
+
+		toolbarItems.Add(CreateFullscreenToolbarButton("Resolve Case", IconChar.CheckCircle,
+			async (s, args) =>
+			{
+				if (await editForm.TryResolveAsync())
+				{
+					NavigationService.Instance.NavigateBackFromFullscreen(
+						"ResidentCases", refreshOnReturn: true);
+				}
+			}));
+
+		NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
+		{
+			Title = $"Case {caseNo}",
+			Subtitle = "Edit case details and manage resolution",
+			OriginRoute = "ResidentCases",
+			Content = editForm,
+			Icon = IconChar.Gavel,
+			ToolbarItems = toolbarItems,
+			ShowSideToolbar = false,
+			OnSaved = () => RefreshData()
+		});
 	}
 
-	private async void BtnAdd_Click(object sender, RoutedEventArgs e)
+	private void BtnAdd_Click(object sender, RoutedEventArgs e)
 	{
-		BlotterDetailsWindow blotterDetailsWindow = new BlotterDetailsWindow();
-		blotterDetailsWindow.Owner = Window.GetWindow((DependencyObject)(object)this);
-		blotterDetailsWindow.ShowDialog();
-		await LoadAsync();
-	}}
+		var addForm = new BlotterFormPanel(FormMode.Create);
+
+		var saveButton = CreateFullscreenToolbarButton("Save Case", IconChar.Save,
+			async (s, args) =>
+			{
+				if (await addForm.TrySaveAsync())
+				{
+					NavigationService.Instance.NavigateBackFromFullscreen(
+						"ResidentCases", refreshOnReturn: true);
+				}
+			});
+
+		NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
+		{
+			Title = "New Blotter Case",
+			Subtitle = "File a new blotter case record",
+			OriginRoute = "ResidentCases",
+			Content = addForm,
+			Icon = IconChar.Gavel,
+			ToolbarItems = new List<UIElement> { saveButton },
+			ShowSideToolbar = false,
+			OnSaved = () => RefreshData()
+		});
+	}
+
+	private void BtnExportCase_Click(object sender, RoutedEventArgs e)
+	{
+		if (!(mainGrid.SelectedItem is DataRowView dataRowView))
+		{
+			DialogService.Instance.ShowWarning("Please select a case to export.");
+			return;
+		}
+		string caseNo = Convert.ToString(dataRowView["case_no"]) ?? "case";
+		DialogService.Instance.ShowInfo($"Export for case {caseNo} is being prepared.");
+	}
+
+	#region IRefreshable Implementation
+
+	/// <summary>
+	/// Refreshes the page data after returning from a fullscreen view.
+	/// Implements IRefreshable to support automatic data refresh on back navigation.
+	/// Requirement 2.6: Module page refreshes data via IRefreshable.RefreshData().
+	/// </summary>
+	public void RefreshData()
+	{
+		_ = LoadAsync();
+	}
+
+	#endregion
+
+	#region Fullscreen View Helpers
+
+	/// <summary>
+	/// Creates a styled toolbar button for use in fullscreen view toolbars.
+	/// Follows the same pattern as ResidentModulePage.CreateFullscreenToolbarButton.
+	/// </summary>
+	private static Button CreateFullscreenToolbarButton(string label, IconChar icon, RoutedEventHandler clickHandler)
+	{
+		var iconBlock = new IconBlock
+		{
+			Icon = icon,
+			FontSize = 14,
+			Margin = new Thickness(0, 0, 6, 0),
+			VerticalAlignment = VerticalAlignment.Center
+		};
+
+		var textBlock = new TextBlock
+		{
+			Text = label,
+			VerticalAlignment = VerticalAlignment.Center,
+			FontSize = 12
+		};
+
+		var panel = new StackPanel
+		{
+			Orientation = Orientation.Horizontal
+		};
+		panel.Children.Add(iconBlock);
+		panel.Children.Add(textBlock);
+
+		var button = new Button
+		{
+			Content = panel,
+			Padding = new Thickness(12, 6, 12, 6),
+			Margin = new Thickness(0, 0, 4, 0),
+			MinHeight = 32,
+			Cursor = System.Windows.Input.Cursors.Hand
+		};
+
+		// Set accessibility name (Requirement 5.4)
+		System.Windows.Automation.AutomationProperties.SetName(button, label);
+
+		button.Click += clickHandler;
+		return button;
+	}
+
+	#endregion
+}

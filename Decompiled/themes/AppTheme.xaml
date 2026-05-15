@@ -502,14 +502,14 @@
   </Style>
   <Style x:Key="StatCardStyle" TargetType="{x:Type Border}">
     <Setter Property="Background" Value="#FFFFFFFF" />
-    <Setter Property="Border.CornerRadius" Value="14" />
-    <Setter Property="Border.Padding" Value="18,14" />
-    <Setter Property="Margin" Value="0,0,8,8" />
+    <Setter Property="Border.CornerRadius" Value="10" />
+    <Setter Property="Border.Padding" Value="10,6" />
+    <Setter Property="Margin" Value="0,0,6,6" />
     <Setter Property="BorderBrush" Value="#F1F5F9" />
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="UIElement.Effect">
       <Setter.Value>
-        <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.05" Direction="270" />
+        <DropShadowEffect BlurRadius="6" ShadowDepth="1" Opacity="0.04" Direction="270" />
       </Setter.Value>
     </Setter>
   </Style>
@@ -627,22 +627,22 @@
   <SolidColorBrush x:Key="TopBarBgBrush" Color="#F8FAFC" Opacity="0.96" />
   <SolidColorBrush x:Key="StatusBarBgBrush" Color="#020617" />
   <Style x:Key="NavGroupStyle" TargetType="{x:Type TextBlock}">
-    <Setter Property="FontSize" Value="10.5" />
+    <Setter Property="FontSize" Value="9" />
     <Setter Property="FontWeight" Value="Bold" />
     <Setter Property="Foreground" Value="{StaticResource SidebarGroupBrush}" />
-    <Setter Property="Margin" Value="18,18,0,8" />
+    <Setter Property="Margin" Value="14,10,0,3" />
     <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
     <Setter Property="UIElement.Opacity" Value="0.95" />
   </Style>
   <ControlTemplate x:Key="NavItemTemplate" TargetType="{x:Type RadioButton}">
-    <Border Name="border" CornerRadius="10" Background="#00FFFFFF" Margin="10,2,10,0" BorderThickness="1" BorderBrush="#00FFFFFF">
+    <Border Name="border" CornerRadius="7" Background="#00FFFFFF" Margin="6,1,6,0" BorderThickness="1" BorderBrush="#00FFFFFF">
       <Grid>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="4" />
           <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <Rectangle Name="activeIndicator" Grid.Column="0" Fill="#00FFFFFF" RadiusX="2" RadiusY="2" VerticalAlignment="Center" Height="18" HorizontalAlignment="Left" Margin="-1,0,0,0" />
-        <ContentPresenter Grid.Column="1" Margin="14,10,16,10" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextElement.Foreground="{TemplateBinding Control.Foreground}" TextElement.FontFamily="{TemplateBinding Control.FontFamily}" TextElement.FontSize="{TemplateBinding Control.FontSize}" TextElement.FontWeight="{TemplateBinding Control.FontWeight}" />
+        <Rectangle Name="activeIndicator" Grid.Column="0" Fill="#00FFFFFF" RadiusX="2" RadiusY="2" VerticalAlignment="Center" Height="14" HorizontalAlignment="Left" Margin="-1,0,0,0" />
+        <ContentPresenter Grid.Column="1" Margin="8,6,10,6" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextElement.Foreground="{TemplateBinding Control.Foreground}" TextElement.FontFamily="{TemplateBinding Control.FontFamily}" TextElement.FontSize="{TemplateBinding Control.FontSize}" TextElement.FontWeight="{TemplateBinding Control.FontWeight}" />
       </Grid>
     </Border>
     <ControlTemplate.Triggers>
@@ -664,7 +664,7 @@
     <Setter Property="Template" Value="{StaticResource NavItemTemplate}" />
     <Setter Property="Foreground" Value="{StaticResource SidebarTextBrush}" />
     <Setter Property="FontFamily" Value="{StaticResource TrebuchetMs}" />
-    <Setter Property="FontSize" Value="13" />
+    <Setter Property="FontSize" Value="11.5" />
     <Setter Property="FontWeight" Value="SemiBold" />
     <Setter Property="FrameworkElement.Cursor" Value="Hand" />
     <Setter Property="HorizontalAlignment" Value="Stretch" />
@@ -685,13 +685,13 @@
         </LinearGradientBrush>
       </Setter.Value>
     </Setter>
-    <Setter Property="Border.Padding" Value="12,5,12,5" />
+    <Setter Property="Border.Padding" Value="12,4,12,4" />
     <Setter Property="BorderBrush" Value="#F1F5F9" />
     <Setter Property="BorderThickness" Value="0,0,0,1" />
   </Style>
   <Style x:Key="ToolbarBorderStyle" TargetType="{x:Type Border}">
     <Setter Property="Background" Value="#FFFFFFFF" />
-    <Setter Property="Border.Padding" Value="12,4" />
+    <Setter Property="Border.Padding" Value="10,3" />
     <Setter Property="BorderBrush" Value="{StaticResource Slate100Brush}" />
     <Setter Property="BorderThickness" Value="0,0,0,1" />
   </Style>

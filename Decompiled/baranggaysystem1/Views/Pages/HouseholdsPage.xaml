@@ -132,59 +132,57 @@
       <RowDefinition Height="Auto" />
       <RowDefinition Height="Auto" />
     </Grid.RowDefinitions>
-    <Border Grid.Row="0" Style="{StaticResource PageHeaderStyle}" Padding="14,8,14,8">
+    <Border Grid.Row="0" Style="{StaticResource PageHeaderStyle}" Padding="14,4,14,4">
       <Grid>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0" Orientation="Horizontal">
-          <Border Width="34" Height="34" CornerRadius="10" Margin="0,0,10,0">
+          <Border Width="28" Height="28" CornerRadius="8" Margin="0,0,8,0">
             <Border.Background>
               <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                 <GradientStop Color="#DDD6FE" Offset="0" />
                 <GradientStop Color="#E0F2FE" Offset="1" />
               </LinearGradientBrush>
             </Border.Background>
-            <fa:IconBlock Icon="Home" Foreground="#7C3AED" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            <fa:IconBlock Icon="Home" Foreground="#7C3AED" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" />
           </Border>
           <StackPanel VerticalAlignment="Center">
-            <TextBlock Text="Household Registry" Style="{StaticResource HeadingTextStyle}" FontSize="14" />
-            <TextBlock Name="recordCountLabel" Text="Loading household registry..." Style="{StaticResource SubtitleTextStyle}" FontSize="10.5" Margin="0,1,0,0" />
-            <WrapPanel Margin="0,3,0,0">
-              <Border Style="{StaticResource HouseholdHeroChipStyle}">
-                <StackPanel Orientation="Horizontal">
-                  <fa:IconBlock Icon="Eye" FontSize="10" Foreground="{StaticResource AccentBlueBrush}" VerticalAlignment="Center" />
-                  <TextBlock Name="headerVisibleLabel" Text="0 visible now" Style="{StaticResource HouseholdHeroChipTextStyle}" Margin="5,0,0,0" />
-                </StackPanel>
-              </Border>
-              <Border Style="{StaticResource HouseholdHeroChipStyle}">
-                <StackPanel Orientation="Horizontal">
-                  <fa:IconBlock Icon="MapMarkerAlt" FontSize="10" Foreground="#059669" VerticalAlignment="Center" />
-                  <TextBlock Name="headerCoverageLabel" Text="0 puroks covered" Style="{StaticResource HouseholdHeroChipTextStyle}" Margin="5,0,0,0" />
-                </StackPanel>
-              </Border>
-              <Border Style="{StaticResource HouseholdHeroChipStyle}">
-                <StackPanel Orientation="Horizontal">
-                  <fa:IconBlock Icon="Users" FontSize="10" Foreground="#F59E0B" VerticalAlignment="Center" />
-                  <TextBlock Name="headerMembersLabel" Text="0 listed members" Style="{StaticResource HouseholdHeroChipTextStyle}" Margin="5,0,0,0" />
-                </StackPanel>
-              </Border>
-            </WrapPanel>
+            <TextBlock Text="Household Registry" Style="{StaticResource HeadingTextStyle}" FontSize="13" />
+            <TextBlock Name="recordCountLabel" Text="Loading household registry..." Style="{StaticResource SubtitleTextStyle}" FontSize="10" Margin="0,0,0,0" />
           </StackPanel>
         </StackPanel>
         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-          <Button Name="btnExportCsv" Style="{StaticResource HouseholdCompactButtonStyle}" Margin="0,0,6,0" MinWidth="94">
+          <Border Style="{StaticResource HouseholdHeroChipStyle}">
             <StackPanel Orientation="Horizontal">
-              <fa:IconBlock Icon="FileExport" FontSize="10" Margin="0,0,5,0" VerticalAlignment="Center" />
-              <TextBlock Text="Export CSV" VerticalAlignment="Center" />
+              <fa:IconBlock Icon="Eye" FontSize="9" Foreground="{StaticResource AccentBlueBrush}" VerticalAlignment="Center" />
+              <TextBlock Name="headerVisibleLabel" Text="0 visible" Style="{StaticResource HouseholdHeroChipTextStyle}" Margin="4,0,0,0" />
+            </StackPanel>
+          </Border>
+          <Border Style="{StaticResource HouseholdHeroChipStyle}">
+            <StackPanel Orientation="Horizontal">
+              <fa:IconBlock Icon="MapMarkerAlt" FontSize="9" Foreground="#059669" VerticalAlignment="Center" />
+              <TextBlock Name="headerCoverageLabel" Text="0 puroks" Style="{StaticResource HouseholdHeroChipTextStyle}" Margin="4,0,0,0" />
+            </StackPanel>
+          </Border>
+          <Border Style="{StaticResource HouseholdHeroChipStyle}">
+            <StackPanel Orientation="Horizontal">
+              <fa:IconBlock Icon="Users" FontSize="9" Foreground="#F59E0B" VerticalAlignment="Center" />
+              <TextBlock Name="headerMembersLabel" Text="0 members" Style="{StaticResource HouseholdHeroChipTextStyle}" Margin="4,0,0,0" />
+            </StackPanel>
+          </Border>
+          <Button Name="btnExportCsv" Style="{StaticResource HouseholdCompactButtonStyle}" Margin="8,0,6,0" MinWidth="80" Height="26">
+            <StackPanel Orientation="Horizontal">
+              <fa:IconBlock Icon="FileExport" FontSize="10" Margin="0,0,4,0" VerticalAlignment="Center" />
+              <TextBlock Text="Export" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
-          <Button Content="New Household" Style="{StaticResource HouseholdCompactPrimaryButtonStyle}" MinWidth="126" Click="BtnAdd_Click" />
+          <Button Content="New Household" Style="{StaticResource HouseholdCompactPrimaryButtonStyle}" MinWidth="110" Height="26" Click="BtnAdd_Click" />
         </StackPanel>
       </Grid>
     </Border>
-    <WrapPanel Grid.Row="1" Margin="14,6,14,0">
+    <WrapPanel Grid.Row="1" Margin="14,4,14,0" Visibility="Collapsed">
       <Border Style="{StaticResource HouseholdMetricCardStyle}" Width="160" Margin="0,0,6,0">
         <Grid>
           <Grid.ColumnDefinitions>
@@ -246,33 +244,33 @@
         </Grid>
       </Border>
     </WrapPanel>
-    <Border Grid.Row="2" Style="{StaticResource HouseholdSurfaceCardStyle}" Margin="14,6,14,0" Padding="10">
+    <Border Grid.Row="2" Style="{StaticResource HouseholdSurfaceCardStyle}" Margin="14,4,14,0" Padding="8">
       <Grid>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="2.1*" />
-          <ColumnDefinition Width="10" />
+          <ColumnDefinition Width="8" />
           <ColumnDefinition Width="1.05*" />
-          <ColumnDefinition Width="10" />
-          <ColumnDefinition Width="Auto" />
           <ColumnDefinition Width="8" />
           <ColumnDefinition Width="Auto" />
-          <ColumnDefinition Width="8" />
+          <ColumnDefinition Width="6" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="6" />
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <Border Grid.Column="0" Style="{StaticResource HouseholdSearchShellStyle}" VerticalAlignment="Center">
+        <Border Grid.Column="0" Style="{StaticResource HouseholdSearchShellStyle}" Height="30" VerticalAlignment="Center">
           <Grid>
             <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="32" />
+              <ColumnDefinition Width="28" />
               <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <fa:IconBlock Grid.Column="0" Icon="Search" FontSize="12" Foreground="{StaticResource Slate500Brush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            <fa:IconBlock Grid.Column="0" Icon="Search" FontSize="11" Foreground="{StaticResource Slate500Brush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
             <Grid Column="1">
-              <TextBox Name="searchBox" BorderThickness="0" Background="#00FFFFFF" VerticalContentAlignment="Center" FontSize="11.5" Margin="0,0,8,0" TextChanged="SearchBox_TextChanged" />
-              <TextBlock Name="searchPlaceholderText" Text="Search household ID, purok, address, or coordinates" Foreground="{StaticResource Slate400Brush}" VerticalAlignment="Center" FontSize="11.5" Margin="0,0,8,0" IsHitTestVisible="False" />
+              <TextBox Name="searchBox" BorderThickness="0" Background="#00FFFFFF" VerticalContentAlignment="Center" FontSize="11" Margin="0,0,6,0" TextChanged="SearchBox_TextChanged" />
+              <TextBlock Name="searchPlaceholderText" Text="Search household ID, purok, address..." Foreground="{StaticResource Slate400Brush}" VerticalAlignment="Center" FontSize="11" Margin="0,0,6,0" IsHitTestVisible="False" />
             </Grid>
           </Grid>
         </Border>
-        <ComboBox Name="purokFilterCombo" Grid.Column="2" Height="34" MinWidth="148" VerticalAlignment="Center" Style="{StaticResource StyledComboBoxStyle}" SelectionChanged="PurokFilterCombo_SelectionChanged" />
+        <ComboBox Name="purokFilterCombo" Grid.Column="2" Height="30" MinWidth="130" VerticalAlignment="Center" Style="{StaticResource StyledComboBoxStyle}" SelectionChanged="PurokFilterCombo_SelectionChanged" />
         <Border Grid.Column="4" Background="#F8FAFC" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="1" CornerRadius="999" Padding="10,6" VerticalAlignment="Center">
           <WrapPanel VerticalAlignment="Center">
             <fa:IconBlock Icon="InfoCircle" FontSize="10" Foreground="{StaticResource AccentBlueBrush}" VerticalAlignment="Center" />
@@ -294,20 +292,20 @@
         </Button>
       </Grid>
     </Border>
-    <Border Grid.Row="3" Style="{StaticResource HouseholdSurfaceCardStyle}" Margin="20,14,20,0" Padding="0" ClipToBounds="True">
+    <Border Grid.Row="3" Style="{StaticResource HouseholdSurfaceCardStyle}" Margin="14,6,14,0" Padding="0" ClipToBounds="True">
       <Grid>
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto" />
           <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Border Grid.Row="0" Background="#FCFDFE" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="0,0,0,1" Padding="16,14">
+        <Border Grid.Row="0" Background="#FCFDFE" BorderBrush="{StaticResource Slate100Brush}" BorderThickness="0,0,0,1" Padding="12,6">
           <Grid>
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="*" />
               <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <StackPanel Grid.Column="0">
-              <TextBlock Text="Registry Table" FontFamily="{StaticResource CenturyGothic}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource Slate900Brush}" />
+              <TextBlock Text="Registry Table" FontFamily="{StaticResource CenturyGothic}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource Slate900Brush}" />
               <TextBlock Name="tableSummaryLabel" Text="0 result(s) ready for review and household actions." Style="{StaticResource SmallTextStyle}" Margin="0,4,0,0" />
             </StackPanel>
             <Border Grid.Column="1" Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1" CornerRadius="999" Padding="10,5" VerticalAlignment="Center">

@@ -10,11 +10,14 @@ using System.Windows.Controls;
 using System.Windows.Markup;
 using baranggaysystem1.helper;
 using baranggaysystem1.ViewModels;
+using baranggaysystem1.ViewModels.Navigation;
+using baranggaysystem1.Views.Controls;
 using baranggaysystem1.Views.Dialogs;
+using FontAwesome.Sharp;
 
 namespace baranggaysystem1.Views.Pages;
 
-public partial class HouseholdsPage : UserControl
+public partial class HouseholdsPage : UserControl, IRefreshable
 {
 	private const string AllPuroksOption = "All Puroks";
 
@@ -359,11 +362,28 @@ public partial class HouseholdsPage : UserControl
 			DialogService.Instance.ShowWarning("Please select a household first.");
 			return;
 		}
-		HouseholdDetailsWindow window = new HouseholdDetailsWindow(Convert.ToInt32(dataRowView["household_id"]));
-		if (DialogService.Instance.ShowDialog(window).GetValueOrDefault())
+		int householdId = Convert.ToInt32(dataRowView["household_id"]);
+		var detailsWindow = new HouseholdDetailsWindow(householdId);
+		var adapter = new DialogContentAdapter(detailsWindow);
+
+		var saveButton = FullscreenToolbarHelper.CreateToolbarButton("Save & Close", IconChar.Save,
+			(s, args) =>
+			{
+				NavigationService.Instance.NavigateBackFromFullscreen("Households", refreshOnReturn: true);
+			});
+
+		string address = GetText(dataRowView, "street_display", "No address");
+		NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
 		{
-			LoadAsync();
-		}
+			Title = $"Household #{householdId}",
+			Subtitle = address,
+			OriginRoute = "Households",
+			Content = adapter,
+			Icon = IconChar.Home,
+			ToolbarItems = new List<UIElement> { saveButton },
+			ShowSideToolbar = false,
+			OnSaved = () => RefreshData()
+		});
 	}
 
 	private void BtnTransferHistory_Click(object sender, RoutedEventArgs e)
@@ -375,8 +395,19 @@ public partial class HouseholdsPage : UserControl
 		}
 		int num = Convert.ToInt32(dataRowView["household_id"]);
 		string text = GetText(dataRowView, "street_display", $"Household #{num}");
-		HouseholdTransferHistoryWindow window = new HouseholdTransferHistoryWindow(num, text);
-		DialogService.Instance.ShowDialog(window);
+		var historyWindow = new HouseholdTransferHistoryWindow(num, text);
+		var adapter = new DialogContentAdapter(historyWindow);
+
+		NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
+		{
+			Title = $"Transfer History - Household #{num}",
+			Subtitle = text,
+			OriginRoute = "Households",
+			Content = adapter,
+			Icon = IconChar.History,
+			ToolbarItems = new List<UIElement>(),
+			ShowSideToolbar = false
+		});
 	}
 
 	private void BtnEditDetails_Click(object sender, RoutedEventArgs e)
@@ -405,15 +436,31 @@ public partial class HouseholdsPage : UserControl
 		}
 		try
 		{
-			HouseholdTransferWindow window = new HouseholdTransferWindow(Convert.ToInt32(dataRowView["household_id"]));
-			if (DialogService.Instance.ShowDialog(window).GetValueOrDefault())
+			int householdId = Convert.ToInt32(dataRowView["household_id"]);
+			var transferWindow = new HouseholdTransferWindow(householdId);
+			var adapter = new DialogContentAdapter(transferWindow);
+
+			var transferButton = FullscreenToolbarHelper.CreateToolbarButton("Complete Transfer", IconChar.ExchangeAlt,
+				(s, args) =>
+				{
+					NavigationService.Instance.NavigateBackFromFullscreen("Households", refreshOnReturn: true);
+				});
+
+			NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
 			{
-				LoadAsync();
-			}
+				Title = $"Transfer Members - Household #{householdId}",
+				Subtitle = "Move members between households",
+				OriginRoute = "Households",
+				Content = adapter,
+				Icon = IconChar.ExchangeAlt,
+				ToolbarItems = new List<UIElement> { transferButton },
+				ShowSideToolbar = false,
+				OnSaved = () => RefreshData()
+			});
 		}
 		catch (Exception ex)
 		{
-			AppLogger.LogError("Unable to open household transfer dialog.", ex);
+			AppLogger.LogError("Unable to open household transfer view.", ex);
 			DialogService.Instance.ShowError(ex.Message, "Transfer Family");
 		}
 	}
@@ -432,12 +479,24 @@ public partial class HouseholdsPage : UserControl
 		}
 		try
 		{
-			HouseholdCertificateWindow window = new HouseholdCertificateWindow(Convert.ToInt32(dataRowView["household_id"]));
-			DialogService.Instance.ShowDialog(window);
+			int householdId = Convert.ToInt32(dataRowView["household_id"]);
+			var certWindow = new HouseholdCertificateWindow(householdId);
+			var adapter = new DialogContentAdapter(certWindow);
+
+			NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
+			{
+				Title = $"Household Certificate - #{householdId}",
+				Subtitle = "Generate and preview household certificate",
+				OriginRoute = "Households",
+				Content = adapter,
+				Icon = IconChar.FileContract,
+				ToolbarItems = new List<UIElement>(),
+				ShowSideToolbar = false
+			});
 		}
 		catch (Exception ex)
 		{
-			AppLogger.LogError("Unable to open household certificate dialog.", ex);
+			AppLogger.LogError("Unable to open household certificate view.", ex);
 			DialogService.Instance.ShowError(ex.Message, "Household Certificate");
 		}
 	}
@@ -450,16 +509,38 @@ public partial class HouseholdsPage : UserControl
 	private void OpenHouseholdEditor(int? householdId, bool openFamilyManagerAfterSave)
 	{
 		HouseholdEditorWindow householdEditorWindow = new HouseholdEditorWindow(householdId);
-		if (DialogService.Instance.ShowDialog(householdEditorWindow).GetValueOrDefault())
-		{
-			if (openFamilyManagerAfterSave && householdEditorWindow.SavedHouseholdId > 0)
+		var adapter = new DialogContentAdapter(householdEditorWindow);
+
+		var saveButton = FullscreenToolbarHelper.CreateToolbarButton(
+			householdId.HasValue ? "Save Changes" : "Create Household", IconChar.Save,
+			(s, args) =>
 			{
-				HouseholdDetailsWindow window = new HouseholdDetailsWindow(householdEditorWindow.SavedHouseholdId)
-				{
-					Owner = Window.GetWindow((DependencyObject)(object)this)
-				};
-				DialogService.Instance.ShowDialog(window);
-			}
-			LoadAsync();
-		}
-	}}
+				NavigationService.Instance.NavigateBackFromFullscreen("Households", refreshOnReturn: true);
+			});
+
+		NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
+		{
+			Title = householdId.HasValue ? $"Edit Household #{householdId}" : "Create New Household",
+			Subtitle = householdId.HasValue ? "Update household details" : "Register a new household in the system",
+			OriginRoute = "Households",
+			Content = adapter,
+			Icon = householdId.HasValue ? IconChar.Edit : IconChar.HomeLg,
+			ToolbarItems = new List<UIElement> { saveButton },
+			ShowSideToolbar = false,
+			OnSaved = () => RefreshData()
+		});
+	}
+
+	#region IRefreshable Implementation
+
+	/// <summary>
+	/// Refreshes the page data after returning from a fullscreen view.
+	/// Implements IRefreshable to support automatic data refresh on back navigation.
+	/// </summary>
+	public void RefreshData()
+	{
+		_ = LoadAsync();
+	}
+
+	#endregion
+}

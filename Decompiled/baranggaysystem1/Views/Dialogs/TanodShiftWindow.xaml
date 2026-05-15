@@ -1,0 +1,87 @@
+<Window x:Class="baranggaysystem1.Views.Dialogs.TanodShiftWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:fa="clr-namespace:FontAwesome.Sharp;assembly=FontAwesome.Sharp"
+        Title="Patrol Shift" Width="620" Height="680"
+        WindowStartupLocation="CenterOwner"
+        Style="{StaticResource BaseWindowStyle}"
+        ShowInTaskbar="False" ResizeMode="NoResize"
+        Background="{StaticResource Slate50Brush}">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <Border Grid.Row="0" Background="#DC2626" Padding="24,20">
+      <StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+          <fa:IconBlock Icon="CalendarAlt" Foreground="#FECACA" FontSize="20" Margin="0,0,12,0" VerticalAlignment="Center" />
+          <TextBlock Text="NEW SHIFT" Foreground="#FFFFFFFF" FontSize="12" FontWeight="Black" VerticalAlignment="Center" />
+        </StackPanel>
+        <TextBlock Text="Schedule a patrol shift" Foreground="#FFFFFFFF" FontSize="22" FontWeight="Bold" />
+      </StackPanel>
+    </Border>
+
+    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,20">
+      <StackPanel>
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+          <StackPanel Grid.Column="0" Margin="0,0,10,0">
+            <TextBlock Text="Shift Date" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+            <DatePicker Name="dpDate" Height="40" />
+          </StackPanel>
+          <StackPanel Grid.Column="1" Margin="10,0,0,0">
+            <TextBlock Text="Shift Type" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+            <ComboBox Name="typeCombo" Style="{StaticResource StyledComboBoxStyle}" Height="40" />
+          </StackPanel>
+        </Grid>
+
+        <Grid Margin="0,16,0,0">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+          <StackPanel Grid.Column="0" Margin="0,0,10,0">
+            <TextBlock Text="Start Time (HH:MM)" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+            <TextBox Name="txtStart" Style="{StaticResource StyledTextBoxStyle}" Height="40" Text="06:00" MaxLength="5" />
+          </StackPanel>
+          <StackPanel Grid.Column="1" Margin="10,0,0,0">
+            <TextBlock Text="End Time (HH:MM)" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+            <TextBox Name="txtEnd" Style="{StaticResource StyledTextBoxStyle}" Height="40" Text="14:00" MaxLength="5" />
+          </StackPanel>
+        </Grid>
+
+        <TextBlock Text="Area Assignment" Style="{StaticResource LabelTextStyle}" Margin="0,16,0,8" />
+        <TextBox Name="txtArea" Style="{StaticResource StyledTextBoxStyle}" Height="40" MaxLength="200" />
+
+        <TextBlock Text="Assign Tanod Members" Style="{StaticResource LabelTextStyle}" Margin="0,16,0,8" />
+        <Border BorderBrush="{StaticResource Slate300Brush}" BorderThickness="1" CornerRadius="6"
+                Background="#FFFFFFFF" Height="160" Padding="8">
+          <ListBox Name="tanodList" SelectionMode="Multiple" BorderThickness="0"
+                   DisplayMemberPath="full_name" SelectedValuePath="tanod_id" />
+        </Border>
+        <TextBlock Text="Hold Ctrl or Shift to select multiple members."
+                   FontSize="10" Foreground="{StaticResource Slate500Brush}" Margin="0,4,0,0" />
+
+        <TextBlock Text="Notes" Style="{StaticResource LabelTextStyle}" Margin="0,16,0,8" />
+        <TextBox Name="txtNotes" Style="{StaticResource StyledTextBoxStyle}" Height="80"
+                 TextWrapping="Wrap" AcceptsReturn="True" VerticalContentAlignment="Top" Padding="10" />
+      </StackPanel>
+    </ScrollViewer>
+
+    <Border Grid.Row="2" Background="#FFFFFFFF" BorderBrush="{StaticResource Slate200Brush}"
+            BorderThickness="0,1,0,0" Padding="24,16">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+        <Button Content="Cancel" Style="{StaticResource SecondaryButtonStyle}" Width="100" Height="40"
+                Margin="0,0,12,0" IsCancel="True" />
+        <Button Name="btnSave" Content="Save Shift" Style="{StaticResource PrimaryButtonStyle}"
+                Width="160" Height="40" IsDefault="True" Click="BtnSave_Click" />
+      </StackPanel>
+    </Border>
+  </Grid>
+</Window>

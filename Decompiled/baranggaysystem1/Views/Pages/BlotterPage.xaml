@@ -278,6 +278,23 @@
         </Border>
         <Grid Row="1">
           <DataGrid Name="mainGrid" Style="{StaticResource StyledDataGridStyle}" ColumnHeaderStyle="{StaticResource BlotterDataGridHeaderStyle}" RowStyle="{StaticResource BlotterDataGridRowStyle}" CellStyle="{StaticResource BlotterDataGridCellStyle}" AutoGenerateColumns="False" IsReadOnly="True" AlternationCount="2" RowHeight="76" HeadersVisibility="Column" SelectionChanged="MainGrid_SelectionChanged">
+            <DataGrid.ContextMenu>
+              <ContextMenu>
+                <MenuItem Header="Open Case Details" Click="BtnEdit_Click">
+                  <MenuItem.Icon><fa:IconBlock Icon="FolderOpen" FontSize="12" /></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Resolve / Close" Click="BtnEdit_Click">
+                  <MenuItem.Icon><fa:IconBlock Icon="CheckCircle" FontSize="12" /></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Refer Case" Click="BtnEdit_Click">
+                  <MenuItem.Icon><fa:IconBlock Icon="ExternalLinkAlt" FontSize="12" /></MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <MenuItem Header="Export Case as CSV" Click="BtnExportCase_Click">
+                  <MenuItem.Icon><fa:IconBlock Icon="FileExport" FontSize="12" /></MenuItem.Icon>
+                </MenuItem>
+              </ContextMenu>
+            </DataGrid.ContextMenu>
             <DataGrid.Columns>
               <DataGridTemplateColumn Header="Case File" Width="180">
                 <DataGridTemplateColumn.CellTemplate>

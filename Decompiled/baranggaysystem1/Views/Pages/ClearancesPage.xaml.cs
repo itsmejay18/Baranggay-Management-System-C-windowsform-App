@@ -12,11 +12,15 @@ using System.Windows.Markup;
 using baranggaysystem1.helper;
 using baranggaysystem1.Services;
 using baranggaysystem1.ViewModels;
+using baranggaysystem1.ViewModels.Navigation;
+using baranggaysystem1.Views.Controls;
 using baranggaysystem1.Views.Dialogs;
+using baranggaysystem1.Views.Panels;
+using FontAwesome.Sharp;
 
 namespace baranggaysystem1.Views.Pages;
 
-public partial class ClearancesPage : UserControl
+public partial class ClearancesPage : UserControl, IRefreshable
 {
 	private readonly CertificateRequestService _certificateRequestService = new CertificateRequestService();
 
@@ -227,7 +231,7 @@ public partial class ClearancesPage : UserControl
 		await LoadAsync();
 	}
 
-	private async void BtnIssue_Click(object sender, RoutedEventArgs e)
+	private void BtnIssue_Click(object sender, RoutedEventArgs e)
 	{
 		if (!(mainGrid.SelectedItem is DataRowView dataRowView))
 		{
@@ -245,11 +249,33 @@ public partial class ClearancesPage : UserControl
 			DialogService.Instance.ShowInfo("This document has already been released.");
 			return;
 		}
-		CertificationWindow window = new CertificationWindow(Convert.ToInt32(dataRowView["doc_request_id"]), CertificateDialogMode.Issue, loadExistingRequest: true);
-		if (DialogService.Instance.ShowDialog(window).GetValueOrDefault())
+		int requestId = Convert.ToInt32(dataRowView["doc_request_id"]);
+		string trackingCode = Convert.ToString(dataRowView["tracking_code"]) ?? "Request";
+		string residentName = Convert.ToString(dataRowView["resident_name"]) ?? "Resident";
+
+		var issueForm = new CertificateFormPanel(CertificateDialogMode.Issue, requestId, loadExisting: true);
+
+		var saveButton = CreateFullscreenToolbarButton("Release & Print", IconChar.Print,
+			async (s, args) =>
+			{
+				if (await issueForm.TrySaveAsync())
+				{
+					NavigationService.Instance.NavigateBackFromFullscreen(
+						"Clearances", refreshOnReturn: true);
+				}
+			});
+
+		NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
 		{
-			await LoadAsync();
-		}
+			Title = $"Release: {trackingCode}",
+			Subtitle = $"{residentName} — Verify and finalize for release",
+			OriginRoute = "Clearances",
+			Content = issueForm,
+			Icon = IconChar.Stamp,
+			ToolbarItems = new List<UIElement> { saveButton },
+			ShowSideToolbar = false,
+			OnSaved = () => RefreshData()
+		});
 	}
 
 	private async void BtnCancel_Click(object sender, RoutedEventArgs e)
@@ -287,13 +313,31 @@ public partial class ClearancesPage : UserControl
 		}
 	}
 
-	private async void BtnAdd_Click(object sender, RoutedEventArgs e)
+	private void BtnAdd_Click(object sender, RoutedEventArgs e)
 	{
-		CertificationWindow window = new CertificationWindow(CertificateDialogMode.Request);
-		if (DialogService.Instance.ShowDialog(window).GetValueOrDefault())
+		var requestForm = new CertificateFormPanel(CertificateDialogMode.Request);
+
+		var saveButton = CreateFullscreenToolbarButton("Submit Request", IconChar.PaperPlane,
+			async (s, args) =>
+			{
+				if (await requestForm.TrySaveAsync())
+				{
+					NavigationService.Instance.NavigateBackFromFullscreen(
+						"Clearances", refreshOnReturn: true);
+				}
+			});
+
+		NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
 		{
-			await LoadAsync();
-		}
+			Title = "New Certificate Request",
+			Subtitle = "Create a resident-linked document request for queue processing",
+			OriginRoute = "Clearances",
+			Content = requestForm,
+			Icon = IconChar.FileCirclePlus,
+			ToolbarItems = new List<UIElement> { saveButton },
+			ShowSideToolbar = false,
+			OnSaved = () => RefreshData()
+		});
 	}
 
 	private void BtnVerify_Click(object sender, RoutedEventArgs e)
@@ -311,6 +355,27 @@ public partial class ClearancesPage : UserControl
 		}
 		DocumentVerificationWindow window = new DocumentVerificationWindow(Convert.ToInt32(dataRowView["doc_request_id"]));
 		DialogService.Instance.ShowDialog(window);
+	}
+
+	private void BtnPrintPreview_Click(object sender, RoutedEventArgs e)
+	{
+		if (!(mainGrid.SelectedItem is DataRowView dataRowView))
+		{
+			DialogService.Instance.ShowWarning("Select a request to preview.");
+			return;
+		}
+		string status = Convert.ToString(dataRowView["status"]) ?? "SUBMITTED";
+		string residentName = Convert.ToString(dataRowView["resident_name"]) ?? "Resident";
+		string certType = Convert.ToString(dataRowView["certification_type"]) ?? "Barangay Clearance";
+		string purpose = Convert.ToString(dataRowView["purpose"]) ?? string.Empty;
+		string documentNo = Convert.ToString(dataRowView["document_no"]) ?? string.Empty;
+		string barangayName = SystemConfigService.GetBarangayName();
+		string officialName = SystemConfigService.GetSystemName();
+
+		var preview = new PrintPreviewWindow();
+		preview.Owner = Window.GetWindow((DependencyObject)(object)this);
+		preview.BuildCertificatePreview(certType, residentName, purpose, documentNo, barangayName, officialName, DateTime.Now);
+		preview.ShowDialog();
 	}
 
 	private void UpdateSelectionState(DataRowView? row)
@@ -447,4 +512,66 @@ public partial class ClearancesPage : UserControl
 		string value2 = (string.IsNullOrWhiteSpace(verificationToken) ? "No verification token saved." : "Verification token and QR payload are available.");
 		string value3 = (string.IsNullOrWhiteSpace(expiresOn) ? "No expiry recorded." : ("Expires " + expiresOn.Trim() + "."));
 		return $"{value} | {value2} | {value3}";
-	}}
+	}
+
+	#region IRefreshable Implementation
+
+	/// <summary>
+	/// Refreshes the page data after returning from a fullscreen view.
+	/// Implements IRefreshable to support automatic data refresh on back navigation.
+	/// Requirement 2.6: Module page refreshes data via IRefreshable.RefreshData().
+	/// </summary>
+	public void RefreshData()
+	{
+		_ = LoadAsync();
+	}
+
+	#endregion
+
+	#region Fullscreen View Helpers
+
+	/// <summary>
+	/// Creates a styled toolbar button for use in fullscreen view toolbars.
+	/// </summary>
+	private static Button CreateFullscreenToolbarButton(string label, IconChar icon, RoutedEventHandler clickHandler)
+	{
+		var iconBlock = new IconBlock
+		{
+			Icon = icon,
+			FontSize = 14,
+			Margin = new Thickness(0, 0, 6, 0),
+			VerticalAlignment = VerticalAlignment.Center
+		};
+
+		var textBlock = new TextBlock
+		{
+			Text = label,
+			VerticalAlignment = VerticalAlignment.Center,
+			FontSize = 12
+		};
+
+		var panel = new StackPanel
+		{
+			Orientation = Orientation.Horizontal
+		};
+		panel.Children.Add(iconBlock);
+		panel.Children.Add(textBlock);
+
+		var button = new Button
+		{
+			Content = panel,
+			Padding = new Thickness(12, 6, 12, 6),
+			Margin = new Thickness(0, 0, 4, 0),
+			MinHeight = 32,
+			Cursor = System.Windows.Input.Cursors.Hand
+		};
+
+		// Set accessibility name (Requirement 5.4)
+		System.Windows.Automation.AutomationProperties.SetName(button, label);
+
+		button.Click += clickHandler;
+		return button;
+	}
+
+	#endregion
+}

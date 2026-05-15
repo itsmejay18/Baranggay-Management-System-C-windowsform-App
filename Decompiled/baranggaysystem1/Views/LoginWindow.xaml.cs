@@ -77,9 +77,20 @@ public partial class LoginWindow : Window
 		base.Loaded += async delegate
 		{
 			BeginFadeIn();
-			LoadDynamicBranding();
 			InitializeConnectionOptions();
 			txtUsername.Focus();
+			// Load branding in background so the UI renders immediately
+			await Task.Run(() =>
+			{
+				try { return (SystemConfigService.LoadBrandingSettings(), SystemConfigService.LoadOfficeSettings(), SystemConfigService.GetLogo()); }
+				catch { return (null, null, (BitmapImage?)null); }
+			}).ContinueWith(t =>
+			{
+				if (t.Result.Item1 != null)
+				{
+					ApplyBrandingOnUI(t.Result.Item1, t.Result.Item2, t.Result.Item3);
+				}
+			}, TaskScheduler.FromCurrentSynchronizationContext());
 			DatabaseConnectionOption selectedConnectionOption = GetSelectedConnectionOption();
 			if (selectedConnectionOption != null)
 			{
@@ -87,6 +98,25 @@ public partial class LoginWindow : Window
 				RefreshConnectionStatusAfterDelayAsync();
 			}
 		};
+	}
+
+	private void ApplyBrandingOnUI(SystemBrandingSettings systemBrandingSettings, SystemOfficeSettings office, BitmapImage? logo)
+	{
+		try
+		{
+			string systemName = systemBrandingSettings.SystemName;
+			base.Title = systemName + " - Secure Login";
+			brandPrimaryText.Text = BuildGovernmentLabel(systemBrandingSettings);
+			brandSecondaryText.Text = BuildProfileLine(systemBrandingSettings);
+			brandAddressText.Text = BuildOfficeLine(systemBrandingSettings, office);
+			softwareNameText.Text = systemName;
+			softwareSubtitleText.Text = BuildSoftwareSubtitle(systemBrandingSettings);
+			string text = BuildSystemInitials(systemName);
+			logoFallbackText.Text = text;
+			rightLogoFallbackText.Text = text;
+			ApplyLogo(logo);
+		}
+		catch { }
 	}
 
 	private void LoadDynamicBranding()
@@ -195,19 +225,34 @@ public partial class LoginWindow : Window
 		DBConnection.SetRuntimeSqliteSelection(isSelected: false);
 		string text = DbConnectionSettingsStore.BuildConnectionString(option.Profile);
 		DBConnection.SetRuntimeConnectionString(text);
-		if (DBConnection.TryGetWorkingConnectionString(text, out string workingConnectionString, out string _))
+
+		// Try connecting - if database doesn't exist, auto-create it
+		if (!DatabaseAutoCreator.TryEnsureReady(text, option.Profile))
 		{
-			DBConnection.SetRuntimeConnectionString(workingConnectionString);
-			OfflineDatabaseSupport.ActivateOnlineMode();
-			return BuildReadySnapshot(option);
+			// Direct connection failed and auto-create failed - try full resolution
+			if (DBConnection.TryGetWorkingConnectionString(text, out string workingConnectionString, out string _))
+			{
+				DBConnection.SetRuntimeConnectionString(workingConnectionString);
+				OfflineDatabaseSupport.ActivateOnlineMode();
+				return BuildReadySnapshot(option);
+			}
+			// Server unreachable - fall back to offline
+			if (OfflineDatabaseSupport.IsAvailable || OfflineDatabaseSupport.EnsureInitialised())
+			{
+				OfflineDatabaseSupport.ActivateOfflineMode();
+				return BuildOfflineFallbackSnapshot(option);
+			}
+			DBConnection.RegisterConnectivityFailure();
+			return BuildDisconnectedSnapshot("Live MySQL is unavailable and the local offline database is not ready yet.");
 		}
-		if (OfflineDatabaseSupport.IsAvailable || OfflineDatabaseSupport.EnsureInitialised())
+
+		// Database exists (or was just created) - finalize connection
+		if (DBConnection.TryGetWorkingConnectionString(text, out string workingConn, out string _))
 		{
-			OfflineDatabaseSupport.ActivateOfflineMode();
-			return BuildOfflineFallbackSnapshot(option);
+			DBConnection.SetRuntimeConnectionString(workingConn);
 		}
-		DBConnection.RegisterConnectivityFailure();
-		return BuildDisconnectedSnapshot("Live MySQL is unavailable and the local offline database is not ready yet.");
+		OfflineDatabaseSupport.ActivateOnlineMode();
+		return BuildReadySnapshot(option);
 	}
 
 	private DatabaseConnectionOption? GetSelectedConnectionOption()
@@ -431,7 +476,7 @@ public partial class LoginWindow : Window
 	private void BeginFadeIn()
 	{
 		base.Opacity = 0.0;
-		DoubleAnimation animation = new DoubleAnimation(0.0, 1.0, TimeSpan.FromMilliseconds(350.0));
+		DoubleAnimation animation = new DoubleAnimation(0.0, 1.0, TimeSpan.FromMilliseconds(150.0));
 		BeginAnimation(UIElement.OpacityProperty, animation);
 	}
 

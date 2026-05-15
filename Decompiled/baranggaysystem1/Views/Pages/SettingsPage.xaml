@@ -46,45 +46,15 @@
         <Border Width="24" Height="24" CornerRadius="10" Background="{StaticResource Slate100Brush}" Margin="0,0,8,0">
           <fa:IconBlock Icon="Cog" Foreground="{StaticResource Slate700Brush}" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" />
         </Border>
-        <StackPanel VerticalAlignment="Center">
-          <TextBlock Text="System Settings" Style="{StaticResource HeadingTextStyle}" />
-          <TextBlock Text="Open separate workspaces for branding, office details, and database connection." Style="{StaticResource SubtitleTextStyle}" Margin="0,2,0,0" />
-        </StackPanel>
+        <TextBlock Text="System Settings" Style="{StaticResource HeadingTextStyle}" VerticalAlignment="Center" />
       </StackPanel>
     </Border>
     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
       <StackPanel Margin="24,20,24,32" MaxWidth="960" HorizontalAlignment="Left">
-        <Border Background="#F8FBFF" CornerRadius="16" Padding="20" BorderBrush="{StaticResource Slate200Brush}" BorderThickness="1" Margin="0,0,0,20">
-          <Grid>
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="*" />
-              <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <StackPanel Grid.Column="0">
-              <TextBlock Text="Separated settings storage" FontSize="13" FontWeight="Bold" Foreground="{StaticResource Slate900Brush}" />
-              <TextBlock Text="Branding and office details are saved in the active system configuration. The database connection profile stays separate on this computer, so connection changes do not overwrite your branding values." Style="{StaticResource SmallTextStyle}" Margin="0,6,0,0" TextWrapping="Wrap" MaxWidth="620" />
-            </StackPanel>
-            <WrapPanel Grid.Column="1" Margin="18,0,0,0" VerticalAlignment="Center">
-              <Border Background="#DBEAFE" CornerRadius="12" Padding="10,6" Margin="0,0,8,8">
-                <TextBlock Text="Branding CRUD" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}" />
-              </Border>
-              <Border Background="#E0F2FE" CornerRadius="12" Padding="10,6" Margin="0,0,8,8">
-                <TextBlock Text="Office details" FontSize="10.5" FontWeight="Bold" Foreground="#0369A1" />
-              </Border>
-              <Border Background="#F3E8FF" CornerRadius="12" Padding="10,6" Margin="0,0,0,8">
-                <TextBlock Text="Database profile" FontSize="10.5" FontWeight="Bold" Foreground="#7C3AED" />
-              </Border>
-            </WrapPanel>
-          </Grid>
-        </Border>
         <TabControl Style="{StaticResource SettingsTabControlStyle}">
-          <TabItem Header="Branding &amp; Identity" Style="{StaticResource SettingsTabItemStyle}">
+          <TabItem Header="Branding" Style="{StaticResource SettingsTabItemStyle}">
             <Border Style="{StaticResource SectionCardStyle}" Margin="0,18,0,20">
               <StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                  <fa:IconBlock Icon="IdCard" Foreground="{StaticResource AccentBlueBrush}" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center" />
-                  <TextBlock Text="Branding and Identity" Style="{StaticResource SectionHeaderTextStyle}" VerticalAlignment="Center" />
-                </StackPanel>
                 <Grid>
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="2*" />
@@ -94,9 +64,9 @@
                   <StackPanel Grid.Column="0">
                     <TextBlock Text="System Name" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
                     <TextBox Name="txtSystemName" Style="{StaticResource StyledTextBoxStyle}" Height="40" Margin="0,0,0,16" />
-                    <TextBlock Text="Official Barangay Name" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+                    <TextBlock Text="Barangay Name" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
                     <TextBox Name="txtBarangayName" Style="{StaticResource StyledTextBoxStyle}" Height="40" Margin="0,0,0,16" />
-                    <TextBlock Text="City / Municipality" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+                    <TextBlock Text="Municipality" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
                     <TextBox Name="txtMunicipality" Style="{StaticResource StyledTextBoxStyle}" Height="40" Margin="0,0,0,16" />
                     <Grid>
                       <Grid.ColumnDefinitions>
@@ -114,12 +84,12 @@
                       </StackPanel>
                     </Grid>
                     <WrapPanel Margin="0,20,0,0">
-                      <Button Name="btnSaveBranding" Content="Save Branding" Style="{StaticResource PrimaryButtonStyle}" Width="160" Margin="0,0,10,0" Click="BtnSaveBranding_Click" />
+                      <Button Name="btnSaveBranding" Content="Save" Style="{StaticResource PrimaryButtonStyle}" Width="140" Margin="0,0,10,0" Click="BtnSaveBranding_Click" />
                       <Button Name="btnResetBranding" Content="Restore Defaults" Style="{StaticResource GhostButtonStyle}" Width="150" Click="BtnResetBranding_Click" />
                     </WrapPanel>
                   </StackPanel>
                   <StackPanel Grid.Column="2">
-                    <TextBlock Text="Institutional Logo" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+                    <TextBlock Text="Logo" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
                     <Border Width="170" Height="170" CornerRadius="16" Background="#FFFFFFFF" BorderBrush="{StaticResource Slate200Brush}" BorderThickness="1" HorizontalAlignment="Left">
                       <Grid>
                         <Image Name="logoPreview" Stretch="Uniform" Margin="10" Visibility="Collapsed" />
@@ -129,22 +99,16 @@
                         </StackPanel>
                       </Grid>
                     </Border>
-                    <TextBlock Text="Use PNG or JPG. The app automatically trims white outer padding from uploaded logos, and the main window refreshes after save so the logo and system name update immediately." Style="{StaticResource SmallTextStyle}" Margin="0,10,0,0" TextWrapping="Wrap" />
-                    <Button Name="btnUploadLogo" Content="Upload Logo" Style="{StaticResource SecondaryButtonStyle}" Margin="0,12,0,8" Width="150" Click="BtnUploadLogo_Click" />
-                    <Button Name="btnRemoveLogo" Content="Remove Logo" Style="{StaticResource GhostButtonStyle}" Foreground="{StaticResource AccentRedBrush}" Width="150" Click="BtnRemoveLogo_Click" />
+                    <Button Name="btnUploadLogo" Content="Upload" Style="{StaticResource SecondaryButtonStyle}" Margin="0,12,0,8" Width="150" Click="BtnUploadLogo_Click" />
+                    <Button Name="btnRemoveLogo" Content="Remove" Style="{StaticResource GhostButtonStyle}" Foreground="{StaticResource AccentRedBrush}" Width="150" Click="BtnRemoveLogo_Click" />
                   </StackPanel>
                 </Grid>
               </StackPanel>
             </Border>
           </TabItem>
-          <TabItem Header="Office Details" Style="{StaticResource SettingsTabItemStyle}">
+          <TabItem Header="Office" Style="{StaticResource SettingsTabItemStyle}">
             <Border Style="{StaticResource SectionCardStyle}" Margin="0,18,0,20">
               <StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                  <fa:IconBlock Icon="AddressCard" Foreground="#0EA5E9" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center" />
-                  <TextBlock Text="Office and Contact Details" Style="{StaticResource SectionHeaderTextStyle}" VerticalAlignment="Center" />
-                </StackPanel>
-                <TextBlock Text="Keep official address and contact information in one place for certificates, reports, and letterheads." Style="{StaticResource SmallTextStyle}" Margin="0,0,0,16" />
                 <TextBlock Text="Office Address" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
                 <TextBox Name="txtOfficeAddress" Style="{StaticResource StyledTextBoxStyle}" Height="72" TextWrapping="Wrap" AcceptsReturn="True" VerticalContentAlignment="Top" Padding="12,10" Margin="0,0,0,16" />
                 <Grid>
@@ -154,41 +118,27 @@
                     <ColumnDefinition Width="*" />
                   </Grid.ColumnDefinitions>
                   <StackPanel Grid.Column="0">
-                    <TextBlock Text="Primary Contact Number" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+                    <TextBlock Text="Contact Number" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
                     <TextBox Name="txtContactNumber" Style="{StaticResource StyledTextBoxStyle}" Height="40" />
                   </StackPanel>
                   <StackPanel Grid.Column="2">
-                    <TextBlock Text="Official Email" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+                    <TextBlock Text="Email" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
                     <TextBox Name="txtOfficialEmail" Style="{StaticResource StyledTextBoxStyle}" Height="40" />
                   </StackPanel>
                 </Grid>
                 <WrapPanel Margin="0,20,0,0">
-                  <Button Name="btnSaveOfficeSettings" Content="Save Office Details" Style="{StaticResource PrimaryButtonStyle}" Width="170" Margin="0,0,10,0" Click="BtnSaveOfficeSettings_Click" />
-                  <Button Name="btnResetOfficeSettings" Content="Clear Optional Fields" Style="{StaticResource GhostButtonStyle}" Width="165" Click="BtnResetOfficeSettings_Click" />
+                  <Button Name="btnSaveOfficeSettings" Content="Save" Style="{StaticResource PrimaryButtonStyle}" Width="140" Margin="0,0,10,0" Click="BtnSaveOfficeSettings_Click" />
+                  <Button Name="btnResetOfficeSettings" Content="Clear" Style="{StaticResource GhostButtonStyle}" Width="140" Click="BtnResetOfficeSettings_Click" />
                 </WrapPanel>
               </StackPanel>
             </Border>
           </TabItem>
-          <TabItem Header="Database Connection" Style="{StaticResource SettingsTabItemStyle}">
+          <TabItem Header="Database" Style="{StaticResource SettingsTabItemStyle}">
             <Border Style="{StaticResource SectionCardStyle}" Margin="0,18,0,20">
               <StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                  <fa:IconBlock Icon="Database" Foreground="#8B5CF6" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center" />
-                  <TextBlock Text="Database Connection" Style="{StaticResource SectionHeaderTextStyle}" VerticalAlignment="Center" />
-                </StackPanel>
                 <TextBlock Text="Connection Profile" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
-                <Grid Margin="0,0,0,16">
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="260" />
-                    <ColumnDefinition Width="16" />
-                    <ColumnDefinition Width="*" />
-                  </Grid.ColumnDefinitions>
-                  <ComboBox Name="cmbConnectionProfile" Grid.Column="0" Style="{StaticResource StyledComboBoxStyle}" Height="40" SelectionChanged="CmbConnectionProfile_SelectionChanged" />
-                  <Border Grid.Column="2" Background="#FAF5FF" BorderBrush="#E9D5FF" BorderThickness="1" CornerRadius="12" Padding="12,10">
-                    <TextBlock Name="lblConnectionProfileDescription" Text="Choose which database connection this system should use." Style="{StaticResource SmallTextStyle}" TextWrapping="Wrap" />
-                  </Border>
-                </Grid>
-                <TextBlock Text="These values are stored in the local machine profile, separate from branding and office records. MySQL profiles can be tested before saving, while the SQLite profile prepares a local file in the Database/sqlite folder. New operations use the selected profile after save, and a restart will refresh any pages still using the old connection." Style="{StaticResource SmallTextStyle}" Margin="0,0,0,18" TextWrapping="Wrap" />
+                <ComboBox Name="cmbConnectionProfile" Style="{StaticResource StyledComboBoxStyle}" Height="40" Width="300" HorizontalAlignment="Left" Margin="0,0,0,16" SelectionChanged="CmbConnectionProfile_SelectionChanged" />
+                <TextBlock Name="lblConnectionProfileDescription" Text="" Style="{StaticResource SmallTextStyle}" Margin="0,0,0,18" TextWrapping="Wrap" />
                 <Grid Name="pnlMySqlConnectionFields">
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -196,59 +146,57 @@
                     <ColumnDefinition Width="*" />
                   </Grid.ColumnDefinitions>
                   <StackPanel Grid.Column="0">
-                    <TextBlock Text="Database Host" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+                    <TextBlock Text="Host" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
                     <TextBox Name="txtDbHost" Style="{StaticResource StyledTextBoxStyle}" Height="40" Margin="0,0,0,16" />
-                    <TextBlock Text="Authentication User" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+                    <TextBlock Text="User" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
                     <TextBox Name="txtDbUser" Style="{StaticResource StyledTextBoxStyle}" Height="40" Margin="0,0,0,16" />
-                    <TextBlock Text="Database Password" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+                    <TextBlock Text="Password" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
                     <PasswordBox Name="txtDbPassword" Style="{StaticResource StyledPasswordBoxStyle}" Height="40" />
                   </StackPanel>
                   <StackPanel Grid.Column="2">
-                    <TextBlock Text="Service Port" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+                    <TextBlock Text="Port" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
                     <TextBox Name="txtDbPort" Style="{StaticResource StyledTextBoxStyle}" Height="40" Margin="0,0,0,16" />
-                    <TextBlock Text="Schema Name" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+                    <TextBlock Text="Database" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
                     <TextBox Name="txtDbName" Style="{StaticResource StyledTextBoxStyle}" Height="40" Margin="0,0,0,16" />
-                    <CheckBox Name="chkDbUseSsl" Content="Use SSL / TLS" VerticalAlignment="Center" Margin="0,12,0,0" />
+                    <CheckBox Name="chkDbUseSsl" Content="Use SSL" VerticalAlignment="Center" Margin="0,12,0,0" />
                   </StackPanel>
                 </Grid>
                 <Border Name="pnlSqliteDetails" Margin="0,0,0,4" Background="#F8FAFC" BorderBrush="{StaticResource Slate200Brush}" BorderThickness="1" CornerRadius="14" Padding="16" Visibility="Collapsed">
                   <StackPanel>
-                    <TextBlock Text="SQLite Database File" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
+                    <TextBlock Text="SQLite File" Style="{StaticResource LabelTextStyle}" Margin="0,0,0,8" />
                     <TextBox Name="txtSqlitePath" Style="{StaticResource StyledTextBoxStyle}" Height="40" IsReadOnly="True" />
-                    <TextBlock Text="This local file is created automatically when the SQLite profile is tested or saved. Full backup uses this file when SQLite is the active source." Style="{StaticResource SmallTextStyle}" Margin="0,10,0,0" TextWrapping="Wrap" />
                   </StackPanel>
                 </Border>
                 <WrapPanel Margin="0,20,0,0">
-                  <Button Name="btnTestConnection" Content="Test Connectivity" Style="{StaticResource SecondaryButtonStyle}" Width="155" Margin="0,0,10,0" Click="BtnTestConnection_Click" />
-                  <Button Name="btnSaveConnection" Content="Save Connection" Style="{StaticResource PrimaryButtonStyle}" Width="155" Margin="0,0,10,0" Background="#8B5CF6" BorderBrush="#8B5CF6" Click="BtnSaveConnection_Click" />
-                  <Button Name="btnResetConnection" Content="Reset Connection" Style="{StaticResource GhostButtonStyle}" Width="150" Click="BtnResetConnection_Click" />
+                  <Button Name="btnTestConnection" Content="Test" Style="{StaticResource SecondaryButtonStyle}" Width="130" Margin="0,0,10,0" Click="BtnTestConnection_Click" />
+                  <Button Name="btnSaveConnection" Content="Save" Style="{StaticResource PrimaryButtonStyle}" Width="130" Margin="0,0,10,0" Background="#8B5CF6" BorderBrush="#8B5CF6" Click="BtnSaveConnection_Click" />
+                  <Button Name="btnResetConnection" Content="Reset" Style="{StaticResource GhostButtonStyle}" Width="130" Click="BtnResetConnection_Click" />
                 </WrapPanel>
                 <Border Margin="0,24,0,0" Background="#F8FAFC" BorderBrush="{StaticResource Slate200Brush}" BorderThickness="1" CornerRadius="16" Padding="18">
                   <StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
                       <fa:IconBlock Icon="Save" Foreground="#0F766E" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center" />
-                      <TextBlock Text="Backup And Restore" Style="{StaticResource SectionHeaderTextStyle}" VerticalAlignment="Center" />
+                      <TextBlock Text="Backup and Restore" Style="{StaticResource SectionHeaderTextStyle}" VerticalAlignment="Center" />
                     </StackPanel>
-                    <TextBlock Text="Create restore points from the database currently powering this session. Full backup follows the active source: live MySQL when online, local SQLite when offline. SQL / ZIP restore still applies only to the active MySQL database, and incremental or differential backups depend on the correct earlier baseline." Style="{StaticResource SmallTextStyle}" TextWrapping="Wrap" />
-                    <Grid Margin="0,16,0,0">
+                    <Grid>
                       <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="1.6*" />
                         <ColumnDefinition Width="18" />
                         <ColumnDefinition Width="1*" />
                       </Grid.ColumnDefinitions>
                       <WrapPanel Grid.Column="0">
-                        <Button Name="btnRunFullBackup" Content="Full Backup" Style="{StaticResource PrimaryButtonStyle}" Width="138" Margin="0,0,10,10" Click="BtnRunFullBackup_Click" />
-                        <Button Name="btnRunIncrementalBackup" Content="Incremental" Style="{StaticResource SecondaryButtonStyle}" Width="138" Margin="0,0,10,10" Click="BtnRunIncrementalBackup_Click" />
-                        <Button Name="btnRunDifferentialBackup" Content="Differential" Style="{StaticResource SecondaryButtonStyle}" Width="138" Margin="0,0,10,10" Click="BtnRunDifferentialBackup_Click" />
-                        <Button Name="btnOpenBackupFolder" Content="Open Backup Folder" Style="{StaticResource GhostButtonStyle}" Width="164" Margin="0,0,10,10" Click="BtnOpenBackupFolder_Click" />
-                        <Button Name="btnRestoreBackup" Content="Restore Backup File" Style="{StaticResource GhostButtonStyle}" Width="164" Margin="0,0,0,10" Click="BtnRestoreBackup_Click" />
+                        <Button Name="btnRunFullBackup" Content="Full" Style="{StaticResource PrimaryButtonStyle}" Width="120" Margin="0,0,10,10" Click="BtnRunFullBackup_Click" />
+                        <Button Name="btnRunIncrementalBackup" Content="Incremental" Style="{StaticResource SecondaryButtonStyle}" Width="130" Margin="0,0,10,10" Click="BtnRunIncrementalBackup_Click" />
+                        <Button Name="btnRunDifferentialBackup" Content="Differential" Style="{StaticResource SecondaryButtonStyle}" Width="130" Margin="0,0,10,10" Click="BtnRunDifferentialBackup_Click" />
+                        <Button Name="btnOpenBackupFolder" Content="Open Folder" Style="{StaticResource GhostButtonStyle}" Width="140" Margin="0,0,10,10" Click="BtnOpenBackupFolder_Click" />
+                        <Button Name="btnRestoreBackup" Content="Restore" Style="{StaticResource GhostButtonStyle}" Width="140" Margin="0,0,0,10" Click="BtnRestoreBackup_Click" />
                       </WrapPanel>
                       <Border Grid.Column="2" Background="#FFFFFFFF" BorderBrush="{StaticResource Slate200Brush}" BorderThickness="1" CornerRadius="14" Padding="14">
                         <StackPanel>
                           <TextBlock Text="Latest Backup" FontSize="12" FontWeight="Bold" Foreground="{StaticResource Slate900Brush}" />
-                          <TextBlock Name="lblBackupSummary" Text="No recorded backups yet." Style="{StaticResource SmallTextStyle}" Margin="0,8,0,0" FontWeight="Bold" TextWrapping="Wrap" />
-                          <TextBlock Name="lblBackupMeta" Text="Run a full backup to create your first restore point." Style="{StaticResource SmallTextStyle}" Margin="0,6,0,0" TextWrapping="Wrap" />
-                          <TextBlock Name="lblBackupDirectory" Text="Backup folder" Style="{StaticResource SmallTextStyle}" Margin="0,10,0,0" TextWrapping="Wrap" />
+                          <TextBlock Name="lblBackupSummary" Text="—" Style="{StaticResource SmallTextStyle}" Margin="0,8,0,0" FontWeight="Bold" TextWrapping="Wrap" />
+                          <TextBlock Name="lblBackupMeta" Text="" Style="{StaticResource SmallTextStyle}" Margin="0,6,0,0" TextWrapping="Wrap" />
+                          <TextBlock Name="lblBackupDirectory" Text="" Style="{StaticResource SmallTextStyle}" Margin="0,10,0,0" TextWrapping="Wrap" />
                         </StackPanel>
                       </Border>
                     </Grid>
@@ -258,30 +206,20 @@
             </Border>
           </TabItem>
         </TabControl>
-        <Border Background="#F8FAFC" CornerRadius="12" Padding="24" BorderBrush="{StaticResource Slate200Brush}" BorderThickness="1">
+        <Border Background="#F8FAFC" CornerRadius="12" Padding="20" BorderBrush="{StaticResource Slate200Brush}" BorderThickness="1">
           <Grid>
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="*" />
               <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <StackPanel Grid.Column="0">
-              <TextBlock Text="Current Environment" FontSize="14" FontWeight="Bold" Foreground="{StaticResource Slate900Brush}" />
-              <TextBlock Name="lblEnvironmentSummary" Text="Barangay Management System - WPF Professional Edition" Style="{StaticResource SmallLightTextStyle}" Margin="0,4,0,0" />
-              <TextBlock Name="lblBrandingSummary" Text="Barangay San Jose" Style="{StaticResource SmallLightTextStyle}" Margin="0,4,0,0" />
-              <TextBlock Name="lblConnectionSummary" Text="localhost:3306 / barangay_system / SSL disabled" Style="{StaticResource SmallLightTextStyle}" Margin="0,4,0,0" />
-              <TextBlock Name="lblConnectionModeSummary" Text="Selected profile: Localhost" Style="{StaticResource SmallLightTextStyle}" Margin="0,4,0,0" />
-              <TextBlock Name="lblLogoSummary" Text="Default logo is active." Style="{StaticResource SmallLightTextStyle}" Margin="0,4,0,0" />
-              <TextBlock Text="Branding and office settings live in system configuration. Database connection is stored separately on this device." Style="{StaticResource SmallLightTextStyle}" Margin="0,8,0,0" TextWrapping="Wrap" MaxWidth="620" />
-              <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
-                <Border Background="#E2E8F0" Padding="8,4" CornerRadius="4" Margin="0,0,8,0">
-                  <TextBlock Text="Config CRUD" FontSize="10" FontWeight="Bold" Foreground="{StaticResource Slate700Brush}" />
-                </Border>
-                <Border Background="#E2E8F0" Padding="8,4" CornerRadius="4">
-                  <TextBlock Text=".NET 8.0" FontSize="10" FontWeight="Bold" Foreground="{StaticResource Slate700Brush}" />
-                </Border>
-              </StackPanel>
+              <TextBlock Name="lblBrandingSummary" Text="" FontSize="13" FontWeight="Bold" Foreground="{StaticResource Slate900Brush}" />
+              <TextBlock Name="lblConnectionSummary" Text="" Style="{StaticResource SmallLightTextStyle}" Margin="0,4,0,0" />
+              <TextBlock Name="lblConnectionModeSummary" Text="" Style="{StaticResource SmallLightTextStyle}" Margin="0,4,0,0" />
+              <TextBlock Name="lblEnvironmentSummary" Text="" Visibility="Collapsed" />
+              <TextBlock Name="lblLogoSummary" Text="" Visibility="Collapsed" />
             </StackPanel>
-            <fa:IconBlock Grid.Column="1" Icon="CheckCircle" Foreground="#22C55E" FontSize="32" VerticalAlignment="Center" />
+            <fa:IconBlock Grid.Column="1" Icon="CheckCircle" Foreground="#22C55E" FontSize="28" VerticalAlignment="Center" />
           </Grid>
         </Border>
       </StackPanel>

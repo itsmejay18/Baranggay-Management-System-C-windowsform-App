@@ -10,7 +10,7 @@ namespace baranggaysystem1.Database;
 
 internal static class DatabaseManagerAsync
 {
-	private const int CommandTimeoutSeconds = 30;
+	private const int CommandTimeoutSeconds = 10;
 
 	public static async Task<DataTable> LoadTableAsync(string sql, Action<MySqlCommand>? configure = null, CancellationToken cancellationToken = default(CancellationToken))
 	{

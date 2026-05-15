@@ -13,11 +13,14 @@ using baranggaysystem1.helper;
 using baranggaysystem1.Models;
 using baranggaysystem1.Services;
 using baranggaysystem1.ViewModels;
+using baranggaysystem1.ViewModels.Navigation;
+using baranggaysystem1.Views.Controls;
 using baranggaysystem1.Views.Dialogs;
+using FontAwesome.Sharp;
 
 namespace baranggaysystem1.Views.Pages;
 
-public partial class CollectionsPage : UserControl
+public partial class CollectionsPage : UserControl, IRefreshable
 {
 	private enum FinanceSection
 	{
@@ -333,34 +336,73 @@ public partial class CollectionsPage : UserControl
 			case FinanceSection.Inventory:
 			{
 				InventoryItemWindow inventoryItemWindow = new InventoryItemWindow();
-				if (DialogService.Instance.ShowDialog(inventoryItemWindow).GetValueOrDefault())
+				var adapter = new DialogContentAdapter(inventoryItemWindow);
+
+				var saveButton = FullscreenToolbarHelper.CreateToolbarButton("Save Item", IconChar.Save,
+					async (s, args) =>
+					{
+						NavigationService.Instance.NavigateBackFromFullscreen("Collections", refreshOnReturn: true);
+					});
+
+				NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
 				{
-					await _financeService.SaveInventoryItemAsync(inventoryItemWindow.Draft);
-					DialogService.Instance.ShowInfo("Inventory item saved successfully.");
-					await LoadAsync();
-				}
+					Title = "New Inventory Item",
+					Subtitle = "Add a new item to the inventory",
+					OriginRoute = "Collections",
+					Content = adapter,
+					Icon = IconChar.BoxOpen,
+					ToolbarItems = new List<UIElement> { saveButton },
+					ShowSideToolbar = false,
+					OnSaved = () => RefreshData()
+				});
 				break;
 			}
 			case FinanceSection.Assets:
 			{
 				AssetRecordWindow assetRecordWindow = new AssetRecordWindow();
-				if (DialogService.Instance.ShowDialog(assetRecordWindow).GetValueOrDefault())
+				var adapter = new DialogContentAdapter(assetRecordWindow);
+
+				var saveButton = FullscreenToolbarHelper.CreateToolbarButton("Save Asset", IconChar.Save,
+					async (s, args) =>
+					{
+						NavigationService.Instance.NavigateBackFromFullscreen("Collections", refreshOnReturn: true);
+					});
+
+				NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
 				{
-					await _financeService.SaveAssetAsync(assetRecordWindow.Draft);
-					DialogService.Instance.ShowInfo("Asset record saved successfully.");
-					await LoadAsync();
-				}
+					Title = "New Asset Record",
+					Subtitle = "Register a new barangay asset",
+					OriginRoute = "Collections",
+					Content = adapter,
+					Icon = IconChar.Building,
+					ToolbarItems = new List<UIElement> { saveButton },
+					ShowSideToolbar = false,
+					OnSaved = () => RefreshData()
+				});
 				break;
 			}
 			default:
 			{
 				ExpenseEntryWindow expenseEntryWindow = new ExpenseEntryWindow();
-				if (DialogService.Instance.ShowDialog(expenseEntryWindow).GetValueOrDefault())
+				var adapter = new DialogContentAdapter(expenseEntryWindow);
+
+				var saveButton = FullscreenToolbarHelper.CreateToolbarButton("Save Expense", IconChar.Save,
+					async (s, args) =>
+					{
+						NavigationService.Instance.NavigateBackFromFullscreen("Collections", refreshOnReturn: true);
+					});
+
+				NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
 				{
-					await _financeService.SaveExpenseAsync(expenseEntryWindow.Draft);
-					DialogService.Instance.ShowInfo("Expense entry saved successfully.");
-					await LoadAsync();
-				}
+					Title = "New Expense Entry",
+					Subtitle = "Record a new expense transaction",
+					OriginRoute = "Collections",
+					Content = adapter,
+					Icon = IconChar.Receipt,
+					ToolbarItems = new List<UIElement> { saveButton },
+					ShowSideToolbar = false,
+					OnSaved = () => RefreshData()
+				});
 				break;
 			}
 			}
@@ -386,34 +428,73 @@ public partial class CollectionsPage : UserControl
 			case FinanceSection.Inventory:
 			{
 				InventoryItemWindow inventoryItemWindow = new InventoryItemWindow(ToInventoryRecord(row));
-				if (DialogService.Instance.ShowDialog(inventoryItemWindow).GetValueOrDefault())
+				var adapter = new DialogContentAdapter(inventoryItemWindow);
+
+				var saveButton = FullscreenToolbarHelper.CreateToolbarButton("Save Changes", IconChar.Save,
+					async (s, args) =>
+					{
+						NavigationService.Instance.NavigateBackFromFullscreen("Collections", refreshOnReturn: true);
+					});
+
+				NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
 				{
-					await _financeService.SaveInventoryItemAsync(inventoryItemWindow.Draft);
-					DialogService.Instance.ShowInfo("Inventory item updated successfully.");
-					await LoadAsync();
-				}
+					Title = "Edit Inventory Item",
+					Subtitle = "Update item details",
+					OriginRoute = "Collections",
+					Content = adapter,
+					Icon = IconChar.Edit,
+					ToolbarItems = new List<UIElement> { saveButton },
+					ShowSideToolbar = false,
+					OnSaved = () => RefreshData()
+				});
 				break;
 			}
 			case FinanceSection.Assets:
 			{
 				AssetRecordWindow assetRecordWindow = new AssetRecordWindow(ToAssetRecord(row));
-				if (DialogService.Instance.ShowDialog(assetRecordWindow).GetValueOrDefault())
+				var adapter = new DialogContentAdapter(assetRecordWindow);
+
+				var saveButton = FullscreenToolbarHelper.CreateToolbarButton("Save Changes", IconChar.Save,
+					async (s, args) =>
+					{
+						NavigationService.Instance.NavigateBackFromFullscreen("Collections", refreshOnReturn: true);
+					});
+
+				NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
 				{
-					await _financeService.SaveAssetAsync(assetRecordWindow.Draft);
-					DialogService.Instance.ShowInfo("Asset record updated successfully.");
-					await LoadAsync();
-				}
+					Title = "Edit Asset Record",
+					Subtitle = "Update asset details",
+					OriginRoute = "Collections",
+					Content = adapter,
+					Icon = IconChar.Edit,
+					ToolbarItems = new List<UIElement> { saveButton },
+					ShowSideToolbar = false,
+					OnSaved = () => RefreshData()
+				});
 				break;
 			}
 			default:
 			{
 				ExpenseEntryWindow expenseEntryWindow = new ExpenseEntryWindow(ToExpenseRecord(row));
-				if (DialogService.Instance.ShowDialog(expenseEntryWindow).GetValueOrDefault())
+				var adapter = new DialogContentAdapter(expenseEntryWindow);
+
+				var saveButton = FullscreenToolbarHelper.CreateToolbarButton("Save Changes", IconChar.Save,
+					async (s, args) =>
+					{
+						NavigationService.Instance.NavigateBackFromFullscreen("Collections", refreshOnReturn: true);
+					});
+
+				NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
 				{
-					await _financeService.SaveExpenseAsync(expenseEntryWindow.Draft);
-					DialogService.Instance.ShowInfo("Expense entry updated successfully.");
-					await LoadAsync();
-				}
+					Title = "Edit Expense Entry",
+					Subtitle = "Update expense details",
+					OriginRoute = "Collections",
+					Content = adapter,
+					Icon = IconChar.Edit,
+					ToolbarItems = new List<UIElement> { saveButton },
+					ShowSideToolbar = false,
+					OnSaved = () => RefreshData()
+				});
 				break;
 			}
 			}
@@ -752,4 +833,17 @@ public partial class CollectionsPage : UserControl
 			LifecycleStatus = (Convert.ToString(row["lifecycle_status"]) ?? "ACTIVE"),
 			Notes = (Convert.ToString(row["notes"]) ?? string.Empty)
 		};
-	}}
+	}
+
+	#region IRefreshable Implementation
+
+	/// <summary>
+	/// Refreshes the page data after returning from a fullscreen view.
+	/// </summary>
+	public void RefreshData()
+	{
+		_ = LoadAsync();
+	}
+
+	#endregion
+}

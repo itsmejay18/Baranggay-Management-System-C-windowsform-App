@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
@@ -12,11 +13,14 @@ using baranggaysystem1.helper;
 using baranggaysystem1.Models;
 using baranggaysystem1.Services;
 using baranggaysystem1.ViewModels;
+using baranggaysystem1.ViewModels.Navigation;
+using baranggaysystem1.Views.Controls;
 using baranggaysystem1.Views.Dialogs;
+using FontAwesome.Sharp;
 
 namespace baranggaysystem1.Views.Pages;
 
-public partial class StaffManagementPage : UserControl
+public partial class StaffManagementPage : UserControl, IRefreshable
 {
 	private DataTable? _data;
 
@@ -164,10 +168,25 @@ public partial class StaffManagementPage : UserControl
 		int targetUserId = ((dataRowView["id"] != DBNull.Value) ? Convert.ToInt32(dataRowView["id"]) : 0);
 		string targetUsername = dataRowView["username"]?.ToString() ?? "Unknown";
 		UpdateUserWindow window = new UpdateUserWindow(targetUserId, targetUsername);
-		if (DialogService.Instance.ShowDialog(window).GetValueOrDefault())
+		var adapter = new DialogContentAdapter(window);
+
+		var saveButton = FullscreenToolbarHelper.CreateToolbarButton("Update Password", IconChar.Save,
+			(s, args) =>
+			{
+				NavigationService.Instance.NavigateBackFromFullscreen("StaffUsers", refreshOnReturn: true);
+			});
+
+		NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
 		{
-			LoadAsync();
-		}
+			Title = $"Reset Password - {targetUsername}",
+			Subtitle = "Update user credentials",
+			OriginRoute = "StaffUsers",
+			Content = adapter,
+			Icon = IconChar.Key,
+			ToolbarItems = new List<UIElement> { saveButton },
+			ShowSideToolbar = false,
+			OnSaved = () => RefreshData()
+		});
 	}
 
 	private void BtnEdit_Click(object sender, RoutedEventArgs e)
@@ -181,18 +200,62 @@ public partial class StaffManagementPage : UserControl
 				RoleName = (dataRowView["role"]?.ToString() ?? "Standard"),
 				IsActive = (!(dataRowView["is_active"] is bool flag) || flag)
 			});
-			if (DialogService.Instance.ShowDialog(window).GetValueOrDefault())
+			var adapter = new DialogContentAdapter(window);
+
+			var saveButton = FullscreenToolbarHelper.CreateToolbarButton("Save Changes", IconChar.Save,
+				(s, args) =>
+				{
+					NavigationService.Instance.NavigateBackFromFullscreen("StaffUsers", refreshOnReturn: true);
+				});
+
+			string staffName = dataRowView["full_name"]?.ToString() ?? "Staff";
+			NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
 			{
-				LoadAsync();
-			}
+				Title = $"Edit Staff - {staffName}",
+				Subtitle = "Update staff profile details",
+				OriginRoute = "StaffUsers",
+				Content = adapter,
+				Icon = IconChar.UserEdit,
+				ToolbarItems = new List<UIElement> { saveButton },
+				ShowSideToolbar = false,
+				OnSaved = () => RefreshData()
+			});
 		}
 	}
 
 	private void BtnAdd_Click(object sender, RoutedEventArgs e)
 	{
 		StaffDetailsWindow window = new StaffDetailsWindow();
-		if (DialogService.Instance.ShowDialog(window).GetValueOrDefault())
+		var adapter = new DialogContentAdapter(window);
+
+		var saveButton = FullscreenToolbarHelper.CreateToolbarButton("Create Staff", IconChar.Save,
+			(s, args) =>
+			{
+				NavigationService.Instance.NavigateBackFromFullscreen("StaffUsers", refreshOnReturn: true);
+			});
+
+		NavigationService.Instance.NavigateToFullscreen(new FullscreenViewConfig
 		{
-			LoadAsync();
-		}
-	}}
+			Title = "Add New Staff",
+			Subtitle = "Register a new staff user account",
+			OriginRoute = "StaffUsers",
+			Content = adapter,
+			Icon = IconChar.UserPlus,
+			ToolbarItems = new List<UIElement> { saveButton },
+			ShowSideToolbar = false,
+			OnSaved = () => RefreshData()
+		});
+	}
+
+	#region IRefreshable Implementation
+
+	/// <summary>
+	/// Refreshes the page data after returning from a fullscreen view.
+	/// </summary>
+	public void RefreshData()
+	{
+		_ = LoadAsync();
+	}
+
+	#endregion
+}
